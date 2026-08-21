@@ -1,0 +1,69 @@
+# Automation Testing OPEL
+
+Automation Selenium untuk aplikasi **OPEL** di `https://dev-opel.antm.tech/`
+(diadaptasi dari project NewDLA).
+
+## Yang beda dari NewDLA
+
+| Aspek | NewDLA | OPEL |
+|---|---|---|
+| Login | Google SSO | **Auto-auth di DEV** (cookie ASP.NET langsung diterbitkan, 1 redirect ke `/My/Dashboard`). Form Azure AD B2C tidak pernah muncul di DEV -- locator B2C hanya cadangan deteksi |
+| Framework front-end | ExtJS | **SmartAdmin (Bootstrap 4) + jQuery + DataTables** (`table.reportData.dataTable`) |
+| Modul teruji | 14 modul lengkap | Login + **HSS Safety (19 halaman)** |
+
+## Struktur folder
+
+- `config/config.py` — BASE_URL, CHROME_PROFILE_PATH, timeout (override lewat env `OPEL_*`)
+- `pages/base_page.py` — helper Selenium generic (klik, ketik, tunggu elemen, screenshot)
+- `pages/login_page.py` — alur login + topbar (avatar, notifikasi, logout)
+- `pages/hss_safety_page.py` — locator umum halaman Safety (toolbar, tabel, tab, modal)
+- `pages/safety_*_page.py` — **19 page object**, satu per sub-halaman Safety
+- `tests/test_e2e_opel.py` — `test_login`
+- `tests/test_safety.py` — test smoke SEMUA halaman Safety + modal Import
+- `locators/login.md`, `locators/hss_safety.md` — dokumentasi locator hasil scan
+- `reports/scan/` — hasil scan mentah per halaman (md/json/png)
+- `tools/` — scanner & helper eksplorasi (lihat bawah)
+
+## Tools eksplorasi (scan locator)
+
+Pola NewDLA: Chrome dibuka manual dengan remote debugging, lalu
+scanner menempel ke sesi yang sama:
+
+1. Tutup semua Chrome, lalu buka:
+   `chrome.exe --remote-debugging-port=9222 --user-data-dir="D:\selenium-chrome-profile-opel"`
+2. Login manual sekali ke OPEL (kalau diminta).
+3. Jalankan scanner:
+   - `python tools/scan_locators_opel.py --name <nama>` — scan halaman aktif
+   - `python tools/scan_safety_batch.py` — scan ulang SEMUA 19 halaman Safety
+   - `python tools/locator.py` — ringkasan ID stabil per halaman
+   - `python tools/generate_safety_pages.py` — regenerate page object dari hasil scan
+   - `python tools/opel_drive.py` — helper navigasi interaktif (eksplorasi)
+
+## Menjalankan test
+
+```bash
+pip install -r requirements.txt
+pytest                          # seluruh alur
+pytest -k safety                # hanya modul Safety
+pytest -k safety_smk3           # satu halaman saja
+pytest -m safety_view           # hanya halaman view/reporting
+```
+
+## Catatan hasil scan (2026-08-20, v2.6.7)
+
+- **Kolom tabel paling stabil**: `th[data-name='...']` (1:1 dengan backend) --
+  daftar lengkap di dict `KOLOM` tiap `pages/safety_*_page.py`.
+- **Modal Import** punya id stabil (`#modalImport`, `#linkDownloadTemplate`,
+  `#imgFileImport`, `#btnImport`).
+- **Modal Create with Form** id-nya auto-generate (`input_NNNNN`) --
+  field dicari lewat teks label (helper `isi_field_modal()`).
+- **Navigasi cepat antar halaman** kadang bikin SPA stuck di loading
+  overlay -- `buka_halaman()` sudah retry 1x + LONG_TIMEOUT 60s.
+- Detail lengkap: `locators/hss_safety.md` dan `locators/login.md`.
+
+## Langkah selanjutnya
+
+1. Jalankan `pytest -k safety` untuk memvalidasi semua page object.
+2. Lengkapi test aksi (Create/Import/Export) per halaman sesuai
+   `TestCase Web OPEL SAFETY.xlsx`.
+3. Isi data uji riil di `data/test_data.json` untuk test negatif/positif.

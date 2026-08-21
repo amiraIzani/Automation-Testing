@@ -1,0 +1,159 @@
+{
+  "kunci": "witness_statement_report",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1336",
+  "waktu": "2026-08-21 08:59:44",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "No. Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jenis Saksi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nama Saksi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "NIK",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nomor ID",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jabatan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Perusahaan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Departemen/Divisi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tempat Tanggal Lahir",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Umur",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jenis Kelamin",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lamanya Bekerja pada Jabatan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Pengalaman Bekerja",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tupoksi (Job Desk)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lokasi Kerja",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Giliran/Shift",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Alamat yang Dapat Dihubungi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nama Pengawas Langsung",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Hari/Tanggal Kejadian",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tanggal/Waktu Wawancara",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nomor Urut Wawancara",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Ringkasan Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Keterangan Ringkas mengenai Incident/Accident",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kondisi Kesehatan Saksi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tempat Pernyataan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tanggal Pernyataan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Pewawancara / Peminta Keterangan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "NIK Pewawancara",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jabatan Pewawancara",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lampiran Tanda Tangan",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": []
+}

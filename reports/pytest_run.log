@@ -1,0 +1,191 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\user\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.2', 'Platform': 'Windows-11-10.0.26200-SP0', 'Packages': {'pytest': '9.1.1', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.2.0', 'metadata': '3.1.1'}}
+rootdir: D:\Magang\ANTAM\opel-automation
+configfile: pytest.ini
+testpaths: tests
+plugins: html-4.2.0, metadata-3.1.1
+collecting ... collected 23 items
+
+tests/test_e2e_opel.py::TestE2EOpelFlow::test_login 
+V [Login] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_menu_dan_landing 
+X [Safety - Navigasi Menu] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_menu_dan_landing_20260820_161426.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/My/Dashboard
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_indicator_view 
+V [Safety - Lagging Indicator (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_golden_rules_recap_view 
+V [Safety - Golden Rules Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_emergency_drill_recap_view 
+V [Safety - Emergency Drill Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_mwt_recapitulation_view 
+V [Safety - MWT Recapitulation (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_recap_view 
+V [Safety - Safety Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_incident_investigation_view 
+V [Safety - Incident Investigation Form] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_incident_investigation_tab 
+V [Safety - Incident Investigation (Tab)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_initial_incident_view 
+V [Safety - Initial Incident/Accident Report] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_witness_statement_view 
+V [Safety - Witness Statement Report] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_emergency_drill_daily_view 
+V [Safety - Emergency Drill Daily] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_view 
+V [Safety - Master Alat Keselamatan Operasi] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_soc_recapitulation_view 
+V [Safety - SOC Recapitulation] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_golden_rules_view 
+V [Safety - Golden Rules] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_data_rekap_k3_view 
+V [Safety - Data Rekap Statistik K3] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_kkp_p2k3_view 
+V [Safety - SAFETY/KKP/P2K3 Committee Meeting] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_mwt_daily_view 
+V [Safety - MWT Daily] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_indicator_view 
+V [Safety - Leading Indicator] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_statistic_safety_view 
+V [Safety - Statistic Safety Recapitulation] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_smk3_view 
+V [Safety - SMK3] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_smkp_view 
+V [Safety - SMKP] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_import_modal 
+X [Safety - Modal Import] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_import_modal_20260820_161459.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1308
+FAILED
+========================================
+       AUTOMATION TESTING RESULT
+========================================
+
+V [Login] berhasil
+X [Safety - Navigasi Menu] GAGAL
+V [Safety - Lagging Indicator (View)] berhasil
+V [Safety - Golden Rules Recap (View)] berhasil
+V [Safety - Emergency Drill Recap (View)] berhasil
+V [Safety - MWT Recapitulation (View)] berhasil
+V [Safety - Safety Recap (View)] berhasil
+V [Safety - Incident Investigation Form] berhasil
+V [Safety - Incident Investigation (Tab)] berhasil
+V [Safety - Initial Incident/Accident Report] berhasil
+V [Safety - Witness Statement Report] berhasil
+V [Safety - Emergency Drill Daily] berhasil
+V [Safety - Master Alat Keselamatan Operasi] berhasil
+V [Safety - SOC Recapitulation] berhasil
+V [Safety - Golden Rules] berhasil
+V [Safety - Data Rekap Statistik K3] berhasil
+V [Safety - SAFETY/KKP/P2K3 Committee Meeting] berhasil
+V [Safety - MWT Daily] berhasil
+V [Safety - Leading Indicator] berhasil
+V [Safety - Statistic Safety Recapitulation] berhasil
+V [Safety - SMK3] berhasil
+V [Safety - SMKP] berhasil
+X [Safety - Modal Import] GAGAL
+
+========================================
+TOTAL TEST : 23
+PASSED     : 21
+FAILED     : 2
+STATUS     : FAILED
+========================================
+
+
+================================== FAILURES ===================================
+_________________ TestSafetyHss.test_safety_menu_dan_landing __________________
+
+self = <tests.test_safety.TestSafetyHss object at 0x000001F7AF431F90>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="089e0993e1cd3b94bf6f8e183de232ee")>
+
+    @pytest.mark.safety
+    def test_safety_menu_dan_landing(self, driver):
+        """Klik menu sidebar HSS lalu submenu Safety -- pastikan submenu
+        Reporting & Transaction tampil (landing halaman terakhir)."""
+        from pages.hss_safety_page import HssSafetyPage
+    
+        page = HssSafetyPage(driver)
+>       page.buka_menu_hss_safety()
+
+tests\test_safety.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\hss_safety_page.py:212: in buka_menu_hss_safety
+    self.click_visible_among(self.MENU_SAFETY)
+pages\base_page.py:124: in click_visible_among
+    element = self.find_visible_among(locator, timeout=timeout)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pages.hss_safety_page.HssSafetyPage object at 0x000001F7AF3FA900>
+locator = ('xpath', "//span[normalize-space(text())='Safety']"), timeout = None
+
+    def find_visible_among(self, locator, timeout=None):
+        """Ambil elemen PERTAMA yang benar2 TAMPIL dari locator yang
+        match banyak elemen (yang lain hidden di DOM)."""
+        elements = self._wait(timeout).until(
+            EC.presence_of_all_elements_located(locator)
+        )
+        for element in elements:
+            try:
+                if element.is_displayed():
+                    return element
+            except StaleElementReferenceException:
+                continue
+>       raise TimeoutException(
+            f"Tidak ada elemen yang benar-benar tampil untuk locator: {locator}"
+        )
+E       selenium.common.exceptions.TimeoutException: Message: Tidak ada elemen yang benar-benar tampil untuk locator: ('xpath', "//span[normalize-space(text())='Safety']")
+
+pages\base_page.py:76: TimeoutException
+___________________ TestSafetyHss.test_safety_import_modal ____________________
+
+self = <tests.test_safety.TestSafetyHss object at 0x000001F7AF4F5D50>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="089e0993e1cd3b94bf6f8e183de232ee")>
+
+    @pytest.mark.safety_transaction
+    def test_safety_import_modal(self, driver):
+        page = SafetySmk3Page(driver).buka()
+        page.click(page.BTN_IMPORT)
+        assert page.is_visible(page.MODAL_IMPORT), "Modal Import tidak terbuka"
+        assert page.is_visible(page.LINK_DOWNLOAD_TEMPLATE), "Link Download Template tidak ada"
+>       assert page.is_visible(page.INPUT_FILE_IMPORT), "Input file import tidak ada"
+E       AssertionError: Input file import tidak ada
+E       assert False
+E        +  where False = is_visible(('id', 'imgFileImport'))
+E        +    where is_visible = <pages.safety_smk3_page.SafetySmk3Page object at 0x000001F7AF433390>.is_visible
+E        +    and   ('id', 'imgFileImport') = <pages.safety_smk3_page.SafetySmk3Page object at 0x000001F7AF433390>.INPUT_FILE_IMPORT
+
+tests\test_safety.py:186: AssertionError
+- Generated html report: file:///D:/Magang/ANTAM/opel-automation/reports/report.html -
+=========================== short test summary info ===========================
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_menu_dan_landing - se...
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_import_modal - Assert...
+======================== 2 failed, 21 passed in 45.21s ========================
+EXIT: 1

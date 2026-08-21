@@ -1,0 +1,38 @@
+{
+  "incident_investigation_form": {
+    "field_tampil": 96,
+    "tab": []
+  },
+  "initial_incident_accident_report": {
+    "field_tampil": 22,
+    "tab": []
+  },
+  "witness_statement_report": {
+    "field_tampil": 30,
+    "tab": []
+  },
+  "emergency_drill_daily": {
+    "field_tampil": 5,
+    "tab": []
+  },
+  "master_alat_keselamatan_operasi": {
+    "field_tampil": 4,
+    "tab": []
+  },
+  "soc_recapitulation": {
+    "field_tampil": 11,
+    "tab": []
+  },
+  "golden_rules": {
+    "field_tampil": 9,
+    "tab": []
+  },
+  "safety_kkp_p2k3_committee_meeting": {
+    "field_tampil": 12,
+    "tab": []
+  },
+  "mwt_daily": {
+    "field_tampil": 9,
+    "tab": []
+  }
+}

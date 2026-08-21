@@ -1,0 +1,119 @@
+{
+  "kunci": "initial_incident_accident_report",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1335",
+  "waktu": "2026-08-21 08:59:41",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "No. Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nama",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jabatan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Dept/Perusahaan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Umur",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Masa Kerja",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Alamat",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "No. Unit",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lokasi Kejadian",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tanggal Kejadian",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Pukul",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Shift",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kerusakan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Cidera",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kronologis Kejadian",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Photo Dokumen / Sketsa Lokasi Kejadian",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tanggal Pelaporan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Selisih Hari Pelaporan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Yang Membuat Keterangan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Dilaporkan Oleh",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Diperiksa Oleh",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Diketahui Oleh",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": []
+}

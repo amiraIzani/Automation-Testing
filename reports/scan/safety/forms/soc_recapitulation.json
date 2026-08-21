@@ -1,0 +1,66 @@
+{
+  "kunci": "soc_recapitulation",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1310",
+  "waktu": "2026-08-21 08:59:50",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "No",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Month",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Month Int",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Category",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "ID",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Level",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Name",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Description",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Location",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Status",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Company ID",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": [
+    "Finding Id"
+  ]
+}

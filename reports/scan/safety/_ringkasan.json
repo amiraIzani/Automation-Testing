@@ -1,0 +1,192 @@
+[
+  {
+    "no": 1,
+    "menu": "Lagging Indicator",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/View?Id=1306",
+    "kategori": "reporting",
+    "elemen": 139,
+    "link": 43,
+    "title": "Transaction - Timesheet - Monthly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 2,
+    "menu": "GOLDEN RULES RECAP",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/View?Id=1324",
+    "kategori": "reporting",
+    "elemen": 350,
+    "link": 43,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 3,
+    "menu": "EMERGENCY DRILL Recap",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/View?Id=1325",
+    "kategori": "reporting",
+    "elemen": 58,
+    "link": 43,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 4,
+    "menu": "MWT RECAPITULATION",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/View?Id=1323",
+    "kategori": "reporting",
+    "elemen": 405,
+    "link": 79,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 5,
+    "menu": "Safety Recap.",
+    "url": "https://dev-opel.antm.tech/Reporting/Supersafe/HSSE/ReportingSafetyRecap",
+    "kategori": "reporting",
+    "elemen": 101,
+    "link": 42,
+    "title": "HSS - Safety - Reporting - Safety Recap. - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 6,
+    "menu": "Incident Investigation Form",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334",
+    "kategori": "leading",
+    "elemen": 182,
+    "link": 55,
+    "title": "Transaction - Timesheet - Daily Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 7,
+    "menu": "Initial Incident/Accident Report",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1335",
+    "kategori": "leading",
+    "elemen": 71,
+    "link": 43,
+    "title": "Transaction - Timesheet - Daily Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 8,
+    "menu": "Witness Statement Report",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1336",
+    "kategori": "leading",
+    "elemen": 80,
+    "link": 45,
+    "title": "Transaction - Timesheet - Daily Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 9,
+    "menu": "EMERGENCY DRILL Daily",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1319",
+    "kategori": "leading",
+    "elemen": 137,
+    "link": 43,
+    "title": "Transaction - Timesheet - Monthly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 10,
+    "menu": "Master Alat keselamatan Operasi",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321",
+    "kategori": "leading",
+    "elemen": 71,
+    "link": 43,
+    "title": "Transaction - Timesheet - Static Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 11,
+    "menu": "SOC RECAPITULATION",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1310",
+    "kategori": "leading",
+    "elemen": 190,
+    "link": 43,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 12,
+    "menu": "GOLDEN RULES",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1316",
+    "kategori": "leading",
+    "elemen": 387,
+    "link": 73,
+    "title": "Transaction - Timesheet - Monthly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 13,
+    "menu": "Data Rekap Statistik K3",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1315",
+    "kategori": "leading",
+    "elemen": 100,
+    "link": 49,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 14,
+    "menu": "SAFETY KKP P2K3 COMMITTEE MEETING",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1313",
+    "kategori": "leading",
+    "elemen": 88,
+    "link": 43,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 15,
+    "menu": "MWT DAILY",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1312",
+    "kategori": "leading",
+    "elemen": 386,
+    "link": 73,
+    "title": "Transaction - Timesheet - Monthly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 16,
+    "menu": "Leading Indicator",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1309",
+    "kategori": "leading",
+    "elemen": 343,
+    "link": 41,
+    "title": "Transaction - Timesheet - Static Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 17,
+    "menu": "Statistic Safety Recapitulation",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1317",
+    "kategori": "lagging",
+    "elemen": 645,
+    "link": 43,
+    "title": "Transaction - Timesheet - Monthly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 18,
+    "menu": "SMK3",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1308",
+    "kategori": "lagging",
+    "elemen": 591,
+    "link": 43,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  },
+  {
+    "no": 19,
+    "menu": "SMKP",
+    "url": "https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1307",
+    "kategori": "lagging",
+    "elemen": 227,
+    "link": 43,
+    "title": "Transaction - Timesheet - Yearly Input - OPEL Apps (DEV) - v(2.6.7)",
+    "status": "ok"
+  }
+]

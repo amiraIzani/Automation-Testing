@@ -1,0 +1,34 @@
+{
+  "kunci": "emergency_drill_daily",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1319",
+  "waktu": "2026-08-21 08:59:46",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "Tanggal",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jenis Simulasi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Ringkasan Skenario",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lesson Learned",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Followup Plan",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": []
+}

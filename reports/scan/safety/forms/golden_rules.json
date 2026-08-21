@@ -1,0 +1,54 @@
+{
+  "kunci": "golden_rules",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1316",
+  "waktu": "2026-08-21 08:59:53",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "Date",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "ID",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Name",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Golden Rules/ Critical Control Verification",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Location",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Compliance Score",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Temporary Stop Working",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "All NC Followed Up",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Photo",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": []
+}

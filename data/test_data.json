@@ -1,0 +1,49 @@
+{
+  "_catatan": "Data uji terpusat di sini, dimuat lewat fixture test_data (conftest.py). Nilai di bawah adalah hasil scan website OPEL 2026-08-20 (v2.6.7).",
+
+  "user": {
+    "nama": "Zahra Tsuroyya Poetri",
+    "email": "poetri4y@gmail.com",
+    "role": "Super Admin"
+  },
+
+  "hss_safety": {
+    "menu": ["HSS", "Safety"],
+    "filter_unit_default": "[AT10] KANTOR PUSAT",
+    "filter_bulan": "2026-08",
+    "filter_tahun": "2026",
+    "master_alat": {
+      "equipment_prefix": "AUTO-TEST-"
+    },
+    "halaman": {
+      "lagging_indicator": "Reporting/Timesheet/MonthlyReport/View?Id=1306",
+      "golden_rules_recap": "Reporting/Timesheet/YearlyReport/View?Id=1324",
+      "emergency_drill_recap": "Reporting/Timesheet/YearlyReport/View?Id=1325",
+      "mwt_recapitulation": "Reporting/Timesheet/YearlyReport/View?Id=1323",
+      "safety_recap": "Reporting/Supersafe/HSSE/ReportingSafetyRecap",
+      "incident_investigation_form": "Reporting/Timesheet/DailyReport/Edit?Id=1334",
+      "initial_incident_accident_report": "Reporting/Timesheet/DailyReport/Edit?Id=1335",
+      "witness_statement_report": "Reporting/Timesheet/DailyReport/Edit?Id=1336",
+      "emergency_drill_daily": "Reporting/Timesheet/MonthlyReport/Edit?Id=1319",
+      "master_alat_keselamatan_operasi": "Reporting/Timesheet/StaticReport/Edit?Id=1321",
+      "soc_recapitulation": "Reporting/Timesheet/YearlyReport/Edit?Id=1310",
+      "golden_rules": "Reporting/Timesheet/MonthlyReport/Edit?Id=1316",
+      "data_rekap_statistik_k3": "Reporting/Timesheet/YearlyReport/Edit?Id=1315",
+      "safety_kkp_p2k3_committee_meeting": "Reporting/Timesheet/YearlyReport/Edit?Id=1313",
+      "mwt_daily": "Reporting/Timesheet/MonthlyReport/Edit?Id=1312",
+      "leading_indicator": "Reporting/Timesheet/StaticReport/Edit?Id=1309",
+      "statistic_safety_recapitulation": "Reporting/Timesheet/MonthlyReport/Edit?Id=1317",
+      "smk3": "Reporting/Timesheet/YearlyReport/Edit?Id=1308",
+      "smkp": "Reporting/Timesheet/YearlyReport/Edit?Id=1307"
+    },
+    "tab_incident_investigation": [
+      "Data Insiden",
+      "Data Korban",
+      "Fakta & Analisis Penyebab",
+      "Kesimpulan & Usulan Investigasi",
+      "Rekomendasi & Tindakan Perbaikan",
+      "Saksi & Tim Investigasi"
+    ],
+    "tab_data_rekap_statistik_k3": ["Frequency Rate", "Severity Rate", "TRIR", "Fatality Rate"]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "kunci": "master_alat_keselamatan_operasi",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321",
+  "waktu": "2026-08-21 08:59:48",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "Equipment No",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "hidden"
+      },
+      "label": "Location",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "hidden"
+      },
+      "label": "Type",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Capacity",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": []
+}

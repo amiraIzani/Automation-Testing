@@ -1,0 +1,654 @@
+{
+  "kunci": "incident_investigation_form",
+  "url": "https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334",
+  "waktu": "2026-08-21 08:59:39",
+  "tab_modal": [],
+  "field_tampil": [
+    {
+      "field": null,
+      "label": "No. Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Divisi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "No. Urut Buku Daftar Kecelakaan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Penggolongan Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tingkat Keparahan",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Nearmiss",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nearmiss",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nearmiss Dilanjutkan Investigasi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Penjelasan Jika Investigasi Nearmiss Tidak Dilakukan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kategori Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Hari",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tanggal",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jam",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Shift",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lokasi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Alat-alat yang Terlibat",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Akibat Insiden",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Perkiraan Hari Kerja Hilang",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Perkiraan Biaya Langsung",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Perkiraan Biaya Tak Langsung",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Total Biaya",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lampiran Biaya",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terjatuh",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terjatuh",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Tergilas",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tergilas",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terpukul",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terpukul",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terjepit",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terjepit",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Tertusuk",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tertusuk",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terbentur",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terbentur",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terpotong",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terpotong",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Tergigit",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tergigit",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Tertimbun",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tertimbun",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terpeleset / Tergelincir",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terpeleset / Tergelincir",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terbakar",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terbakar",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Tenggelam",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tenggelam",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Keracunan (Makanan, Gas dan Sebagainya)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Keracunan (Makanan, Gas dan Sebagainya)",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Kemasukan Benda",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kemasukan Benda",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Kejatuhan Benda",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kejatuhan Benda",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Suhu Ekstrim (Panas/Dingin)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Suhu Ekstrim (Panas/Dingin)",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Tersengat Arus Listrik",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Tersengat Arus Listrik",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Terpapar / Terkena (Iklim Kerja, Getaran, Radiasi, Kebisingan, Pencahayaan, Zat Kimia, dsb)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Terpapar / Terkena (Iklim Kerja, Getaran, Radiasi, Kebisingan, Pencahayaan, Zat Kimia, dsb)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Jenis Insiden Lain-lain, sebutkan",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Permesinan Portable",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Permesinan Portable",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Alat Angkut Orang (Manlift)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Alat Angkut Orang (Manlift)",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Pesawat Angkat Angkut",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Pesawat Angkat Angkut",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Api Terbuka",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Api Terbuka",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Alat Angkat dan Angkut",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Alat Angkat dan Angkut",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Alat Muat/Gali/Angkut Bahan Galian",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Alat Muat/Gali/Angkut Bahan Galian",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Kendaraan Angkutan Orang",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Kendaraan Angkutan Orang",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Gas Beracun dan B3",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Gas Beracun dan B3",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Peralatan/Fasilitas Statis",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Peralatan/Fasilitas Statis",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Pesawat Tenaga dan Produksi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Pesawat Tenaga dan Produksi",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Bahan/Alat Peledak",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Bahan/Alat Peledak",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Perkakas Bengkel/Tambang Manual",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Perkakas Bengkel/Tambang Manual",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Faktor Lingkungan (Iklim Kerja, Getaran, Pencahayaan, Radiasi, Kebisingan, Debu, dsb)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Faktor Lingkungan (Iklim Kerja, Getaran, Pencahayaan, Radiasi, Kebisingan, Debu, dsb)",
+      "tampil": true
+    },
+    {
+      "field": {
+        "placeholder": "",
+        "required": false,
+        "tag": "INPUT",
+        "type": "checkbox"
+      },
+      "label": "Perkakas Bengkel/Tambang Otomatis (Digerakkan Mesin/Listrik)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Perkakas Bengkel/Tambang Otomatis (Digerakkan Mesin/Listrik)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Sumber Insiden Lain-lain, sebutkan",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Urutan Kejadian (Kronologi)",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Lampiran Sketsa/Gambar",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Insiden Didaftarkan pada Tanggal",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Nama HSE PT ANTAM",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Diketahui - OHS Manager",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Diketahui - AM/Manager Terkait",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Diketahui - Pimpinan Tim Investigasi",
+      "tampil": true
+    },
+    {
+      "field": null,
+      "label": "Disetujui - KTT/WKTT/GM",
+      "tampil": true
+    }
+  ],
+  "field_tersembunyi": []
+}
