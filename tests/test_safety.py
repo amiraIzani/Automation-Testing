@@ -39,6 +39,68 @@ from pages.safety_leading_indicator_page import SafetyLeadingIndicatorPage
 from pages.safety_statistic_safety_recapitulation_page import SafetyStatisticSafetyRecapitulationPage
 from pages.safety_smk3_page import SafetySmk3Page
 from pages.safety_smkp_page import SafetySmkpPage
+from pages.hss_safety_page import HssSafetyPage
+
+
+# ------------------------------------------------------------------
+# Factory halaman: kunci -> kelas page object. Dipakai test toolbar
+# tombol supaya tiap halaman dibuka lewat buka() miliknya sendiri
+# (Safety Recap punya alur buka custom, bukan table.reportData).
+# ------------------------------------------------------------------
+PAGE_OBJECTS = {
+    "lagging_indicator": SafetyLaggingIndicatorPage,
+    "golden_rules_recap": SafetyGoldenRulesRecapPage,
+    "emergency_drill_recap": SafetyEmergencyDrillRecapPage,
+    "mwt_recapitulation": SafetyMwtRecapitulationPage,
+    "safety_recap": SafetyRecapPage,
+    "incident_investigation_form": SafetyIncidentInvestigationFormPage,
+    "initial_incident_accident_report": SafetyInitialIncidentAccidentReportPage,
+    "witness_statement_report": SafetyWitnessStatementReportPage,
+    "emergency_drill_daily": SafetyEmergencyDrillDailyPage,
+    "master_alat_keselamatan_operasi": SafetyMasterAlatKeselamatanOperasiPage,
+    "soc_recapitulation": SafetySocRecapitulationPage,
+    "golden_rules": SafetyGoldenRulesPage,
+    "data_rekap_statistik_k3": SafetyDataRekapStatistikK3Page,
+    "safety_kkp_p2k3_committee_meeting": SafetyKkpP2k3CommitteeMeetingPage,
+    "mwt_daily": SafetyMwtDailyPage,
+    "leading_indicator": SafetyLeadingIndicatorPage,
+    "statistic_safety_recapitulation": SafetyStatisticSafetyRecapitulationPage,
+    "smk3": SafetySmk3Page,
+    "smkp": SafetySmkpPage,
+}
+
+# Nama menu untuk id parametrize yang bisa dibaca (dipakai label hasil).
+NAMA_HALAMAN = {
+    "lagging_indicator": "Lagging Indicator",
+    "golden_rules_recap": "Golden Rules Recap",
+    "emergency_drill_recap": "Emergency Drill Recap",
+    "mwt_recapitulation": "MWT Recapitulation",
+    "safety_recap": "Safety Recap",
+    "incident_investigation_form": "Incident Investigation",
+    "initial_incident_accident_report": "Initial Incident/Accident",
+    "witness_statement_report": "Witness Statement",
+    "emergency_drill_daily": "Emergency Drill Daily",
+    "master_alat_keselamatan_operasi": "Master Alat Keselamatan",
+    "soc_recapitulation": "SOC Recapitulation",
+    "golden_rules": "Golden Rules",
+    "data_rekap_statistik_k3": "Data Rekap Statistik K3",
+    "safety_kkp_p2k3_committee_meeting": "KKP/P2K3 Committee Meeting",
+    "mwt_daily": "MWT Daily",
+    "leading_indicator": "Leading Indicator",
+    "statistic_safety_recapitulation": "Statistic Safety Recap",
+    "smk3": "SMK3",
+    "smkp": "SMKP",
+}
+
+
+def _buka_halaman(driver, kunci):
+    """Buka halaman Safety `kunci` lewat page object miliknya."""
+    return PAGE_OBJECTS[kunci](driver).buka()
+
+
+def _ids_halaman(kunci_list):
+    """List id yang bisa dibaca untuk parametrize (nama menu)."""
+    return [NAMA_HALAMAN[k] for k in kunci_list]
 
 
 @pytest.mark.e2e
@@ -52,8 +114,6 @@ class TestSafetyHss:
     def test_safety_menu_dan_landing(self, driver):
         """Klik menu sidebar HSS -- pastikan submenu Safety (dengan
         anak Reporting & Transaction) muncul di sidebar."""
-        from pages.hss_safety_page import HssSafetyPage
-
         page = HssSafetyPage(driver)
         page.buka_menu_hss_safety()
         # submenu Safety punya 2 anak: Reporting & Transaction
@@ -221,13 +281,122 @@ class TestSafetyHss:
     # Modal Import (pola sama di semua halaman transaction)
     # ------------------------------------------------------------------
     @pytest.mark.safety_transaction
-    def test_safety_import_modal(self, driver):
-        page = SafetySmk3Page(driver).buka()
-        page.click(page.BTN_IMPORT)
-        assert page.is_visible(page.MODAL_IMPORT), "Modal Import tidak terbuka"
-        assert page.is_visible(page.LINK_DOWNLOAD_TEMPLATE), "Link Download Template tidak ada"
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Import" in v],
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_import_modal(self, driver, kunci_halaman):
+        """Klik Import -> modal Import terbuka (link Download Template +
+        input file) -> tutup -> modal hilang."""
+        page = _buka_halaman(driver, kunci_halaman)
+        page.buka_modal_import()
+        assert page._ada_modal_tampil(), (
+            f"Modal Import tidak terbuka di '{kunci_halaman}'"
+        )
+        assert page.is_visible(page.LINK_DOWNLOAD_TEMPLATE), (
+            f"Link Download Template tidak ada di '{kunci_halaman}'"
+        )
         # input file Bootstrap custom-file sengaja transparan (opacity 0)
         # -- cek PRESENCE, bukan visibility
-        assert page.is_present(page.INPUT_FILE_IMPORT), "Input file import tidak ada"
+        assert page.is_present(page.INPUT_FILE_IMPORT), (
+            f"Input file import tidak ada di '{kunci_halaman}'"
+        )
         page.tutup_modal()
-        assert not page.is_visible(page.MODAL_IMPORT, timeout=2), "Modal Import tidak tertutup"
+        assert not page._ada_modal_tampil(), (
+            f"Modal Import tidak tertutup di '{kunci_halaman}'"
+        )
+
+    # ------------------------------------------------------------------
+    # Toolbar tombol per halaman ("bagian tombol pada fitur")
+    # ------------------------------------------------------------------
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        sorted(PAGE_OBJECTS),
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_tombol_toolbar(self, driver, kunci_halaman):
+        """Semua tombol toolbar yang diharapkan tampil di halaman
+        (daftar per halaman: HssSafetyPage.TOMBOL_HALAMAN -- hasil scan
+        OPEL 2026-08-20)."""
+        page = _buka_halaman(driver, kunci_halaman)
+        hasil = page.cek_tombol_toolbar(kunci_halaman)
+        hilang = [nama for nama, ok in hasil.items() if not ok]
+        assert not hilang, (
+            f"Halaman '{kunci_halaman}': tombol toolbar tidak tampil -> {hilang}"
+        )
+
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Reload Data" in v],
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_reload_data(self, driver, kunci_halaman):
+        """Klik Reload Data -> overlay Processing hilang -> tabel tetap
+        tampil (grid selesai dimuat ulang)."""
+        page = _buka_halaman(driver, kunci_halaman)
+        page.reload_data()
+        assert page.tabel_report_tampil(), (
+            f"Tabel tidak tampil setelah Reload Data di '{kunci_halaman}'"
+        )
+
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Create with Form" in v],
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_create_with_form_modal(self, driver, kunci_halaman):
+        """Klik 'Create with Form' -> modal form terbuka -> Cancel ->
+        modal tertutup (TANPA menyimpan data apa pun)."""
+        page = _buka_halaman(driver, kunci_halaman)
+        page.buka_form_create()
+        assert page._ada_modal_tampil(), (
+            f"Modal Create with Form tidak terbuka di '{kunci_halaman}'"
+        )
+        page.batal_form()
+        assert not page._ada_modal_tampil(), (
+            f"Modal tidak tertutup setelah Cancel di '{kunci_halaman}'"
+        )
+
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Columns" in v],
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_columns_dropdown(self, driver, kunci_halaman):
+        """Klik Columns -> dropdown daftar kolom DataTables
+        (div.dt-button-collection) muncul."""
+        page = _buka_halaman(driver, kunci_halaman)
+        page.buka_dropdown_columns()
+        assert page.is_present(page.DROPDOWN_COLUMNS), (
+            f"Dropdown Columns tidak muncul di '{kunci_halaman}'"
+        )
+
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "FullScreen" in v],
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_fullscreen_toggle(self, driver, kunci_halaman):
+        """Klik FullScreen -> panel grid jadi fullscreen (class
+        panel-fullscreen); klik lagi -> kembali normal."""
+        page = _buka_halaman(driver, kunci_halaman)
+        page.toggle_fullscreen()
+        assert page.tunggu_fullscreen(True), (
+            f"Panel tidak fullscreen setelah klik FullScreen di '{kunci_halaman}'"
+        )
+        page.toggle_fullscreen()
+        assert page.tunggu_fullscreen(False), (
+            f"Panel tidak kembali normal setelah toggle kedua di '{kunci_halaman}'"
+        )

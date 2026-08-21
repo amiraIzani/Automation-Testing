@@ -41,6 +41,7 @@ STABIL data-name -> locator kolom: th[data-name='...'].
 import os
 import time
 
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import (
@@ -78,10 +79,17 @@ class HssSafetyPage(BasePage):
     BTN_CREATE = (By.XPATH, "//button[normalize-space(.)='Create']")
     BTN_CREATE_FORM = (By.XPATH, "//button[normalize-space(.)='Create with Form']")
     BTN_IMPORT = (By.XPATH, "//button[normalize-space(.)='Import']")
-    BTN_FULLSCREEN = (By.XPATH, "//button[normalize-space(.)='FullScreen']")
+    # Tombol FullScreen toolbar: teksnya BERUBAH antara 'FullScreen' dan
+    # 'Windowed' setiap kali diklik -- jadi locator pakai class stabil
+    # .fullscreen-button, BUKAN teks (terbukti 2026-08-21).
+    BTN_FULLSCREEN = (By.XPATH, "//button[contains(@class,'fullscreen-button')]")
     BTN_COLUMNS = (By.XPATH, "//button[normalize-space(.)='Columns']")
     # Link Instructions (bukan button): title='Filling instructions'
     BTN_INSTRUCTIONS = (By.XPATH, "//a[@title='Filling instructions']")
+    # Tombol khusus halaman SOC RECAPITULATION:
+    BTN_SELECT_FINDING = (By.XPATH, "//button[normalize-space(.)='Select Finding']")
+    # Dropdown DataTables buttons-collection (muncul setelah klik Columns)
+    DROPDOWN_COLUMNS = (By.CSS_SELECTOR, "div.dt-button-collection")
 
     # ------------------------------------------------------------------
     # Tabel DataTables
@@ -94,6 +102,20 @@ class HssSafetyPage(BasePage):
     KOLOM = (By.CSS_SELECTOR, "th[data-name='{nama_kolom}']")
     # Baris data (tbody dari table.reportData)
     BARIS = (By.CSS_SELECTOR, "table.reportData tbody tr")
+
+    # Ekspresi JS pemilih GRID UTAMA. Beberapa halaman (mis. Master
+    # Alat) me-render grid asli ber-id tableData_XXX BERSAMA template
+    # table.reportData kosong -- querySelector biasa salah sasaran ke
+    # template. Prioritas: tabel yang PUNYA baris -> yang ber-id
+    # tableData_* -> yang pertama.
+    JS_GRID = (
+        "(() => {"
+        "  const ts = [...document.querySelectorAll('table.reportData')];"
+        "  const ada = ts.find(t => t.querySelectorAll('tbody tr').length > 0);"
+        "  return ada || ts.find(t => t.id && t.id.indexOf('tableData_') === 0)"
+        "      || ts[0] || null;"
+        "})()"
+    )
 
     # ------------------------------------------------------------------
     # Tab internal halaman (id linkTab-<DataTemplateId> -- dinamis,
@@ -174,6 +196,110 @@ class HssSafetyPage(BasePage):
         "statistic_safety_recapitulation": "Reporting/Timesheet/MonthlyReport/Edit?Id=1317",
         "smk3": "Reporting/Timesheet/YearlyReport/Edit?Id=1308",
         "smkp": "Reporting/Timesheet/YearlyReport/Edit?Id=1307",
+    }
+
+    # ------------------------------------------------------------------
+    # Toolbar tombol per halaman ("bagian tombol pada fitur")
+    # ------------------------------------------------------------------
+    # Registri tombol toolbar: nama -> locator. Nama dipakai test &
+    # dokumentasi; locator hasil scan website OPEL (2026-08-20, v2.6.7).
+    TOMBOL_TOOLBAR = {
+        "Reload Data": BTN_RELOAD_DATA,
+        "Export": BTN_EXPORT,
+        "Submit Changes": BTN_SUBMIT,
+        "Cancel": BTN_CANCEL_GRID,
+        "Create": BTN_CREATE,
+        "Create with Form": BTN_CREATE_FORM,
+        "Import": BTN_IMPORT,
+        "FullScreen": BTN_FULLSCREEN,
+        "Columns": BTN_COLUMNS,
+        "Select Finding": BTN_SELECT_FINDING,
+        "Instructions": BTN_INSTRUCTIONS,
+        "Export Excel": BTN_EXPORT_EXCEL,
+    }
+
+    # Tombol toolbar yang diharapkan TAMPIL di tiap halaman (hasil scan
+    # website OPEL 2026-08-20 -- reports/scan/safety/*.md, bagian BUTTON
+    # + link ber-role button). Halaman View cuma punya Export
+    # (+Instructions/Cancel); halaman Transaction (Edit) punya toolbar
+    # lengkap. Catatan scan:
+    #   - MWT DAILY tidak punya tombol Reload Data.
+    #   - Leading Indicator tidak punya link Instructions.
+    #   - Columns cuma ada di 3 halaman Daily Input (Id=1334/1335/1336).
+    #   - SOC RECAPITULATION punya tombol tambahan Select Finding.
+    TOMBOL_HALAMAN = {
+        # Reporting (View / read-only)
+        "lagging_indicator": ("Export", "Instructions", "Cancel"),
+        "golden_rules_recap": ("Export", "Instructions", "Cancel"),
+        "emergency_drill_recap": ("Export", "Instructions", "Cancel"),
+        "mwt_recapitulation": ("Export", "Instructions", "Cancel"),
+        "safety_recap": ("Export Excel",),
+        # Transaction - Leading Indicator
+        "incident_investigation_form": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Columns", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "initial_incident_accident_report": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Columns", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "witness_statement_report": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Columns", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "emergency_drill_daily": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "master_alat_keselamatan_operasi": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "soc_recapitulation": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Select Finding", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "golden_rules": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "data_rekap_statistik_k3": (
+            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Export", "Instructions", "Cancel",
+        ),
+        "safety_kkp_p2k3_committee_meeting": (
+            "Reload Data", "Create", "Create with Form", "Import",
+            "FullScreen", "Submit Changes", "Export",
+            "Instructions", "Cancel",
+        ),
+        "mwt_daily": (
+            "Create", "Create with Form", "Import", "FullScreen",
+            "Submit Changes", "Export", "Instructions", "Cancel",
+        ),
+        "leading_indicator": (
+            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Export", "Cancel",
+        ),
+        # Transaction - Lagging Indicator
+        "statistic_safety_recapitulation": (
+            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Export", "Instructions", "Cancel",
+        ),
+        "smk3": (
+            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Export", "Instructions", "Cancel",
+        ),
+        "smkp": (
+            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Export", "Instructions", "Cancel",
+        ),
     }
 
     # ------------------------------------------------------------------
@@ -291,8 +417,19 @@ class HssSafetyPage(BasePage):
 
     def reload_data(self):
         """Klik Reload Data lalu tunggu data selesai dimuat ulang
-        (overlay Processing hilang + tabel tampil)."""
-        self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
+        (overlay Processing hilang + tabel tampil).
+
+        Tombol Reload kadang TIDAK ter-render oleh SPA (quirk stuck
+        yang sama dengan navigasi antar-halaman, 2026-08-21) -- kalau
+        belum tampil setelah timeout, navigasi ulang 1x lalu coba
+        lagi (remedy terbukti)."""
+        try:
+            self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
+        except TimeoutException:
+            self.driver.get(self.driver.current_url)
+            self._tunggu_tabel()
+            self.tunggu_processing_selesai()
+            self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
         self.tunggu_processing_selesai()
         self._tunggu_tabel()
 
@@ -689,11 +826,13 @@ return out;
         self.tunggu_modal_tertutup()
 
     def cari_di_grid(self, teks):
-        """Cari `teks` di grid lewat DataTables API (search SERVER-side,
-        bukan cuma filter halaman) -- supaya data BARU tetap ketemu
-        walaupun barisnya ada di halaman lain karena pagination."""
+        """Cari `teks` di grid UTAMA lewat DataTables API (search
+        SERVER-side, bukan cuma filter halaman) -- supaya data BARU
+        tetap ketemu walaupun barisnya ada di halaman lain karena
+        pagination. Grid dipilih lewat JS_GRID supaya tidak salah
+        sasaran ke template reportData kosong (2026-08-21)."""
         self.driver.execute_script(
-            "const t = document.querySelector('table.reportData');"
+            f"const t = {self.JS_GRID};"
             "if (t && window.jQuery) {"
             "  const dt = jQuery(t).DataTable();"
             "  dt.search(arguments[0]).draw();"
@@ -703,14 +842,20 @@ return out;
         self.tunggu_processing_selesai()
 
     def tabel_berisi(self, teks, timeout=None):
-        """True kalau teks muncul di tabel reportData (dipakai untuk
-        verifikasi data BARU yang disimpan ikut tampil di tabel)."""
+        """True kalau teks muncul di grid UTAMA (dipakai untuk
+        verifikasi data BARU yang disimpan ikut tampil). Grid
+        inline-editable OPEL merender nilai di dalam <input> yang
+        TIDAK masuk innerText -- jadi dicek keduanya (2026-08-21)."""
         timeout = timeout or config.LONG_TIMEOUT
         try:
             self._wait(timeout).until(
                 lambda d: d.execute_script(
-                    "const t = document.querySelector('table.reportData');"
-                    "return t && t.innerText.includes(arguments[0]);",
+                    f"const t = {self.JS_GRID};"
+                    "if (!t) return false;"
+                    "const diTeks = t.innerText.includes(arguments[0]);"
+                    "const diInput = [...t.querySelectorAll('input')].some("
+                    "  i => (i.value || '').includes(arguments[0]));"
+                    "return diTeks || diInput;",
                     teks,
                 )
             )
@@ -722,8 +867,15 @@ return out;
     # Toolbar lain (FullScreen, Columns, Instructions)
     # ------------------------------------------------------------------
     def toggle_fullscreen(self):
-        """Klik tombol FullScreen (grid membesar/mengecil)."""
-        self.click_js_saat_tampil(self.BTN_FULLSCREEN)
+        """Klik tombol FullScreen pakai mousedown+mouseup ASLI (Actions).
+
+        JS .click() terbukti hanya bisa MASUK mode fullscreen; untuk
+        KELUAR (tombol 'Windowed') handler aplikasi butuh urutan
+        mousedown+mouseup sungguhan (diamati 2026-08-21 lewat
+        tools/diagnose_fullscreen.py)."""
+        element = self._ambil_js_visible(self.BTN_FULLSCREEN)
+        ActionChains(self.driver).move_to_element(element).click_and_hold().pause(0.2).release().perform()
+        self.pace()
 
     def toggle_columns(self):
         """Klik tombol Columns (muncul dropdown pilihan kolom)."""
@@ -732,3 +884,90 @@ return out;
     def buka_instruksi(self):
         """Klik link Instructions (title='Filling instructions')."""
         self.click_js_saat_tampil(self.BTN_INSTRUCTIONS)
+
+    # ------------------------------------------------------------------
+    # Cek tombol toolbar (dipakai test "bagian tombol pada fitur")
+    # ------------------------------------------------------------------
+    def tombol_toolbar_tampil(self, nama, timeout=None):
+        """True kalau tombol toolbar `nama` benar-benar TAMPIL (cek
+        computed style JS -- konsisten dengan helper lain supaya tahan
+        terhadap false-negatif is_displayed() saat fade-transition)."""
+        if nama not in self.TOMBOL_TOOLBAR:
+            raise KeyError(
+                f"Tombol toolbar '{nama}' tidak dikenal. Pilihan: "
+                f"{', '.join(sorted(self.TOMBOL_TOOLBAR))}"
+            )
+        try:
+            self._ambil_js_visible(self.TOMBOL_TOOLBAR[nama], timeout=timeout)
+            return True
+        except TimeoutException:
+            return False
+
+    def cek_tombol_toolbar(self, kunci=None, timeout=None):
+        """Cek SEMUA tombol toolbar yang diharapkan tampil di halaman
+        (daftar per halaman di TOMBOL_HALAMAN). Kembalikan
+        dict {nama_tombol: bool}. `kunci` default = KUNCI page object
+        ini (kalau instance-nya page object spesifik).
+
+        Tombol yang belum tampil dicek ulang 1x setelah jeda singkat --
+        halaman Timesheet masih bisa transisi render sesaat setelah
+        buka() (Reload Data terbukti kadang baru tampil beberapa detik
+        kemudian, 2026-08-21)."""
+        kunci = kunci or getattr(self, "KUNCI", None)
+        if kunci not in self.TOMBOL_HALAMAN:
+            raise KeyError(
+                f"Kunci halaman '{kunci}' tidak ada di TOMBOL_HALAMAN. "
+                f"Pilihan: {', '.join(sorted(self.TOMBOL_HALAMAN))}"
+            )
+        daftar = self.TOMBOL_HALAMAN[kunci]
+        hasil = {
+            nama: self.tombol_toolbar_tampil(nama, timeout=timeout)
+            for nama in daftar
+        }
+        hilang = [nama for nama, ok in hasil.items() if not ok]
+        if hilang:
+            time.sleep(2)
+            for nama in hilang:
+                if self.tombol_toolbar_tampil(nama, timeout=timeout):
+                    hasil[nama] = True
+        return hasil
+
+    def buka_dropdown_columns(self):
+        """Klik Columns lalu tunggu dropdown daftar kolom DataTables
+        (div.dt-button-collection) benar-benar muncul. Timeout -> gagal
+        (berarti tombol Columns tidak berfungsi)."""
+        self.click_js_saat_tampil(self.BTN_COLUMNS)
+        self._wait(config.DEFAULT_TIMEOUT).until(
+            lambda d: d.execute_script(
+                "const el = document.querySelector('div.dt-button-collection');"
+                "if (!el) return false;"
+                "const s = window.getComputedStyle(el);"
+                "const r = el.getBoundingClientRect();"
+                "return s.display !== 'none' && s.visibility !== 'hidden'"
+                "&& r.width > 0 && r.height > 0;"
+            ),
+            "Dropdown Columns tidak kunjung muncul setelah klik Columns",
+        )
+
+    def fullscreen_aktif(self):
+        """True kalau grid sedang mode fullscreen -- indikator andal:
+        teks tombol berubah jadi 'Windowed'. (Class 'blur' di body
+        ternyata TIDAK pernah muncul saat fullscreen, dicek langsung
+        2026-08-21 lewat tools/diagnose_fullscreen.py.)"""
+        return bool(self.driver.execute_script(
+            "const b = document.querySelector('.fullscreen-button');"
+            "return b && (b.innerText || '').trim() === 'Windowed';"
+        ))
+
+    def tunggu_fullscreen(self, aktif, timeout=None):
+        """Tunggu mode fullscreen berubah jadi `aktif`. Kembalikan
+        True kalau tercapai, False kalau timeout -- transisi aplikasi
+        butuh waktu, cek langsung setelah klik bisa melihat state lama
+        (2026-08-21)."""
+        try:
+            self._wait(timeout).until(
+                lambda d: self.fullscreen_aktif() == aktif
+            )
+            return True
+        except TimeoutException:
+            return False

@@ -60,6 +60,11 @@ STEP_LABELS = [
     ("test_safety_statistic_safety_view", "Safety - Statistic Safety Recapitulation"),
     ("test_safety_smk3_view", "Safety - SMK3"),
     ("test_safety_smkp_view", "Safety - SMKP"),
+    ("test_safety_tombol_toolbar", "Safety - Tombol Toolbar"),
+    ("test_safety_reload_data", "Safety - Reload Data"),
+    ("test_safety_create_with_form_modal", "Safety - Create with Form (Modal)"),
+    ("test_safety_columns_dropdown", "Safety - Dropdown Columns"),
+    ("test_safety_fullscreen_toggle", "Safety - FullScreen Toggle"),
     ("test_safety_import_modal", "Safety - Modal Import"),
 ]
 
@@ -71,6 +76,11 @@ def _label_for_step(item_name):
     for prefix, label in STEP_LABELS:
         if item_name == prefix:
             return label
+        # Test parametrized: nama item = "test_xxx[param]" -- tampilkan
+        # param-nya (nama halaman) supaya hasil per halaman terlihat.
+        if item_name.startswith(prefix + "["):
+            param = item_name[len(prefix) + 1:-1]
+            return f"{label} [{param}]"
     return None
 
 
