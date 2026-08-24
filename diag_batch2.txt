@@ -1,0 +1,100 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\user\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.2', 'Platform': 'Windows-11-10.0.26200-SP0', 'Packages': {'pytest': '9.1.1', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.2.0', 'metadata': '3.1.1'}}
+rootdir: D:\Magang\ANTAM\opel-automation
+configfile: pytest.ini
+plugins: html-4.2.0, metadata-3.1.1
+collecting ... collected 5 items
+
+tests/test_e2e_opel.py::TestE2EOpelFlow::test_login 
+V [Login] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Incident Investigation] 
+X [Safety - Coba Semua Tombol [Incident Investigation]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_coba_semua_tombol[Incident Investigation]_20260824_144658.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[MWT Daily] 
+X [Safety - Coba Semua Tombol [MWT Daily]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_coba_semua_tombol[MWT Daily]_20260824_144852.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1312
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Master Alat Keselamatan] 
+X [Safety - Coba Semua Tombol [Master Alat Keselamatan]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_coba_semua_tombol[Master Alat Keselamatan]_20260824_145104.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_delete 
+X [Safety - Master Alat (Delete)] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_master_alat_delete_20260824_145237.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321
+FAILED
+========================================
+       AUTOMATION TESTING RESULT
+========================================
+
+V [Login] berhasil
+X [Safety - Coba Semua Tombol [Incident Investigation]] GAGAL
+X [Safety - Coba Semua Tombol [MWT Daily]] GAGAL
+X [Safety - Coba Semua Tombol [Master Alat Keselamatan]] GAGAL
+X [Safety - Master Alat (Delete)] GAGAL
+
+========================================
+TOTAL TEST : 5
+PASSED     : 1
+FAILED     : 4
+STATUS     : FAILED
+========================================
+
+
+================================== FAILURES ===================================
+_____ TestSafetyHss.test_safety_coba_semua_tombol[Incident Investigation] _____
+tests\test_safety.py:549: in test_safety_coba_semua_tombol
+    Import         -> modal terbuka lalu ditutup
+      ^^^^^^^^^^^^^^^^^^^^^^
+pages\hss_safety_page.py:1427: in coba_tombol
+    self.export_dan_tunggu_file()
+pages\hss_safety_page.py:575: in export_dan_tunggu_file
+    file_unduh = self.tunggu_file_baru(ekstensi, sebelum)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pages\hss_safety_page.py:553: in tunggu_file_baru
+    self._wait(config.LONG_TIMEOUT).until(
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\support\wait.py:121: in until
+    raise TimeoutException(message, screen, stacktrace)
+E   selenium.common.exceptions.TimeoutException: Message: File tidak kunjung muncul di folder unduhan (D:\Magang\ANTAM\opel-automation\reports\downloads)
+___________ TestSafetyHss.test_safety_coba_semua_tombol[MWT Daily] ____________
+tests\test_safety.py:549: in test_safety_coba_semua_tombol
+    Import         -> modal terbuka lalu ditutup
+      ^^^^^^^^^^^^^^^^^^^^^^
+pages\hss_safety_page.py:1420: in coba_tombol
+    self.create_dengan_form_sungguhan()
+pages\hss_safety_page.py:1340: in create_dengan_form_sungguhan
+    raise AssertionError(
+E   AssertionError: Create dengan form tidak menyimpan data dummy: penanda 'Dummy 144716' tidak muncul di grid setelah Submit
+____ TestSafetyHss.test_safety_coba_semua_tombol[Master Alat Keselamatan] _____
+tests\test_safety.py:549: in test_safety_coba_semua_tombol
+    Import         -> modal terbuka lalu ditutup
+      ^^^^^^^^^^^^^^^^^^^^^^
+pages\hss_safety_page.py:1420: in coba_tombol
+    self.create_dengan_form_sungguhan()
+pages\hss_safety_page.py:1340: in create_dengan_form_sungguhan
+    raise AssertionError(
+E   AssertionError: Create dengan form tidak menyimpan data dummy: penanda 'Dummy 144932' tidak muncul di grid setelah Submit
+________________ TestSafetyHss.test_safety_master_alat_delete _________________
+tests\test_safety.py:323: in test_safety_master_alat_delete
+    continue
+E   AssertionError: Masih tersisa 33 baris dummy setelah hapus
+E   assert 33 == 0
+- Generated html report: file:///D:/Magang/ANTAM/opel-automation/reports/report.html -
+=========================== short test summary info ===========================
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Incident Investigation] - selenium.common.exceptions.TimeoutException: Message: File tidak kunjung muncul di folder unduhan (D:\Magang\ANTAM\opel-automation\reports\downloads)
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[MWT Daily] - AssertionError: Create dengan form tidak menyimpan data dummy: penanda 'Dummy 144716' tidak muncul di grid setelah Submit
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Master Alat Keselamatan] - AssertionError: Create dengan form tidak menyimpan data dummy: penanda 'Dummy 144932' tidak muncul di grid setelah Submit
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_master_alat_delete - AssertionError: Masih tersisa 33 baris dummy setelah hapus
+assert 33 == 0
+=================== 4 failed, 1 passed in 567.58s (0:09:27) ===================

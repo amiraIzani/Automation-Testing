@@ -247,40 +247,95 @@ class TestSafetyHss:
         )
 
     @pytest.mark.safety_transaction
-    def test_safety_master_alat_delete(self, driver):
+    def test_safety_master_alat_delete(self, driver, test_data):
         """Contoh fitur HAPUS (hanya Master Alat yang punya tombol
-        Delete per baris): klik Delete di baris dummy AUTO-TEST ->
-        jawab konfirmasi Ya (atau hapus langsung) -> baris dummy
-        BENAR2 terhapus. Sekalian membersihkan data dummy test dari
-        run sebelumnya -- data asli tidak tersentuh."""
+        Delete per baris): klik Delete di baris dummy -> jawab
+        konfirmasi Ya -> baris BENAR2 terhapus. Sekalian
+        membersihkan SEMUA baris dummy test yang menumpuk dari run
+        sebelumnya (penanda 'AUTO-TEST' dari test create + 'Dummy'
+        dari test coba semua tombol) -- data asli tidak tersentuh.
+        Kalau tidak ada baris dummy sama sekali (test dijalankan
+        SENDIRIAN tanpa test create sebelumnya), SATU baris dummy
+        dibuat dulu lewat Create with Form lalu dihapus -- test
+        mandiri dan tidak pernah skip."""
+        data = test_data["hss_safety"]["master_alat"]
         page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
-        page.cari_di_grid("AUTO-TEST")
+        page.reset_cari_grid()
 
         def _jumlah_dummy():
             return page.driver.execute_script(
                 f"const t = {page.JS_GRID};"
                 "return t ? [...t.querySelectorAll('tbody tr')]"
-                ".filter(tr => tr.innerText.includes('AUTO-TEST')).length : 0;"
+                ".filter(tr => {"
+                "  const teks = tr.innerText;"
+                "  const nilai = [...tr.querySelectorAll('input')]"
+                "    .map(i => i.value || '').join(' ');"
+                "  return teks.includes('AUTO-TEST') || teks.includes('Dummy')"
+                "    || nilai.includes('AUTO-TEST') || nilai.includes('Dummy');"
+                "}).length : 0;"
             )
 
-        sebelum = _jumlah_dummy()
-        if sebelum == 0:
-            pytest.skip("Tidak ada baris dummy AUTO-TEST untuk contoh hapus")
-        diklik = page.driver.execute_script(
-            f"const t = {page.JS_GRID};"
-            "const b = t && t.querySelector('a.btn-delete');"
-            "if (b) { b.click(); return true; }"
-            "return false;"
-        )
-        assert diklik, "Tombol Delete tidak ditemukan di baris dummy"
-        page.pace(1.0)
-        page.jawab_konfirmasi()   # Ya kalau ada konfirmasi
-        page.tunggu_processing_selesai()
+        def _klik_delete_dummy():
+            """Klik tombol Delete baris dummy PERTAMA yang ketemu
+            (cek teks + nilai input sel)."""
+            return page.driver.execute_script(
+                f"const t = {page.JS_GRID};"
+                "if (!t) return false;"
+                "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
+                "  const teks = r.innerText;"
+                "  const nilai = [...r.querySelectorAll('input')]"
+                "    .map(i => i.value || '').join(' ');"
+                "  return teks.includes('AUTO-TEST') || teks.includes('Dummy')"
+                "    || nilai.includes('AUTO-TEST') || nilai.includes('Dummy');"
+                "});"
+                "if (!tr) return false;"
+                "const b = tr.querySelector('a.btn-delete');"
+                "if (b) { b.click(); return true; }"
+                "return false;"
+            )
+
+        if _jumlah_dummy() == 0:
+            # mandiri: buat 1 dummy dulu (alur sama dengan test create)
+            equip = data["equipment_prefix"] + time.strftime("%H%M%S")
+            page.buka_form_create()
+            page.isi_form_create_otomatis(tambahan={"Equipment No": equip})
+            page.simpan_form()
+            page.submit_changes()
+            page.tunggu_processing_selesai()
+            page.buka_halaman("master_alat_keselamatan_operasi")
+            page.reset_cari_grid()
+            assert _jumlah_dummy() >= 1, (
+                "Baris dummy gagal dibuat untuk contoh hapus"
+            )
+
+        dihapus = 0
+        coba = 0
+        while coba < 60:  # batas pengaman -- jangan loop selamanya
+            coba += 1
+            sebelum = _jumlah_dummy()
+            if sebelum == 0:
+                break
+            if not _klik_delete_dummy():
+                # tombol delete tidak ketemu padahal baris dummy ada
+                # (grid stale?) -- reload halaman lalu coba lagi
+                page.buka_halaman("master_alat_keselamatan_operasi")
+                page.reset_cari_grid()
+                continue
+            page.pace(1.0)
+            page.jawab_konfirmasi()   # Ya kalau ada konfirmasi
+            page.tunggu_processing_selesai()
+            dihapus += 1
+            if _jumlah_dummy() >= sebelum:
+                # jumlah tidak berkurang (klik tidak mempan) -- reload
+                # supaya state bersih sebelum klik berikutnya
+                page.buka_halaman("master_alat_keselamatan_operasi")
+                page.reset_cari_grid()
         page.buka_halaman("master_alat_keselamatan_operasi")
-        page.cari_di_grid("AUTO-TEST")
-        assert _jumlah_dummy() == sebelum - 1, (
-            "Tombol Delete tidak menghapus baris dummy "
-            f"(sebelum={sebelum}, sesudah={_jumlah_dummy()})"
+        page.reset_cari_grid()
+        sisa = _jumlah_dummy()
+        assert dihapus >= 1, "Tidak ada baris dummy yang terhapus"
+        assert sisa == 0, (
+            f"Masih tersisa {sisa} baris dummy setelah hapus"
         )
 
     @pytest.mark.safety_transaction

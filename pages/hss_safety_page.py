@@ -242,38 +242,47 @@ class HssSafetyPage(BasePage):
         "mwt_recapitulation": ("Export", "Instructions", "Cancel"),
         "safety_recap": ("Export Excel",),
         # Transaction - Leading Indicator
+        # CATATAN urutan (2026-08-24): "Create with Form" DIJALANKAN
+        # SEBELUM "Create" polos. Create polos menyisakan baris draft
+        # kosong PERSISTEN di beberapa halaman (MWT Daily, Master Alat,
+        # SOC -- draft tersimpan server & tidak bisa dihapus), dan
+        # draft kosong itu membuat Submit MEMBUANG baris baru dari
+        # Create with Form (diamati: grid kembali ke jumlah semula,
+        # penanda hilang). Dengan form dulu, grid masih bersih saat
+        # create sungguhan; draft sisa Create polos dibuang sendiri
+        # oleh Submit/Cancel sesudahnya.
         "incident_investigation_form": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Columns", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "initial_incident_accident_report": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Columns", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "witness_statement_report": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Columns", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "emergency_drill_daily": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "master_alat_keselamatan_operasi": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "soc_recapitulation": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Select Finding", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "golden_rules": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
@@ -282,12 +291,12 @@ class HssSafetyPage(BasePage):
             "Export", "Instructions", "Cancel",
         ),
         "safety_kkp_p2k3_committee_meeting": (
-            "Reload Data", "Create", "Create with Form", "Import",
+            "Reload Data", "Create with Form", "Create", "Import",
             "FullScreen", "Submit Changes", "Export",
             "Instructions", "Cancel",
         ),
         "mwt_daily": (
-            "Create", "Create with Form", "Import", "FullScreen",
+            "Create with Form", "Create", "Import", "FullScreen",
             "Submit Changes", "Export", "Instructions", "Cancel",
         ),
         "leading_indicator": (
@@ -410,6 +419,34 @@ class HssSafetyPage(BasePage):
             # di loading overlay -- retry navigasi sekali menyelesaikan.
             self.driver.get(url)
             _tunggu_siap()
+        # Bersihkan draft LOCAL halaman ini (localStorage dr_<Id>_*) --
+        # baris draft kosong nyangkut setelah Create+Cancel dan membuat
+        # Submit MEMBUANG baris baru dari Create with Form (2026-08-24).
+        # Hapus localStorage TIDAK menyentuh server; kalau ada yang
+        # terhapus, reload sekali supaya grid render tanpa draft.
+        if self._bersihkan_draft_lokal():
+            self.driver.get(url)
+            _tunggu_siap()
+
+    def _bersihkan_draft_lokal(self):
+        """Hapus key localStorage draft halaman ini (pola
+        dr_<TemplateId>_*) dan kembalikan jumlah key yang dihapus.
+        Draft Create+Cancel tersimpan di localStorage per pengguna
+        (diamati 2026-08-24 lewat tools/cek_draft.py) -- BUKAN server
+        -- dan baris draft kosong yang menempel di grid membuat
+        Submit MEMBUANG baris baru dari Create with Form."""
+        return self.driver.execute_script(
+            "const m = /Id=(\\d+)/.exec(window.location.href);"
+            "if (!m) return 0;"
+            "const prefix = 'dr_' + m[1] + '_';"
+            "let n = 0;"
+            "for (const k of Object.keys(window.localStorage)) {"
+            "  if (k.indexOf(prefix) === 0) {"
+            "    window.localStorage.removeItem(k); n++;"
+            "  }"
+            "}"
+            "return n;"
+        )
 
     def _tunggu_tabel(self, url=None):
         """Tunggu tabel reportData benar-benar TAMPIL (JS check)."""
@@ -804,6 +841,20 @@ class HssSafetyPage(BasePage):
                     Select(element).select_by_visible_text(nilai)
                 elif tag == "input" and tipe in ("radio", "checkbox"):
                     self.driver.execute_script("arguments[0].click();", element)
+                elif tag == "input" and tipe in ("date", "datetime-local", "time"):
+                    # send_keys TIDAK bisa dipakai untuk date picker --
+                    # hasil ketik jadi sampah ('82026-02-04', locale
+                    # Chrome) dan form bisa ditolak server diam-diam
+                    # (2026-08-24, form Incident). Set value langsung
+                    # lewat JS + event input/change.
+                    self.driver.execute_script(
+                        "arguments[0].value = arguments[1];"
+                        "arguments[0].dispatchEvent(new Event('input',"
+                        " {bubbles: true}));"
+                        "arguments[0].dispatchEvent(new Event('change',"
+                        " {bubbles: true}));",
+                        element, str(nilai),
+                    )
                 else:
                     element.clear()
                     element.send_keys(str(nilai))
@@ -881,14 +932,19 @@ modal.querySelectorAll('.form-group').forEach(g => {
     const r = g.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return;
     const e = {label: teks, lookup: !!g.querySelector('.dt-input-lookup-hidden'),
-               type: '', selectOptions: [], required: false};
+               upload: !!g.querySelector('.dt-input-upload'),
+               kosong: false, tag: '', type: '', selectOptions: [],
+               required: false};
     const f = g.querySelector('input, select, textarea');
     if (f) {
+        e.tag = f.tagName;
         e.type = (f.getAttribute('type') || '').toLowerCase();
         e.required = !!f.required;
         if (f.tagName === 'SELECT')
             e.selectOptions = Array.from(f.options).map(o => o.text.trim())
-                .filter(t => t && !/^pilih/i.test(t));
+                .filter(t => t && !/^pilih/i.test(t) && !/^--/.test(t));
+    } else {
+        e.kosong = true;
     }
     out.push(e);
 });
@@ -906,35 +962,68 @@ return out;
         """Heuristic: label yang menyebut satuan/kuantitas diisi ANGKA."""
         return any(k in label.lower() for k in cls._LABEL_ANGKA)
 
-    def isi_form_create_otomatis(self, tambahan=None):
+    def isi_form_create_otomatis(self, tambahan=None, penanda=None):
         """Isi SEMUA field form create yang terlihat dengan data DUMMY
         otomatis sesuai jenisnya:
           - lookup/combo   -> pilih baris pertama di modal lookup
-          - select         -> pilih opsi pertama (selain 'Pilih...')
+          - select         -> pilih opsi pertama (selain 'Pilih...' /
+            '-- Select --'). Select CASCADING (opsi baru dimuat setelah
+            field lain dipilih) diisi lewat scan ULANG sampai 3 putaran.
           - date           -> tanggal hari ini
+          - datetime-local -> hari ini jam 08:00 (lewat JS -- send_keys
+            tidak memicu parsing di Chrome)
           - radio/checkbox -> klik
           - label angka    -> isi '10'
-          - teks lain      -> isi 'Dummy <label>'
+          - teks lain      -> isi '<penanda> <label>' (penanda default
+            'Dummy'; test coba semua tombol memakai penanda unik)
+        Field UPLOAD (widget .dt-input-upload, mis. Photo) atau group
+        TANPA input SAMA SEKALI DILEWATI -- upload file TIDAK dilakukan
+        (aturan user: jangan menulis file ke DEV).
         `tambahan` = dict {label: nilai} untuk field yang mau diisi
         nilai tertentu (menimpa otomatis), mis. Equipment No unik."""
         tambahan = tambahan or {}
-        fields = self.driver.execute_script(self.JS_FIELD_FORM) or []
-        for f in fields:
-            label, tipe = f["label"], f["type"]
-            if label in tambahan:
-                self.isi_field_modal(label, tambahan[label])
-            elif f["lookup"]:
-                self.isi_lookup(label, "")
-            elif f["selectOptions"]:
-                self.isi_field_modal(label, f["selectOptions"][0])
-            elif tipe == "date":
-                self.isi_field_modal(label, time.strftime("%d-%m-%Y"))
-            elif tipe in ("radio", "checkbox"):
-                self.isi_field_modal(label, "")
-            elif self._label_minta_angka(label):
-                self.isi_field_modal(label, "10")
-            else:
-                self.isi_field_modal(label, f"Dummy {label}")
+        penanda = penanda or "Dummy"
+        for _putaran in range(3):
+            fields = self.driver.execute_script(self.JS_FIELD_FORM) or []
+            menunggu_select = False
+            for f in fields:
+                label, tipe = f["label"], f["type"]
+                if f.get("upload") or f.get("kosong"):
+                    continue
+                if label in tambahan:
+                    self.isi_field_modal(label, tambahan[label])
+                elif f["lookup"]:
+                    self.isi_lookup(label, "")
+                elif f.get("tag") == "SELECT":
+                    if f["selectOptions"]:
+                        self.isi_field_modal(label, f["selectOptions"][0])
+                    else:
+                        # opsi cascading belum dimuat -- isi putaran
+                        # berikutnya setelah field induk terisi
+                        menunggu_select = True
+                elif tipe == "date":
+                    # format ISO yyyy-mm-dd -- diisi lewat JS (bukan
+                    # send_keys), lihat isi_field_modal
+                    self.isi_field_modal(label, time.strftime("%Y-%m-%d"))
+                elif tipe == "datetime-local":
+                    self.isi_field_modal(label, time.strftime("%Y-%m-%dT08:00"))
+                elif tipe == "time":
+                    # input type=time -- diisi lewat JS supaya parsing
+                    # benar (sama seperti date)
+                    self.isi_field_modal(label, "08:00")
+                elif tipe == "number":
+                    # input angka: teks 'Dummy ...' TIDAK masuk ke
+                    # input number (Chrome mengabaikannya -> kosong) --
+                    # isi '10' supaya tetap ada nilainya
+                    self.isi_field_modal(label, "10")
+                elif tipe in ("radio", "checkbox"):
+                    self.isi_field_modal(label, "")
+                elif self._label_minta_angka(label):
+                    self.isi_field_modal(label, "10")
+                else:
+                    self.isi_field_modal(label, f"{penanda} {label}")
+            if not menunggu_select:
+                break
 
     def simpan_form(self):
         """Klik Save di modal lalu tunggu modal tertutup (tanda
@@ -1253,28 +1342,42 @@ return out;
 
     def create_dengan_form_sungguhan(self):
         """Create with Form SUNGGUHAN: buka modal form -> isi SEMUA
-        field dummy otomatis (teks 'Dummy <label>') -> Save -> Submit
-        Changes -> verifikasi data 'Dummy' masuk grid lewat pencarian
-        SERVER-side (jumlah baris per halaman tidak bisa dipakai --
-        grid ber-pagination, 2026-08-24). Dipakai test coba semua
-        tombol (permintaan user: Create = dibuat)."""
+        field dummy otomatis (teks '<penanda> <label>') -> Save ->
+        Submit Changes -> verifikasi penanda UNIK masuk grid.
+        Penanda unik per run (Dummy + HHMMSS) supaya verifikasi tepat
+        sasaran walau grid sudah penuh dummy dari run sebelumnya
+        (2026-08-24). Dipakai test coba semua tombol (permintaan
+        user: Create = dibuat).
+
+        Verifikasi: cek grid LANGSUNG dulu (aplikasi me-reload grid
+        sendiri setelah Submit); reload manual HANYA kalau belum
+        ketemu, dan itupun setelah jeda -- reload terlalu cepat bisa
+        MEMUTUS POST Submit yang masih jalan (server DEV lambat,
+        2026-08-24) sehingga baris tidak pernah ter-commit."""
         url_awal = self.driver.current_url
+        penanda = "Dummy " + time.strftime("%H%M%S")
         self.buka_form_create()
         self.pace(1.0)
-        self.isi_form_create_otomatis()
+        self.isi_form_create_otomatis(penanda=penanda)
         self.simpan_form()
         self.submit_changes()
         self.tunggu_processing_selesai()
+        # 1) grid langsung pasca-Submit (aplikasi reload sendiri)
+        if self.tabel_berisi(penanda, timeout=config.DEFAULT_TIMEOUT):
+            self.reset_cari_grid()
+            return
+        # 2) beri waktu commit lalu reload manual + cek ulang
+        self.pace(3.0)
         self.driver.get(url_awal)
         self._tunggu_tabel()
         self.tunggu_processing_selesai()
-        self.cari_di_grid("Dummy")
-        if not self.tabel_berisi("Dummy", timeout=config.DEFAULT_TIMEOUT):
-            raise AssertionError(
-                "Create dengan form tidak menyimpan data dummy: "
-                "penanda 'Dummy' tidak muncul di grid setelah Submit"
-            )
-        self.reset_cari_grid()
+        if self.tabel_berisi(penanda, timeout=config.LONG_TIMEOUT):
+            self.reset_cari_grid()
+            return
+        raise AssertionError(
+            "Create dengan form tidak menyimpan data dummy: "
+            f"penanda '{penanda}' tidak muncul di grid setelah Submit"
+        )
 
     def buka_instruksi_lalu_tutup(self):
         """Klik link Instructions lalu tutup apa pun yang muncul
@@ -1293,19 +1396,41 @@ return out;
             self.driver.switch_to.window(handle_awal[0])
 
     def tutup_dropdown_columns(self):
-        """Klik tombol Columns lagi untuk menutup dropdown daftar
-        kolom, lalu tunggu dropdownnya hilang."""
-        self.click_js_saat_tampil(self.BTN_COLUMNS)
-        self._wait(config.DEFAULT_TIMEOUT).until(
-            lambda d: not d.execute_script(
+        """Tutup dropdown Columns. Klik tombol Columns sekali lagi
+        (toggle) -- di sebagian halaman itu cukup; kalau dropdown
+        tetap terbuka (terjadi di Incident Investigation, 2026-08-24)
+        fallback tekan ESC lalu klik luar (synthetic click di body) --
+        keduanya memicu handler penutup DataTables (keyup.dtb /
+        click di luar collection). Akhiri dengan tunggu dropdown
+        benar2 hilang."""
+        from selenium.webdriver.common.keys import Keys
+
+        def _terbuka():
+            return bool(self.driver.execute_script(
                 "const el = document.querySelector('div.dt-button-collection');"
-                "if (!el) return true;"
+                "if (!el) return false;"
                 "const s = window.getComputedStyle(el);"
                 "const r = el.getBoundingClientRect();"
                 "return s.display !== 'none' && s.visibility !== 'hidden'"
                 "&& r.width > 0 && r.height > 0;"
-            ),
-            "Dropdown Columns tidak kunjung tertutup",
+            ))
+
+        if not _terbuka():
+            return
+        self.click_js_saat_tampil(self.BTN_COLUMNS)
+        self.pace(0.5)
+        if not _terbuka():
+            return
+        self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.ESCAPE)
+        self.pace(0.5)
+        if not _terbuka():
+            return
+        self.driver.execute_script("document.body.click();")
+        self.pace(0.5)
+        self._wait(config.DEFAULT_TIMEOUT).until(
+            lambda d: not _terbuka(),
+            "Dropdown Columns tidak kunjung tertutup (toggle, ESC, "
+            "klik luar semua tidak mempan)",
         )
 
     def export_excel_dan_tunggu_file(self, ekstensi=".xlsx"):
