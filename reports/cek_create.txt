@@ -1,0 +1,10 @@
+baris sebelum Create: 1
+URL setelah Create: https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+modal ada: False
+baris setelah Create: 3
+tab baru setelah Instructions: 0
+modal setelah Instructions: False
+baris sebelum Create: 12
+URL setelah Create: https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1319
+modal ada: False
+baris setelah Create: 13

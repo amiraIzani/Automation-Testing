@@ -1,0 +1,12 @@
+
+===== smkp =====
+{'htmlAksi': '<td><div class="text-center" style="min-width:60px;">\n                                    <a class="btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed btn-edit" href="javascript:;" data-rowidx="0" data-tplidx="1864" title="Edit"><i class="fas fa-pencil"></i></a>\n                                </div></td>', 'jumlahTd': 15, 'tombol': [{'cls': 'btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed', 'teks': '', 'title': 'Edit'}]}
+
+===== smk3 =====
+{'htmlAksi': '<td><div class="text-center" style="min-width:60px;">\n                                    <a class="btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed btn-edit" href="javascript:;" data-rowidx="0" data-tplidx="1865" title="Edit"><i class="fas fa-pencil"></i></a>\n                                </div></td>', 'jumlahTd': 43, 'tombol': [{'cls': 'btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed', 'teks': '', 'title': 'Edit'}]}
+
+===== statistic_safety_recapitulation =====
+{'htmlAksi': '<td><div class="text-center" style="min-width:60px;">\n                                    <a class="btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed btn-edit" href="javascript:;" data-rowidx="0" data-tplidx="1879" title="Edit"><i class="fas fa-pencil"></i></a>\n                                </div></td>', 'jumlahTd': 25, 'tombol': [{'cls': 'btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed', 'teks': '', 'title': 'Edit'}]}
+
+===== master_alat_keselamatan_operasi =====
+{'htmlAksi': '<td><div class="text-center" style="min-width:60px;">\n                                    <a class="btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed btn-edit" href="javascript:;" data-rowidx="0" data-tplidx="1889" title="Edit"><i class="fas fa-pencil"></i></a>\n                                    <a class="btn btn-outline-danger btn-sm btn-icon rounded-circle waves-effect waves-themed btn-delete" href="javascript:;" data-rowidx="0" data-tplidx="1889" title="Delete"><i class="fas fa-trash-alt"></i></a>\n                                </div></td>', 'jumlahTd': 6, 'tombol': [{'cls': 'btn btn-outline-warning btn-sm btn-icon rounded-circle waves-effect waves-themed', 'teks': '', 'title': 'Edit'}, {'cls': 'btn btn-outline-danger btn-sm btn-icon rounded-circle waves-effect waves-themed ', 'teks': '', 'title': 'Delete'}]}

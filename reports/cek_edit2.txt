@@ -1,0 +1,24 @@
+SMK3 AuditExecutionDate row0 sekarang: ''
+restore -> '2026-07-10T08:31'
+
+[smk3.PPkomKetidaksesuaianMaj] nilai awal: '2'
+  setelah submit: '3'
+  revert -> '2'
+
+[smk3.PPkomKesesuaian] nilai awal: '1'
+  setelah submit: '2'
+  revert -> '1'
+
+[smk3.TotalScore] nilai awal: '37'
+  setelah submit: '38'
+  revert -> '37'
+
+[statistic_safety_recapitulation.FirstAidCase] nilai awal: '4'
+  ERROR: ElementNotInteractableException()
+
+[statistic_safety_recapitulation.JumlahAccidentRingan] nilai awal: '1'
+  ERROR: ElementNotInteractableException()
+
+[statistic_safety_recapitulation.PenyakitAkibatKerja] nilai awal: '1'
+  setelah submit: '2'
+  revert -> '1'

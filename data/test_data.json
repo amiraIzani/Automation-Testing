@@ -10,6 +10,7 @@
   "hss_safety": {
     "menu": ["HSS", "Safety"],
     "filter_unit_default": "[AT10] KANTOR PUSAT",
+    "filter_unit_alternate": "[AT02] UBP NIKEL SULTRA",
     "filter_bulan": "2026-08",
     "filter_tahun": "2026",
     "master_alat": {
@@ -44,6 +45,8 @@
       "Rekomendasi & Tindakan Perbaikan",
       "Saksi & Tim Investigasi"
     ],
-    "tab_data_rekap_statistik_k3": ["Frequency Rate", "Severity Rate", "TRIR", "Fatality Rate"]
+    "tab_data_rekap_statistik_k3": ["Frequency Rate", "Severity Rate", "TRIR", "Fatality Rate"],
+    "tab_witness_statement_report": ["Keterangan Saksi", "Pertanyaan Wawancara"],
+    "tab_safety_recap": ["Bulanan", "Tahunan"]
   }
 }

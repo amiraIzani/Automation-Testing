@@ -1,0 +1,7 @@
+modal terbuka: True
+semua modal: [{'cls': 'modal fade js-modal-settings modal-backdrop-transparent', 'id': '', 'tampil': False, 'tombol': ['close text-white position-absolute pos-t']}, {'cls': 'modal fade show', 'id': 'modalImport', 'tampil': True, 'tombol': ['close color-white', 'Import', 'Close']}]
+setelah klik template, file terunduh
+modal masih tampil: True
+aksi: klik X ok
+setelah klik X: False
+statistic toolbar: {'_semuaTeksTombol': ['Reload Data', 'Import', 'FullScreen', 'Submit Changes', 'Export'], 'btnCancel': 'TAMPIL', 'btnExport': 'TAMPIL', 'btnImport': 'TIDAK ADA', 'btnReloadData': 'HIDDEN', 'btnSubmit': 'TAMPIL', 'cbDistrict': 'TAMPIL', 'tbDate': 'TAMPIL'}

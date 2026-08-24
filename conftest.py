@@ -50,7 +50,7 @@ STEP_LABELS = [
     ("test_safety_emergency_drill_daily_view", "Safety - Emergency Drill Daily"),
     ("test_safety_master_alat_view", "Safety - Master Alat Keselamatan Operasi"),
     ("test_safety_master_alat_create", "Safety - Master Alat (Create with Form)"),
-    ("test_safety_master_alat_export", "Safety - Master Alat (Export)"),
+    ("test_safety_master_alat_delete", "Safety - Master Alat (Delete)"),
     ("test_safety_soc_recapitulation_view", "Safety - SOC Recapitulation"),
     ("test_safety_golden_rules_view", "Safety - Golden Rules"),
     ("test_safety_data_rekap_k3_view", "Safety - Data Rekap Statistik K3"),
@@ -60,12 +60,10 @@ STEP_LABELS = [
     ("test_safety_statistic_safety_view", "Safety - Statistic Safety Recapitulation"),
     ("test_safety_smk3_view", "Safety - SMK3"),
     ("test_safety_smkp_view", "Safety - SMKP"),
+    ("test_safety_lagging_deep", "Safety - Lagging (Semua Fitur)"),
+    ("test_safety_buka_semua_tab", "Safety - Buka Semua Tab"),
     ("test_safety_tombol_toolbar", "Safety - Tombol Toolbar"),
-    ("test_safety_reload_data", "Safety - Reload Data"),
-    ("test_safety_create_with_form_modal", "Safety - Create with Form (Modal)"),
-    ("test_safety_columns_dropdown", "Safety - Dropdown Columns"),
-    ("test_safety_fullscreen_toggle", "Safety - FullScreen Toggle"),
-    ("test_safety_import_modal", "Safety - Modal Import"),
+    ("test_safety_coba_semua_tombol", "Safety - Coba Semua Tombol"),
 ]
 
 # Hasil kumulatif: label -> bool (semua step modul lulus); urutan dict = urutan eksekusi.

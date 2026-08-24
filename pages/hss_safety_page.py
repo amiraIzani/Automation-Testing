@@ -59,6 +59,13 @@ class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     MENU_HSS = (By.XPATH, "//span[normalize-space(text())='HSS']")
     MENU_SAFETY = (By.XPATH, "//span[normalize-space(text())='Safety']")
+    # QUIRK terbukti 2026-08-24 (tools/cek_menu.py): toggle buka/tutup
+    # submenu sidebar TIDAK terikat ke anchor/span, tapi ke elemen
+    # <b class="collapse-sign"> di dalam anchor. Klik anchor/span justru
+    # men-tutup submenu yang sedang terbuka (toggle terbalik). Jadi
+    # pembuka submenu = collapse-sign, dan indikator terbuka = class
+    # 'open' di parent <li> + icon em jadi fa-angle-up.
+    MENU_SIGN = (By.CSS_SELECTOR, "a[title='{judul}'] b.collapse-sign")
     # Submenu item Safety punya href asli (bukan '#'), jadi bisa klik
     # langsung lewat href. Teks dipakai sebagai fallback.
     SUBMENU_ITEM = (
@@ -288,8 +295,11 @@ class HssSafetyPage(BasePage):
             "Export", "Cancel",
         ),
         # Transaction - Lagging Indicator
+        # Catatan 2026-08-24: tombol Reload Data di halaman Statistic
+        # kini TIDAK lagi dirender tampil oleh aplikasi (id btnReloadData
+        # ada di DOM tapi hidden -- dicek langsung) -- tidak dipaksa.
         "statistic_safety_recapitulation": (
-            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Import", "FullScreen", "Submit Changes",
             "Export", "Instructions", "Cancel",
         ),
         "smk3": (
@@ -334,19 +344,44 @@ class HssSafetyPage(BasePage):
             self._js_tampil(), self.TABLE_REPORT[1], min_tinggi
         )
 
+    def buka_submenu(self, judul, timeout=None):
+        """Buka submenu sidebar `judul` (mis. 'HSS') dengan mengklik
+        collapse-sign-nya, lalu tunggu parent <li> dapat class 'open'
+        (indikator terbukti, 2026-08-24). Klik dilakukan HANYA kalau
+        submenu belum terbuka -- klik saat terbuka = menutup (toggle).
+
+        catatan quirk: handler toggle terikat ke <b class="collapse-sign">
+        dan butuh klik MOUSE asli -- JS .click() tidak memicu handler
+        (dicek tools/cek_menu.py, 2026-08-24)."""
+        sign = (
+            By.CSS_SELECTOR,
+            self.MENU_SIGN[1].format(judul=judul),
+        )
+
+        def _terbuka(d):
+            return bool(d.execute_script(
+                "const s = [...document.querySelectorAll('nav span')]"
+                f".filter(e => (e.innerText || '').trim() === '{judul}')[0];"
+                "if (!s) return false;"
+                "return s.closest('li').className.includes('open');"
+            ))
+
+        if not _terbuka(self.driver):
+            self.click(sign, timeout=timeout)
+        self._wait(timeout).until(
+            _terbuka,
+            f"Submenu sidebar '{judul}' tidak kunjung terbuka setelah klik collapse-sign",
+        )
+
     def buka_menu_hss_safety(self):
-        """Klik menu sidebar HSS lalu submenu Safety. Dipakai untuk
+        """Buka menu sidebar HSS lalu submenu Safety. Dipakai untuk
         memverifikasi struktur menu (bukan jalur utama -- jalur utama
         memakai buka_halaman() dengan URL langsung yang lebih stabil).
 
-        Catatan: menu sidebar SmartAdmin bersifat TOGGLE -- kalau HSS
-        sudah terbuka dan diklik lagi malah menutup, jadi ada cek
-        fallback: kalau Safety belum muncul setelah klik pertama,
-        klik HSS sekali lagi (toggle balik)."""
-        self.click_visible_among(self.MENU_HSS)
-        if not self.is_any_visible(self.MENU_SAFETY, timeout=3):
-            self.click_visible_among(self.MENU_HSS)
-        self.click_visible_among(self.MENU_SAFETY)
+        Toggle buka/tutup terikat ke collapse-sign (bukan anchor/span)
+        -- lihat buka_submenu() (terbukti 2026-08-24)."""
+        self.buka_submenu("HSS")
+        self.buka_submenu("Safety")
 
     def buka_halaman(self, kunci):
         """Buka halaman Safety berdasarkan kunci di HALAMAN (mis.
@@ -406,8 +441,23 @@ class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     def set_filter_tanggal(self, nilai):
         """Isi filter tanggal (tbDate) -- format mengikuti halaman
-        (mis. '2026-08' untuk bulanan, '2026' untuk tahunan)."""
-        self.type_text_visible(self.FILTER_TANGGAL, nilai)
+        (mis. '2026-08' untuk bulanan, '2026' untuk tahunan). Nilai
+        di-set lewat JS + event input/change: send_keys ke input
+        type=month/year TIDAK memicu reload filter (2026-08-24)."""
+        element = self._ambil_js_visible(self.FILTER_TANGGAL)
+        self.driver.execute_script(
+            "arguments[0].value = arguments[1];"
+            "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));"
+            "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+            element,
+            nilai,
+        )
+        self.pace()
+
+    def baca_filter_tanggal(self):
+        """Baca nilai filter tanggal (tbDate) saat ini."""
+        els = self.driver.find_elements(*self.FILTER_TANGGAL)
+        return els[0].get_attribute("value") if els else ""
 
     def pilih_unit(self, teks_opsi):
         """Pilih unit pada select cbDistrict (teks opsi, mis.
@@ -415,23 +465,80 @@ class HssSafetyPage(BasePage):
         memakai Select (bukan kirim teks) supaya opsi benar2 terpilih."""
         self.select_option(self.FILTER_UNIT, teks_opsi)
 
+    def unit_terpilih_value(self):
+        """Baca value opsi cbDistrict yang sedang terpilih."""
+        return self.driver.execute_script(
+            "const s = document.querySelector('#cbDistrict');"
+            "return s ? s.value : '';"
+        )
+
+    def pilih_unit_by_value(self, value):
+        """Pilih opsi cbDistrict berdasarkan VALUE lewat Select
+        (event asli seperti user). Opsi teks tertentu bisa disabled
+        saat periode tanggal aktif -- kalau opsi target disabled,
+        fallback ke set value via JS."""
+        element = self._ambil_js_visible(self.FILTER_UNIT)
+        select = Select(element)
+        for i, opsi in enumerate(select.options):
+            if opsi.get_attribute("value") == value:
+                if opsi.is_enabled():
+                    select.select_by_index(i)
+                else:
+                    self.driver.execute_script(
+                        "arguments[0].value = arguments[1];"
+                        "arguments[0].dispatchEvent(new Event('change',"
+                        " {bubbles: true}));",
+                        element,
+                        value,
+                    )
+                break
+        self.pace()
+
+    def pilih_unit_enabled_lain(self):
+        """Pilih opsi district ENABLED pertama selain yang terpilih,
+        lewat Select (event asli seperti user -- JS change terbukti
+        bikin grid render data sampah, 2026-08-24). Beberapa opsi bisa
+        di-disable aplikasi setelah filter tanggal diganti (tidak ada
+        data untuk periode itu) -- jadi jangan hardcode teks opsi.
+        Kembalikan VALUE opsi yang dipilih (None kalau tidak ada opsi
+        lain yang enabled)."""
+        element = self._ambil_js_visible(self.FILTER_UNIT)
+        select = Select(element)
+        indeks_aktif = int(element.get_attribute("selectedIndex") or 0)
+        for i in range(len(select.options)):
+            if i == indeks_aktif:
+                continue
+            if select.options[i].is_enabled():
+                select.select_by_index(i)
+                self.pace()
+                return select.options[i].get_attribute("value")
+        return None
+
     def reload_data(self):
         """Klik Reload Data lalu tunggu data selesai dimuat ulang
         (overlay Processing hilang + tabel tampil).
 
         Tombol Reload kadang TIDAK ter-render oleh SPA (quirk stuck
         yang sama dengan navigasi antar-halaman, 2026-08-21) -- kalau
-        belum tampil setelah timeout, navigasi ulang 1x lalu coba
-        lagi (remedy terbukti)."""
-        try:
-            self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
-        except TimeoutException:
-            self.driver.get(self.driver.current_url)
-            self._tunggu_tabel()
-            self.tunggu_processing_selesai()
-            self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
+        belum tampil setelah timeout, navigasi ulang lalu coba lagi
+        (remedy terbukti; bisa butuh 2x navigasi)."""
+        for _ in range(3):
+            try:
+                self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
+                break
+            except TimeoutException:
+                self.driver.get(self.driver.current_url)
+                self._tunggu_tabel()
+                self.tunggu_processing_selesai()
         self.tunggu_processing_selesai()
         self._tunggu_tabel()
+        # Reload Data memunculkan dialog info (bootbox) yang HARUS
+        # dijawab -- kalau dibiarkan, modal berikutnya menumpuk di
+        # atasnya dan tunggu-modal-tertutup tidak pernah tercapai
+        # (2026-08-24).
+        self.jawab_konfirmasi()
+        if self._ada_modal_tampil():
+            self.tutup_modal()
 
     def export_data(self):
         """Klik Export (unduh file -- halaman tidak berpindah) lalu
@@ -439,19 +546,16 @@ class HssSafetyPage(BasePage):
         self.click_js_saat_tampil(self.BTN_EXPORT)
         self.jawab_konfirmasi()
 
-    def export_dan_tunggu_file(self, ekstensi=".xlsx"):
-        """Klik Export lalu tunggu file BARU ber-ekstensi `ekstensi`
-        muncul di folder unduhan (config.DOWNLOAD_DIR -- diarahkan lewat
-        prefs Chrome di conftest). Kembalikan path file hasil unduhan."""
+    def tunggu_file_baru(self, ekstensi, sebelum):
+        """Tunggu file BARU ber-ekstensi `ekstensi` muncul di folder
+        unduhan (config.DOWNLOAD_DIR). Kembalikan path file-nya."""
         os.makedirs(config.DOWNLOAD_DIR, exist_ok=True)
-        sebelum = set(os.listdir(config.DOWNLOAD_DIR))
-        self.export_data()
         self._wait(config.LONG_TIMEOUT).until(
             lambda d: any(
                 nama.endswith(ekstensi) and nama not in sebelum
                 for nama in os.listdir(config.DOWNLOAD_DIR)
             ),
-            "File export tidak kunjung muncul di folder unduhan "
+            "File tidak kunjung muncul di folder unduhan "
             f"({config.DOWNLOAD_DIR})",
         )
         baru = [
@@ -459,6 +563,27 @@ class HssSafetyPage(BasePage):
             if nama.endswith(ekstensi) and nama not in sebelum
         ]
         return os.path.join(config.DOWNLOAD_DIR, baru[0])
+
+    def export_dan_tunggu_file(self, ekstensi=".xlsx"):
+        """Klik Export lalu tunggu file BARU ber-ekstensi `ekstensi`
+        muncul di folder unduhan (config.DOWNLOAD_DIR -- diarahkan lewat
+        prefs Chrome di conftest). Kembalikan path file hasil unduhan.
+        Dialog sisa (alert sukses tanpa tombol Yes/OK) ditutup supaya
+        tidak menumpuk dengan modal berikutnya (2026-08-24)."""
+        sebelum = set(os.listdir(config.DOWNLOAD_DIR))
+        self.export_data()
+        file_unduh = self.tunggu_file_baru(ekstensi, sebelum)
+        if self._ada_modal_tampil():
+            self.tutup_modal()
+        return file_unduh
+
+    def download_template_import(self, ekstensi=".xlsx"):
+        """Klik link Download Template di modal Import lalu tunggu file
+        template terunduh. Dipakai test Import tanpa mengunggah data
+        (upload nyata menyisipkan data baru di DEV)."""
+        sebelum = set(os.listdir(config.DOWNLOAD_DIR))
+        self.click_js_saat_tampil(self.LINK_DOWNLOAD_TEMPLATE)
+        return self.tunggu_file_baru(ekstensi, sebelum)
 
     # Kandidat tombol Yes/OK dialog konfirmasi (Submit Changes /
     # Export): bootbox Yes dulu, lalu modal Bootstrap, SweetAlert,
@@ -528,21 +653,25 @@ class HssSafetyPage(BasePage):
 
     def submit_changes(self):
         """Klik Submit Changes lalu jawab dialog konfirmasi OK supaya
-        perubahan benar2 tersimpan di server."""
+        perubahan benar2 tersimpan di server. Setelah dijawab, tunggu
+        bootbox benar2 hilang -- kalau tidak, klik/aksi berikutnya
+        kena intercept oleh modal yang masih menutup (2026-08-24)."""
         self.click_js_saat_tampil(self.BTN_SUBMIT)
         self.jawab_konfirmasi()
+        self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
 
-    def klik_tab(self, teks_tab):
+    def klik_tab(self, teks_tab, jeda=1.0):
         """Klik tab internal halaman (hanya yang benar2 tampil menurut
         JS -- beberapa halaman punya panel tab tersembunyi di DOM),
-        lalu tunggu tabnya jadi aktif."""
+        lalu tunggu tabnya jadi aktif. `jeda` = jeda visual setelah
+        tab aktif supaya hasil aksi sempat terlihat (1 detik default --
+        permintaan user, 2026-08-24)."""
         locator = (By.XPATH, self.TAB[1].format(teks_tab=teks_tab))
         element = self._ambil_js_visible(locator)
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});", element
         )
         self.driver.execute_script("arguments[0].click();", element)
-        self.pace()
         self._wait(config.DEFAULT_TIMEOUT).until(
             lambda d: any(
                 "active" in (el.get_attribute("class") or "")
@@ -550,6 +679,7 @@ class HssSafetyPage(BasePage):
             ),
             f"Tab '{teks_tab}' tidak kunjung aktif setelah diklik",
         )
+        self.pace(jeda)
 
     def klik_kolom(self, nama_kolom):
         """Klik header kolom tabel (untuk sort)."""
@@ -818,11 +948,29 @@ return out;
         self.tunggu_modal_tertutup()
 
     def tutup_modal(self):
-        """Tutup modal yang sedang terbuka lewat tombol Close, lalu
-        TUNGGU sampai modalnya benar2 hilang (sebelumnya cuma klik,
-        jadi aksi berikutnya bisa kena modal yang masih setengah
-        menutup)."""
-        self.click_js_saat_tampil(self.BTN_CLOSE_MODAL)
+        """Tutup modal yang sedang terbuka (tombol X -> tombol teks
+        Close -> tombol ESC), lalu TUNGGU sampai benar2 hilang.
+        Retry beberapa kali -- klik bisa terabaikan kalau aplikasi
+        masih sibuk (mis. setelah link Download Template diproses,
+        2026-08-24)."""
+        from selenium.webdriver.common.keys import Keys
+        for _ in range(3):
+            if not self._ada_modal_tampil():
+                return
+            self._klik_jika_ada(self.BTN_CLOSE_MODAL)
+            self._klik_jika_ada((
+                By.XPATH,
+                "//div[contains(@class,'modal') and contains(@class,'show')]"
+                "//button[normalize-space(.)='Close']",
+            ))
+            # bootbox alert (mis. info Reload Data) dijawab OK
+            self._klik_jika_ada((By.CSS_SELECTOR, "button.bootbox-accept"))
+            try:
+                self.tunggu_modal_tertutup(timeout=5)
+                return
+            except TimeoutException:
+                continue
+        self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.ESCAPE)
         self.tunggu_modal_tertutup()
 
     def cari_di_grid(self, teks):
@@ -838,6 +986,19 @@ return out;
             "  dt.search(arguments[0]).draw();"
             "}",
             teks,
+        )
+        self.tunggu_processing_selesai()
+
+    def reset_cari_grid(self):
+        """Kosongkan kotak search DataTables di grid utama -- supaya
+        SEMUA baris terlihat lagi (dipakai sebelum verifikasi nilai
+        sel grid; search sisa test lain bisa menyembunyikan baris)."""
+        self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (t && window.jQuery) {"
+            "  const dt = jQuery(t).DataTable();"
+            "  dt.search('').draw();"
+            "}"
         )
         self.tunggu_processing_selesai()
 
@@ -864,8 +1025,341 @@ return out;
             return False
 
     # ------------------------------------------------------------------
+    # Grid inline-edit (halaman Lagging: Statistic/SMK3/SMKP, dan
+    # Static/Monthly/Yearly Input lain) -- nilai data ada di <input>
+    # per sel dengan atribut data-fieldname + data-rowindex.
+    # PENTING: SEMUA akses di-scope ke GRID UTAMA (JS_GRID). Halaman
+    # bisa punya tabel template reportData yang juga memuat input
+    # data-fieldname -- selector global salah sasaran ke template
+    # (sama seperti kasus JS_GRID, 2026-08-24).
+    # ------------------------------------------------------------------
+    JS_AMBIL_SEL = (
+        f"const t = {JS_GRID};"
+        "if (!t) return null;"
+        "return t.querySelector("
+        "\"input[data-fieldname='\" + arguments[0] + \"']\" +"
+        "(arguments[1] == null ? '' :"
+        " \"[data-rowindex='\" + arguments[1] + \"']\"));"
+    )
+
+    # data-rowindex TIDAK stabil lintas Submit (urutan baris bisa diubah
+    # ulang aplikasi setelah reload, 2026-08-24) -- baris dicari lewat
+    # ANCHOR: nilai field lain di baris yang sama (mis. Month=January).
+    JS_AMBIL_SEL_ANCHOR = (
+        f"const t = {JS_GRID};"
+        "if (!t) return null;"
+        "const anchor = arguments[1];"
+        "const baris = [...t.querySelectorAll('tbody tr')].find(tr =>"
+        "  Object.entries(anchor).every(p => {"
+        "    const inp = tr.querySelector("
+        "      \"input[data-fieldname='\" + p[0] + \"']\");"
+        "    return inp && inp.value === p[1];"
+        "  }));"
+        "if (!baris) return null;"
+        "return baris.querySelector("
+        "\"input[data-fieldname='\" + arguments[0] + \"']\");"
+    )
+
+    def _ambil_elemen_sel(self, nama_field, baris=None):
+        """Kembalikan WebElement input sel `nama_field` DI GRID UTAMA
+        (None kalau tidak ada)."""
+        return self.driver.execute_script(
+            self.JS_AMBIL_SEL, nama_field, baris
+        )
+
+    def _ambil_elemen_sel_anchor(self, nama_field, anchor):
+        """Kembalikan WebElement input sel `nama_field` di baris yang
+        cocok dengan `anchor` {field: nilai} (None kalau tidak ada)."""
+        return self.driver.execute_script(
+            self.JS_AMBIL_SEL_ANCHOR, nama_field, anchor
+        )
+
+    def baca_sel_grid(self, nama_field, baris=None):
+        """Baca nilai input sel grid UTAMA `nama_field` ('' kalau
+        tidak ada di grid utama)."""
+        element = self._ambil_elemen_sel(nama_field, baris)
+        if element is None:
+            return ""
+        try:
+            return element.get_attribute("value") or ""
+        except StaleElementReferenceException:
+            return self.baca_sel_grid(nama_field, baris)
+
+    def baca_sel_grid_anchor(self, nama_field, anchor):
+        """Baca nilai sel `nama_field` di baris yang cocok `anchor`
+        {field: nilai}. '' kalau baris tidak ditemukan."""
+        element = self._ambil_elemen_sel_anchor(nama_field, anchor)
+        if element is None:
+            return ""
+        try:
+            return element.get_attribute("value") or ""
+        except StaleElementReferenceException:
+            return self.baca_sel_grid_anchor(nama_field, anchor)
+
+    def isi_sel_grid(self, nama_field, nilai, baris=0):
+        """Ubah nilai sel grid inline-edit DI GRID UTAMA: klik input ->
+        clear -> ketik nilai baru -> trigger event 'change' supaya
+        DataTables merekam perubahan (pending changes untuk Submit
+        Changes). Ketik memakai send_keys (bukan JS) supaya handler
+        asli halaman ikut jalan. Untuk input khusus (date/datetime/
+        month) send_keys sering gagal mengisi -- fallback set value
+        lewat JS + event change."""
+        for _ in range(3):
+            try:
+                element = self._ambil_elemen_sel(nama_field, baris)
+                if element is None:
+                    raise TimeoutException(
+                        f"Sel grid '{nama_field}' baris {baris} tidak ada"
+                        " di grid utama"
+                    )
+                self._ketik_sel(element, nilai)
+                return
+            except StaleElementReferenceException:
+                continue
+        raise StaleElementReferenceException(
+            f"Sel grid '{nama_field}' terus-menerus stale saat diisi"
+        )
+
+    def isi_sel_grid_anchor(self, nama_field, nilai, anchor):
+        """Sama seperti isi_sel_grid tapi baris dicari lewat `anchor`
+        {field: nilai} (tahan terhadap urutan baris yang berubah)."""
+        for _ in range(3):
+            try:
+                element = self._ambil_elemen_sel_anchor(nama_field, anchor)
+                if element is None:
+                    raise TimeoutException(
+                        f"Sel grid '{nama_field}' di baris {anchor} tidak ada"
+                        " di grid utama"
+                    )
+                self._ketik_sel(element, nilai)
+                return
+            except StaleElementReferenceException:
+                continue
+        raise StaleElementReferenceException(
+            f"Sel grid '{nama_field}' (anchor {anchor}) terus-menerus stale"
+        )
+
+    def _ketik_sel(self, element, nilai):
+        """Klik + clear + ketik nilai pada elemen input sel, dengan
+        fallback JS untuk input khusus (date/datetime/month)."""
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block: 'center'});", element
+        )
+        element.click()
+        element.clear()
+        element.send_keys(str(nilai))
+        if element.get_attribute("value") != str(nilai):
+            # send_keys tidak mengisi (input khusus) -- set via JS
+            self.driver.execute_script(
+                "arguments[0].value = arguments[1];", element, str(nilai)
+            )
+        self.driver.execute_script(
+            "arguments[0].dispatchEvent(new Event('change',"
+            " {bubbles: true}));",
+            element,
+        )
+        self.pace()
+
+    def edit_dan_submit(self, nama_field, nilai):
+        """Alur edit inline di grid: ubah nilai sel -> Submit Changes
+        (jawab konfirmasi) -> tunggu grid selesai dimuat ulang.
+        Dipakai test fitur edit (bukan cuma cek tombolnya)."""
+        self.isi_sel_grid(nama_field, nilai)
+        self.submit_changes()
+        self.tunggu_processing_selesai()
+        self._tunggu_tabel()
+
+    # ------------------------------------------------------------------
     # Toolbar lain (FullScreen, Columns, Instructions)
     # ------------------------------------------------------------------
+    def tolak_konfirmasi(self, timeout=5):
+        """Jawab dialog konfirmasi dengan TIDAK/Batal (kebalikan
+        jawab_konfirmasi). Dipakai test hapus baris: dialog muncul ->
+        tolak -> baris TETAP ada. Kembalikan True kalau ada dialog
+        yang dijawab."""
+        akhir = time.time() + timeout
+        while time.time() < akhir:
+            kini = False
+            for xpath in (
+                "//div[contains(@class,'modal') and contains(@class,'show')]"
+                "//button[normalize-space(.)='No' or normalize-space(.)='Cancel'"
+                " or normalize-space(.)='Batal']",
+                "//button[normalize-space(.)='No']",
+                "//button[normalize-space(.)='Batal']",
+            ):
+                if self._klik_jika_ada((By.XPATH, xpath)):
+                    kini = True
+                    break
+            if kini:
+                self.pace()
+                return True
+            time.sleep(0.5)
+        return False
+
+    def klik_create_lalu_batal(self):
+        """Alur tombol Create (polos): klik -> baris BARU muncul di grid
+        (draft) -> klik Cancel -> baris draft hilang. Terbukti pola-nya
+        2026-08-24: Create TANPA modal, langsung tambah baris. Kalau
+        draft ternyata tersimpan server (terjadi di SOC), baris kosong
+        itu DIHAPUS lewat tombol Delete barisnya (pembersihan)."""
+        def _jumlah_baris():
+            return self.driver.execute_script(
+                f"const t = {self.JS_GRID};"
+                "return t ? t.querySelectorAll('tbody tr').length : -1;"
+            )
+
+        url_awal = self.driver.current_url
+        sebelum = _jumlah_baris()
+        self.click_js_saat_tampil(self.BTN_CREATE)
+        self.pace(1.0)
+        sesudah = _jumlah_baris()
+        self.click_js_saat_tampil(self.BTN_CANCEL_GRID)
+        self.jawab_konfirmasi()
+        self.tunggu_processing_selesai()
+        # Di halaman Daily Report tombol Cancel menavigasi ke halaman
+        # LIST (tanpa Id) -- kembali ke URL halaman asli (2026-08-24).
+        self.driver.get(url_awal)
+        self._tunggu_tabel()
+        self.tunggu_processing_selesai()
+        akhir = _jumlah_baris()
+        if akhir > sebelum:
+            self._hapus_baris_kosong()
+            self.driver.get(url_awal)
+            self._tunggu_tabel()
+            self.tunggu_processing_selesai()
+            akhir = _jumlah_baris()
+        return sebelum, sesudah, akhir
+
+    def _hapus_baris_kosong(self):
+        """Hapus baris DRAFT (semua input kosong) pertama di grid utama
+        lewat tombol Delete barisnya + konfirmasi Yes. Dipakai untuk
+        membersihkan draft yang nyangkut setelah Create+Cancel."""
+        terhapus = self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (!t) return false;"
+            "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
+            "  const ins = [...r.querySelectorAll('input')];"
+            "  return ins.length > 0 && ins.every(i => i.value === '');"
+            "});"
+            "if (!tr) return false;"
+            "const del = tr.querySelector('a.btn-delete');"
+            "if (!del) return false;"
+            "del.click(); return true;"
+        )
+        if terhapus:
+            self.pace(1.0)
+            self.jawab_konfirmasi()
+            self.tunggu_processing_selesai()
+
+    def create_dengan_form_sungguhan(self):
+        """Create with Form SUNGGUHAN: buka modal form -> isi SEMUA
+        field dummy otomatis (teks 'Dummy <label>') -> Save -> Submit
+        Changes -> verifikasi data 'Dummy' masuk grid lewat pencarian
+        SERVER-side (jumlah baris per halaman tidak bisa dipakai --
+        grid ber-pagination, 2026-08-24). Dipakai test coba semua
+        tombol (permintaan user: Create = dibuat)."""
+        url_awal = self.driver.current_url
+        self.buka_form_create()
+        self.pace(1.0)
+        self.isi_form_create_otomatis()
+        self.simpan_form()
+        self.submit_changes()
+        self.tunggu_processing_selesai()
+        self.driver.get(url_awal)
+        self._tunggu_tabel()
+        self.tunggu_processing_selesai()
+        self.cari_di_grid("Dummy")
+        if not self.tabel_berisi("Dummy", timeout=config.DEFAULT_TIMEOUT):
+            raise AssertionError(
+                "Create dengan form tidak menyimpan data dummy: "
+                "penanda 'Dummy' tidak muncul di grid setelah Submit"
+            )
+        self.reset_cari_grid()
+
+    def buka_instruksi_lalu_tutup(self):
+        """Klik link Instructions lalu tutup apa pun yang muncul
+        (modal / tab baru). Sebagian halaman tidak menampilkan apa pun
+        -- itu tidak dianggap gagal (perilaku aplikasi)."""
+        handle_awal = self.driver.window_handles
+        self.buka_instruksi()
+        self.pace(2.5)
+        if self._ada_modal_tampil():
+            self.tutup_modal()
+        baru = [h for h in self.driver.window_handles if h not in handle_awal]
+        for handle in baru:
+            self.driver.switch_to.window(handle)
+            self.driver.close()
+        if baru:
+            self.driver.switch_to.window(handle_awal[0])
+
+    def tutup_dropdown_columns(self):
+        """Klik tombol Columns lagi untuk menutup dropdown daftar
+        kolom, lalu tunggu dropdownnya hilang."""
+        self.click_js_saat_tampil(self.BTN_COLUMNS)
+        self._wait(config.DEFAULT_TIMEOUT).until(
+            lambda d: not d.execute_script(
+                "const el = document.querySelector('div.dt-button-collection');"
+                "if (!el) return true;"
+                "const s = window.getComputedStyle(el);"
+                "const r = el.getBoundingClientRect();"
+                "return s.display !== 'none' && s.visibility !== 'hidden'"
+                "&& r.width > 0 && r.height > 0;"
+            ),
+            "Dropdown Columns tidak kunjung tertutup",
+        )
+
+    def export_excel_dan_tunggu_file(self, ekstensi=".xlsx"):
+        """Klik tombol Export Excel (halaman Safety Recap) lalu tunggu
+        file terunduh."""
+        sebelum = set(os.listdir(config.DOWNLOAD_DIR))
+        self.click_js_saat_tampil(self.BTN_EXPORT_EXCEL)
+        self.jawab_konfirmasi()
+        return self.tunggu_file_baru(ekstensi, sebelum)
+
+    def coba_tombol(self, nama):
+        """Jalankan SATU aksi fitur sesuai nama tombol toolbar. Dipakai
+        test 'coba semua tombol' per halaman (permintaan user:
+        setiap tombol fitur dicoba di setiap halaman). Jeda ANTAR
+        aksi cepat (1 detik), tapi hasil tiap aksi ditahan sejenak
+        supaya terlihat saat ditonton (2026-08-24)."""
+        if nama == "Reload Data":
+            self.reload_data()
+        elif nama == "Import":
+            self.buka_modal_import()
+            self.pace(1.0)
+            self.tutup_modal()
+        elif nama == "Create with Form":
+            self.create_dengan_form_sungguhan()
+        elif nama == "Create":
+            self.klik_create_lalu_batal()
+        elif nama == "Submit Changes":
+            self.submit_changes()
+            self.tunggu_processing_selesai()
+        elif nama == "Export":
+            self.export_dan_tunggu_file()
+        elif nama == "Export Excel":
+            self.export_excel_dan_tunggu_file()
+        elif nama == "Instructions":
+            self.buka_instruksi_lalu_tutup()
+        elif nama == "Select Finding":
+            self.click_js_saat_tampil(self.BTN_SELECT_FINDING)
+            self.pace(1.0)
+            self.tutup_modal()
+        elif nama == "Columns":
+            self.buka_dropdown_columns()
+            self.pace(1.0)
+            self.tutup_dropdown_columns()
+        elif nama == "FullScreen":
+            self.toggle_fullscreen()
+            self.tunggu_fullscreen(True)
+            self.pace(1.0)
+            self.toggle_fullscreen()
+            self.tunggu_fullscreen(False)
+        elif nama == "Cancel":
+            self.click_js_saat_tampil(self.BTN_CANCEL_GRID)
+            self.jawab_konfirmasi()
+        self.pace(1.0)
+
     def toggle_fullscreen(self):
         """Klik tombol FullScreen pakai mousedown+mouseup ASLI (Actions).
 
@@ -927,6 +1421,20 @@ return out;
         hilang = [nama for nama, ok in hasil.items() if not ok]
         if hilang:
             time.sleep(2)
+            for nama in hilang:
+                if self.tombol_toolbar_tampil(nama, timeout=timeout):
+                    hasil[nama] = True
+            hilang = [nama for nama, ok in hasil.items() if not ok]
+        if hilang:
+            # SPA kadang stuck -- tombol (mis. Reload Data) tidak pernah
+            # ter-render. Navigasi ulang halaman lalu cek sekali lagi
+            # (remedy sama dengan reload_data, 2026-08-24).
+            self.driver.get(self.driver.current_url)
+            try:
+                self._tunggu_tabel()
+            except TimeoutException:
+                pass
+            self.tunggu_processing_selesai()
             for nama in hilang:
                 if self.tombol_toolbar_tampil(nama, timeout=timeout):
                     hasil[nama] = True

@@ -172,6 +172,37 @@ class TestSafetyHss:
         tab = page.find((page.TAB[0], page.TAB[1].format(teks_tab=page.TAB_DATA_KORBAN)))
         assert "active" in (tab.get_attribute("class") or ""), "Tab Data Korban tidak aktif"
 
+    # ------------------------------------------------------------------
+    # Buka SEMUA tab di halaman yang punya banyak tab (1 per halaman,
+    # jeda 2.5 detik per tab supaya bisa diikuti mata)
+    # ------------------------------------------------------------------
+    TAB_HALAMAN = {
+        "incident_investigation_form": "tab_incident_investigation",
+        "data_rekap_statistik_k3": "tab_data_rekap_statistik_k3",
+        "witness_statement_report": "tab_witness_statement_report",
+        "safety_recap": "tab_safety_recap",
+    }
+
+    @pytest.mark.safety
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        sorted(TAB_HALAMAN),
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_buka_semua_tab(self, driver, test_data, kunci_halaman):
+        """Buka SETIAP tab di halaman yang punya banyak tab dan
+        pastikan tabnya jadi aktif (data panel ikut berpindah)."""
+        page = _buka_halaman(driver, kunci_halaman)
+        daftar_tab = test_data["hss_safety"][TAB_HALAMAN[kunci_halaman]]
+        for teks_tab in daftar_tab:
+            page.klik_tab(teks_tab)
+            tab = page.find(
+                (page.TAB[0], page.TAB[1].format(teks_tab=teks_tab))
+            )
+            assert "active" in (tab.get_attribute("class") or ""), (
+                f"Tab '{teks_tab}' tidak aktif di '{kunci_halaman}'"
+            )
+
     @pytest.mark.safety_transaction
     def test_safety_initial_incident_view(self, driver):
         page = SafetyInitialIncidentAccidentReportPage(driver).buka()
@@ -216,14 +247,41 @@ class TestSafetyHss:
         )
 
     @pytest.mark.safety_transaction
-    def test_safety_master_alat_export(self, driver, test_data):
-        """Filter unit -> Reload Data -> Export: file unduhan harus
-        muncul di folder unduhan project (config.DOWNLOAD_DIR)."""
+    def test_safety_master_alat_delete(self, driver):
+        """Contoh fitur HAPUS (hanya Master Alat yang punya tombol
+        Delete per baris): klik Delete di baris dummy AUTO-TEST ->
+        jawab konfirmasi Ya (atau hapus langsung) -> baris dummy
+        BENAR2 terhapus. Sekalian membersihkan data dummy test dari
+        run sebelumnya -- data asli tidak tersentuh."""
         page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
-        page.pilih_unit(test_data["hss_safety"]["filter_unit_default"])
-        page.reload_data()
-        file_unduh = page.export_dan_tunggu_file()
-        assert file_unduh, "File export tidak muncul di folder unduhan"
+        page.cari_di_grid("AUTO-TEST")
+
+        def _jumlah_dummy():
+            return page.driver.execute_script(
+                f"const t = {page.JS_GRID};"
+                "return t ? [...t.querySelectorAll('tbody tr')]"
+                ".filter(tr => tr.innerText.includes('AUTO-TEST')).length : 0;"
+            )
+
+        sebelum = _jumlah_dummy()
+        if sebelum == 0:
+            pytest.skip("Tidak ada baris dummy AUTO-TEST untuk contoh hapus")
+        diklik = page.driver.execute_script(
+            f"const t = {page.JS_GRID};"
+            "const b = t && t.querySelector('a.btn-delete');"
+            "if (b) { b.click(); return true; }"
+            "return false;"
+        )
+        assert diklik, "Tombol Delete tidak ditemukan di baris dummy"
+        page.pace(1.0)
+        page.jawab_konfirmasi()   # Ya kalau ada konfirmasi
+        page.tunggu_processing_selesai()
+        page.buka_halaman("master_alat_keselamatan_operasi")
+        page.cari_di_grid("AUTO-TEST")
+        assert _jumlah_dummy() == sebelum - 1, (
+            "Tombol Delete tidak menghapus baris dummy "
+            f"(sebelum={sebelum}, sesudah={_jumlah_dummy()})"
+        )
 
     @pytest.mark.safety_transaction
     def test_safety_soc_recapitulation_view(self, driver):
@@ -278,35 +336,126 @@ class TestSafetyHss:
         assert page.tabel_report_tampil(), "Tabel SMKP tidak tampil"
 
     # ------------------------------------------------------------------
-    # Modal Import (pola sama di semua halaman transaction)
+    # Lagging Indicator - test MENDALAM (semua fitur per halaman)
     # ------------------------------------------------------------------
+    # (kunci halaman, tanggal uji filter, field grid yang diedit,
+    #  anchor baris {field: nilai}, nilai uji edit)
+    # Catatan 2026-08-24:
+    #  - Baris bulan dipakai BULAN JULI (data DEV memang baru lengkap
+    #    sejak Juli -- bulan-bulan awal bisa kosong).
+    #  - Baris dicari lewat ANCHOR, bukan data-rowindex: urutan baris
+    #    bisa diubah ulang aplikasi setelah Submit.
+    #  - nilai_uji = None artinya dihitung otomatis = nilai awal + 1
+    #    (field angka yang terbukti editable & bisa di-revert).
+    #  - Filter unit TIDAK dites ganti nilai: select cbDistrict di
+    #    halaman ini terkunci oleh aplikasi (semua opsi disabled) --
+    #    cukup diverifikasi elemennya ada + punya opsi.
+    LAGGING_DEEP = [
+        ("statistic_safety_recapitulation", "2026-07", "PenyakitAkibatKerja",
+         {"Month": "July", "TipePegawai": "Pegawai"}, None),
+        ("smk3", "2026", "PPkomKetidaksesuaianMaj", {"Month": "Juli"}, None),
+        ("smkp", "2026", "Deskripsi", {"Month": "Juli"}, "AUTO-TEST"),
+    ]
+
+    @pytest.mark.safety
     @pytest.mark.safety_transaction
-    @pytest.mark.safety_toolbar
     @pytest.mark.parametrize(
-        "kunci_halaman",
-        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Import" in v],
-        ids=lambda k: NAMA_HALAMAN[k],
+        "kunci, tanggal_uji, field_edit, anchor, nilai_uji",
+        LAGGING_DEEP,
+        ids=[k for k, _, _, _, _ in LAGGING_DEEP],
     )
-    def test_safety_import_modal(self, driver, kunci_halaman):
-        """Klik Import -> modal Import terbuka (link Download Template +
-        input file) -> tutup -> modal hilang."""
-        page = _buka_halaman(driver, kunci_halaman)
+    def test_safety_lagging_deep(
+        self, driver, test_data, kunci, tanggal_uji, field_edit,
+        anchor, nilai_uji
+    ):
+        """Semua fitur halaman Lagging: view tabel -> edit grid inline
+        + Submit Changes (nilai uji diverifikasi masuk, lalu
+        DIKEMBALIKAN ke nilai awal supaya data DEV tidak berubah) ->
+        filter tanggal -> filter unit (verifikasi elemen) -> Export
+        (file terunduh) -> Import (buka modal + template terunduh,
+        tanpa unggah data -- upload import menulis ke DEV, sengaja
+        dihindari)."""
+        page = _buka_halaman(driver, kunci)
+        assert page.tabel_report_tampil(), f"Tabel '{kunci}' tidak tampil"
+
+        # 1) Edit grid inline -> Submit Changes -> verifikasi -> revert
+        #    (verifikasi dibaca SETELAH reload halaman: bacaan grid
+        #    langsung pasca-submit tidak andal -- state sampah sementara,
+        #    data asli baru terlihat setelah reload, 2026-08-24)
+        page.reset_cari_grid()
+        nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
+        assert nilai_awal, (
+            f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
+        )
+        if nilai_uji is None:
+            # field angka: nilai uji = nilai awal + 1 (mudah di-revert)
+            nilai_uji = str(int(float(nilai_awal)) + 1)
+        page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+        page.submit_changes()
+        page.buka_halaman(kunci)
+        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
+            f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
+            "Submit Changes"
+        )
+        page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+        page.submit_changes()
+        page.buka_halaman(kunci)
+        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+            f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' setelah revert"
+        )
+
+        # 1b) Cancel: buat perubahan pending -> klik Cancel -> perubahan
+        #     TIDAK tersimpan (data tetap nilai awal)
+        page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+        page.click_js_saat_tampil(page.BTN_CANCEL_GRID)
+        page.jawab_konfirmasi()
+        page.tunggu_processing_selesai()
+        page.buka_halaman(kunci)
+        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+            f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
+            "sudah diklik"
+        )
+
+        # 2) Filter tanggal -> value berubah & tabel tetap tampil ->
+        #    kembalikan
+        tanggal_awal = page.baca_filter_tanggal()
+        page.set_filter_tanggal(tanggal_uji)
+        page.tunggu_processing_selesai()
+        assert page.baca_filter_tanggal() == tanggal_uji, (
+            f"Filter tanggal tidak berubah ke '{tanggal_uji}' di '{kunci}'"
+        )
+        assert page.tabel_report_tampil(), (
+            f"Tabel '{kunci}' tidak tampil setelah filter tanggal '{tanggal_uji}'"
+        )
+        page.set_filter_tanggal(tanggal_awal)
+        page.tunggu_processing_selesai()
+        assert page.tabel_report_tampil(), (
+            f"Tabel '{kunci}' tidak tampil setelah filter tanggal dikembalikan"
+        )
+
+        # 3) Filter unit -> elemen ada + punya opsi (penggantian nilai
+        #    terkunci aplikasi di halaman ini)
+        assert page.is_visible(page.FILTER_UNIT), (
+            f"Select unit tidak tampil di '{kunci}'"
+        )
+        jumlah_opsi = driver.execute_script(
+            "const s = document.querySelector('#cbDistrict');"
+            "return s ? s.options.length : 0;"
+        )
+        assert jumlah_opsi > 0, f"Select unit '{kunci}' tidak punya opsi"
+
+        # 4) Export -> file benar2 terunduh
+        file_export = page.export_dan_tunggu_file()
+        assert file_export, f"File export '{kunci}' tidak terunduh"
+
+        # 5) Import -> modal terbuka + template terunduh (tanpa unggah)
         page.buka_modal_import()
-        assert page._ada_modal_tampil(), (
-            f"Modal Import tidak terbuka di '{kunci_halaman}'"
-        )
         assert page.is_visible(page.LINK_DOWNLOAD_TEMPLATE), (
-            f"Link Download Template tidak ada di '{kunci_halaman}'"
+            f"Link Download Template tidak ada di '{kunci}'"
         )
-        # input file Bootstrap custom-file sengaja transparan (opacity 0)
-        # -- cek PRESENCE, bukan visibility
-        assert page.is_present(page.INPUT_FILE_IMPORT), (
-            f"Input file import tidak ada di '{kunci_halaman}'"
-        )
+        file_template = page.download_template_import()
+        assert file_template, f"File template import '{kunci}' tidak terunduh"
         page.tutup_modal()
-        assert not page._ada_modal_tampil(), (
-            f"Modal Import tidak tertutup di '{kunci_halaman}'"
-        )
 
     # ------------------------------------------------------------------
     # Toolbar tombol per halaman ("bagian tombol pada fitur")
@@ -333,70 +482,27 @@ class TestSafetyHss:
     @pytest.mark.safety_toolbar
     @pytest.mark.parametrize(
         "kunci_halaman",
-        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Reload Data" in v],
+        sorted(PAGE_OBJECTS),
         ids=lambda k: NAMA_HALAMAN[k],
     )
-    def test_safety_reload_data(self, driver, kunci_halaman):
-        """Klik Reload Data -> overlay Processing hilang -> tabel tetap
-        tampil (grid selesai dimuat ulang)."""
+    def test_safety_coba_semua_tombol(self, driver, kunci_halaman):
+        """SETIAP tombol fitur halaman DIKLIK satu per satu sesuai
+        daftar HssSafetyPage.TOMBOL_HALAMAN (permintaan user
+        2026-08-24), dengan jeda 2.5 detik antar-aksi supaya alur
+        bisa diikuti mata. Aksi tiap tombol:
+          Reload Data    -> klik + tunggu tabel dimuat ulang
+          Import         -> modal terbuka lalu ditutup
+          Create         -> baris draft bertambah lalu Cancel
+          Create w/ Form -> modal form terbuka lalu Cancel
+          Submit Changes -> klik (tanpa perubahan pending = aman)
+          Export         -> file Excel terunduh ke folder unduhan
+          Export Excel   -> (Safety Recap) file terunduh
+          Instructions   -> diklik, apa pun yang muncul ditutup
+          Select Finding -> (SOC) modal lookup terbuka lalu ditutup
+          Columns        -> dropdown daftar kolom buka lalu tutup
+          FullScreen     -> masuk fullscreen lalu kembali normal
+          Cancel         -> diklik (tanpa pending = aman)"""
         page = _buka_halaman(driver, kunci_halaman)
-        page.reload_data()
-        assert page.tabel_report_tampil(), (
-            f"Tabel tidak tampil setelah Reload Data di '{kunci_halaman}'"
-        )
-
-    @pytest.mark.safety
-    @pytest.mark.safety_toolbar
-    @pytest.mark.parametrize(
-        "kunci_halaman",
-        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Create with Form" in v],
-        ids=lambda k: NAMA_HALAMAN[k],
-    )
-    def test_safety_create_with_form_modal(self, driver, kunci_halaman):
-        """Klik 'Create with Form' -> modal form terbuka -> Cancel ->
-        modal tertutup (TANPA menyimpan data apa pun)."""
-        page = _buka_halaman(driver, kunci_halaman)
-        page.buka_form_create()
-        assert page._ada_modal_tampil(), (
-            f"Modal Create with Form tidak terbuka di '{kunci_halaman}'"
-        )
-        page.batal_form()
-        assert not page._ada_modal_tampil(), (
-            f"Modal tidak tertutup setelah Cancel di '{kunci_halaman}'"
-        )
-
-    @pytest.mark.safety
-    @pytest.mark.safety_toolbar
-    @pytest.mark.parametrize(
-        "kunci_halaman",
-        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "Columns" in v],
-        ids=lambda k: NAMA_HALAMAN[k],
-    )
-    def test_safety_columns_dropdown(self, driver, kunci_halaman):
-        """Klik Columns -> dropdown daftar kolom DataTables
-        (div.dt-button-collection) muncul."""
-        page = _buka_halaman(driver, kunci_halaman)
-        page.buka_dropdown_columns()
-        assert page.is_present(page.DROPDOWN_COLUMNS), (
-            f"Dropdown Columns tidak muncul di '{kunci_halaman}'"
-        )
-
-    @pytest.mark.safety
-    @pytest.mark.safety_toolbar
-    @pytest.mark.parametrize(
-        "kunci_halaman",
-        [k for k, v in HssSafetyPage.TOMBOL_HALAMAN.items() if "FullScreen" in v],
-        ids=lambda k: NAMA_HALAMAN[k],
-    )
-    def test_safety_fullscreen_toggle(self, driver, kunci_halaman):
-        """Klik FullScreen -> panel grid jadi fullscreen (class
-        panel-fullscreen); klik lagi -> kembali normal."""
-        page = _buka_halaman(driver, kunci_halaman)
-        page.toggle_fullscreen()
-        assert page.tunggu_fullscreen(True), (
-            f"Panel tidak fullscreen setelah klik FullScreen di '{kunci_halaman}'"
-        )
-        page.toggle_fullscreen()
-        assert page.tunggu_fullscreen(False), (
-            f"Panel tidak kembali normal setelah toggle kedua di '{kunci_halaman}'"
-        )
+        daftar = HssSafetyPage.TOMBOL_HALAMAN[kunci_halaman]
+        for nama in daftar:
+            page.coba_tombol(nama)
