@@ -61,6 +61,22 @@ pytest -m safety_view           # hanya halaman view/reporting
   overlay -- `buka_halaman()` sudah retry 1x + LONG_TIMEOUT 60s.
 - Detail lengkap: `locators/hss_safety.md` dan `locators/login.md`.
 
+## Catatan tambahan (2026-08-26)
+
+- Tombol **Reload Data** kini hanya ditampilkan aplikasi di halaman
+  Master Alat Keselamatan Operasi -- di halaman lain tombolnya
+  dirender di dalam `div.panel-tag.d-none` (tersembunyi, 0x0 px).
+  Daftar harapan toolbar per halaman (`TOMBOL_HALAMAN` di
+  `hss_safety_page.py`) sudah disesuaikan.
+- Halaman **Statistic Safety Recapitulation** (template MonthlyReport)
+  tidak menyimpan perubahan inline lewat Submit Changes (ketikan masuk
+  sel tapi nilai kembali ke awal setelah reload) -- beda dari SMK3/SMKP
+  (YearlyReport) yang menyimpan normal. Test edit di halaman itu
+  memverifikasi data TIDAK rusak, bukan tersimpan.
+- Eksport & buka modal kadang tidak terpicu saat sesi panjang (SPA
+  stuck) -- `export_dan_tunggu_file()` retry 3x dan
+  `_klik_dan_tunggu_modal()` fallback navigasi ulang.
+
 ## Langkah selanjutnya
 
 1. Jalankan `pytest -k safety` untuk memvalidasi semua page object.

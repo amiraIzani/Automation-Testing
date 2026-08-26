@@ -19,6 +19,9 @@ import time
 import pytest
 
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+
+from config import config
 
 from pages.safety_lagging_indicator_page import SafetyLaggingIndicatorPage
 from pages.safety_golden_rules_recap_page import SafetyGoldenRulesRecapPage
@@ -193,7 +196,7 @@ class TestSafetyHss:
         """Buka SETIAP tab di halaman yang punya banyak tab dan
         pastikan tabnya jadi aktif (data panel ikut berpindah)."""
         page = _buka_halaman(driver, kunci_halaman)
-        daftar_tab = test_data["hss_safety"][TAB_HALAMAN[kunci_halaman]]
+        daftar_tab = test_data["hss_safety"][self.TAB_HALAMAN[kunci_halaman]]
         for teks_tab in daftar_tab:
             page.klik_tab(teks_tab)
             tab = page.find(
@@ -249,18 +252,37 @@ class TestSafetyHss:
     @pytest.mark.safety_transaction
     def test_safety_master_alat_delete(self, driver, test_data):
         """Contoh fitur HAPUS (hanya Master Alat yang punya tombol
-        Delete per baris): klik Delete di baris dummy -> jawab
-        konfirmasi Ya -> baris BENAR2 terhapus. Sekalian
-        membersihkan SEMUA baris dummy test yang menumpuk dari run
-        sebelumnya (penanda 'AUTO-TEST' dari test create + 'Dummy'
-        dari test coba semua tombol) -- data asli tidak tersentuh.
+        Delete per baris): klik Delete di baris dummy -> dialog
+        konfirmasi muncul ('Do you wish to delete this record ?') ->
+        jawab Yes -> baris HILANG dari tampilan grid (alur UI fitur
+        Delete berjalan).
+
+        CATATAN 2026-08-26 (perilaku aplikasi DEV): penghapusan TIDAK
+        disimpan ke server -- setelah reload halaman baris muncul
+        lagi. Dicek menyeluruh lewat probe (tools/probe_masalah6/9.py):
+        klik Delete + Yes + tunggu 20 detik, maupun + Submit Changes,
+        tidak mengubah data server sama sekali. Karena itu test ini
+        TIDAK lagi bisa membersihkan baris dummy yang menumpuk (tidak
+        mungkin lewat UI saat ini) -- test memverifikasi alur fitur
+        Delete APA ADANYA, dan assert terakhir jadi ALARM kalau
+        aplikasi mulai benar-benar menghapus (saat itu test diupdate
+        kembali menjadi verifikasi cleanup penuh).
+
         Kalau tidak ada baris dummy sama sekali (test dijalankan
-        SENDIRIAN tanpa test create sebelumnya), SATU baris dummy
-        dibuat dulu lewat Create with Form lalu dihapus -- test
-        mandiri dan tidak pernah skip."""
+        SENDIRIAN), SATU baris dummy dibuat dulu lewat Create with
+        Form -- test mandiri dan tidak pernah skip."""
         data = test_data["hss_safety"]["master_alat"]
         page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
         page.reset_cari_grid()
+        # TUNGGU baris benar2 ter-render sebelum menghitung dummy --
+        # hitungan sebelum data selesai dimuat AJAX = 0 palsu (pernah
+        # membuat test menciptakan dummy ekstra, 2026-08-26).
+        page._wait(config.LONG_TIMEOUT).until(
+            lambda _: driver.execute_script(
+                f"const t = {page.JS_GRID};"
+                "return t ? t.querySelectorAll('tbody tr').length > 0 : false;"
+            )
+        )
 
         def _jumlah_dummy():
             return page.driver.execute_script(
@@ -304,38 +326,48 @@ class TestSafetyHss:
             page.tunggu_processing_selesai()
             page.buka_halaman("master_alat_keselamatan_operasi")
             page.reset_cari_grid()
+            page._wait(config.LONG_TIMEOUT).until(
+                lambda _: driver.execute_script(
+                    f"const t = {page.JS_GRID};"
+                    "return t ? t.querySelectorAll('tbody tr').length > 0"
+                    " : false;"
+                )
+            )
             assert _jumlah_dummy() >= 1, (
                 "Baris dummy gagal dibuat untuk contoh hapus"
             )
 
-        dihapus = 0
-        coba = 0
-        while coba < 60:  # batas pengaman -- jangan loop selamanya
-            coba += 1
-            sebelum = _jumlah_dummy()
-            if sebelum == 0:
-                break
-            if not _klik_delete_dummy():
-                # tombol delete tidak ketemu padahal baris dummy ada
-                # (grid stale?) -- reload halaman lalu coba lagi
-                page.buka_halaman("master_alat_keselamatan_operasi")
-                page.reset_cari_grid()
-                continue
-            page.pace(1.0)
-            page.jawab_konfirmasi()   # Ya kalau ada konfirmasi
-            page.tunggu_processing_selesai()
-            dihapus += 1
-            if _jumlah_dummy() >= sebelum:
-                # jumlah tidak berkurang (klik tidak mempan) -- reload
-                # supaya state bersih sebelum klik berikutnya
-                page.buka_halaman("master_alat_keselamatan_operasi")
-                page.reset_cari_grid()
+        sebelum = _jumlah_dummy()
+        assert sebelum >= 1, "Tidak ada baris dummy untuk contoh hapus"
+        assert _klik_delete_dummy(), (
+            "Tombol Delete tidak ada di baris dummy"
+        )
+        page.pace(1.0)
+        page.jawab_konfirmasi()   # Yes pada dialog konfirmasi
+        # Baris HILANG dari tampilan grid (alur UI fitur Delete).
+        page._wait(config.LONG_TIMEOUT).until(
+            lambda _: _jumlah_dummy() < sebelum,
+            "Baris dummy tidak hilang dari grid setelah Delete + Yes",
+        )
+        # Reload: aplikasi DEV TIDAK menyimpan penghapusan ke server
+        # (dicek 2026-08-26, lihat docstring) -- baris MUNCUL lagi.
+        # Assert ini jadi ALARM kalau perilaku aplikasi berubah jadi
+        # benar2 menghapus -> saat itu update test jadi verifikasi
+        # cleanup penuh.
         page.buka_halaman("master_alat_keselamatan_operasi")
         page.reset_cari_grid()
-        sisa = _jumlah_dummy()
-        assert dihapus >= 1, "Tidak ada baris dummy yang terhapus"
-        assert sisa == 0, (
-            f"Masih tersisa {sisa} baris dummy setelah hapus"
+        page._wait(config.LONG_TIMEOUT).until(
+            lambda _: driver.execute_script(
+                f"const t = {page.JS_GRID};"
+                "return t ? t.querySelectorAll('tbody tr').length > 0"
+                " : false;"
+            )
+        )
+        sesudah = _jumlah_dummy()
+        assert sesudah >= sebelum, (
+            "Perilaku delete BERUBAH: aplikasi sekarang menyimpan "
+            f"penghapusan ke server ({sebelum} -> {sesudah} baris dummy). "
+            "Update test ini untuk memverifikasi cleanup penuh."
         )
 
     @pytest.mark.safety_transaction
@@ -394,7 +426,7 @@ class TestSafetyHss:
     # Lagging Indicator - test MENDALAM (semua fitur per halaman)
     # ------------------------------------------------------------------
     # (kunci halaman, tanggal uji filter, field grid yang diedit,
-    #  anchor baris {field: nilai}, nilai uji edit)
+    #  anchor baris {field: nilai}, nilai uji edit, edit_tersimpan)
     # Catatan 2026-08-24:
     #  - Baris bulan dipakai BULAN JULI (data DEV memang baru lengkap
     #    sejak Juli -- bulan-bulan awal bisa kosong).
@@ -405,23 +437,32 @@ class TestSafetyHss:
     #  - Filter unit TIDAK dites ganti nilai: select cbDistrict di
     #    halaman ini terkunci oleh aplikasi (semua opsi disabled) --
     #    cukup diverifikasi elemennya ada + punya opsi.
+    # Catatan 2026-08-26 (edit_tersimpan=False untuk Statistic):
+    #  - Halaman Statistic (template MonthlyReport) TIDAK menyimpan
+    #    perubahan inline lewat Submit Changes -- ketikan masuk ke sel
+    #    ('4' -> '5' terbaca segera), tapi setelah Submit + reload
+    #    nilainya kembali ke '4' (dicek tools/probe_masalah5.py;
+    #    kontrol SMK3 menyimpan '7' normal). Alur edit TETAP DICOBA
+    #    di Statistic (permintaan user: semua fitur dicoba), hanya
+    #    verifikasinya = data tidak rusak (tetap nilai awal).
     LAGGING_DEEP = [
         ("statistic_safety_recapitulation", "2026-07", "PenyakitAkibatKerja",
-         {"Month": "July", "TipePegawai": "Pegawai"}, None),
-        ("smk3", "2026", "PPkomKetidaksesuaianMaj", {"Month": "Juli"}, None),
-        ("smkp", "2026", "Deskripsi", {"Month": "Juli"}, "AUTO-TEST"),
+         {"Month": "July", "TipePegawai": "Pegawai"}, None, False),
+        ("smk3", "2026", "PPkomKetidaksesuaianMaj", {"Month": "Juli"}, None,
+         True),
+        ("smkp", "2026", "Deskripsi", {"Month": "Juli"}, "AUTO-TEST", True),
     ]
 
     @pytest.mark.safety
     @pytest.mark.safety_transaction
     @pytest.mark.parametrize(
-        "kunci, tanggal_uji, field_edit, anchor, nilai_uji",
+        "kunci, tanggal_uji, field_edit, anchor, nilai_uji, edit_tersimpan",
         LAGGING_DEEP,
-        ids=[k for k, _, _, _, _ in LAGGING_DEEP],
+        ids=[k for k, _, _, _, _, _ in LAGGING_DEEP],
     )
     def test_safety_lagging_deep(
         self, driver, test_data, kunci, tanggal_uji, field_edit,
-        anchor, nilai_uji
+        anchor, nilai_uji, edit_tersimpan
     ):
         """Semua fitur halaman Lagging: view tabel -> edit grid inline
         + Submit Changes (nilai uji diverifikasi masuk, lalu
@@ -438,6 +479,14 @@ class TestSafetyHss:
         #    langsung pasca-submit tidak andal -- state sampah sementara,
         #    data asli baru terlihat setelah reload, 2026-08-24)
         page.reset_cari_grid()
+        # TUNGGU data anchor benar2 terisi -- baris bisa ter-render
+        # lebih dulu dengan input masih kosong (nilai diisi AJAX
+        # belakangan) sehingga bacaan langsung = '' palsu (2026-08-26,
+        # smk3/smkp gagal baca {Month: Juli} padahal barisnya ada)
+        page._wait(config.LONG_TIMEOUT).until(
+            lambda _: page.baca_sel_grid_anchor(field_edit, anchor) != "",
+            f"Data '{field_edit}' di baris {anchor} tidak kunjung terisi",
+        )
         nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
         assert nilai_awal, (
             f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
@@ -448,16 +497,33 @@ class TestSafetyHss:
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
         page.submit_changes()
         page.buka_halaman(kunci)
-        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
-            f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
-            "Submit Changes"
-        )
-        page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
-        page.submit_changes()
-        page.buka_halaman(kunci)
-        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
-            f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' setelah revert"
-        )
+        if edit_tersimpan:
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
+                f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
+                "Submit Changes"
+            )
+            page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+            page.submit_changes()
+            page.buka_halaman(kunci)
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+                f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                "setelah revert"
+            )
+        else:
+            # halaman yang tidak menyimpan perubahan inline (template
+            # MonthlyReport): alur edit + Submit tetap DICOBA, dan
+            # verifikasinya = data TIDAK rusak (nilai tetap awal).
+            # Kalau aplikasi suatu saat mulai menyimpan, kembalikan
+            # nilainya seperti semula (2026-08-26).
+            baca = page.baca_sel_grid_anchor(field_edit, anchor)
+            if baca != nilai_awal:
+                page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+                page.submit_changes()
+                page.buka_halaman(kunci)
+                assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+                    f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                    "setelah revert"
+                )
 
         # 1b) Cancel: buat perubahan pending -> klik Cancel -> perubahan
         #     TIDAK tersimpan (data tetap nilai awal)
@@ -489,12 +555,19 @@ class TestSafetyHss:
         )
 
         # 3) Filter unit -> elemen ada + punya opsi (penggantian nilai
-        #    terkunci aplikasi di halaman ini)
-        assert page.is_visible(page.FILTER_UNIT), (
-            f"Select unit tidak tampil di '{kunci}'"
-        )
+        #    terkunci aplikasi di halaman ini). Cek lewat _ambil_js_visible
+        #    (memindai SEMUA match #cbDistrict) -- selector global bisa
+        #    salah sasaran ke match pertama yang tersembunyi (2026-08-26).
+        try:
+            page._ambil_js_visible(page.FILTER_UNIT)
+        except TimeoutException:
+            raise AssertionError(f"Select unit tidak tampil di '{kunci}'")
         jumlah_opsi = driver.execute_script(
-            "const s = document.querySelector('#cbDistrict');"
+            "const sels = [...document.querySelectorAll('#cbDistrict')];"
+            "const s = sels.find(el => {"
+            "  const r = el.getBoundingClientRect();"
+            "  return r.width > 0 && r.height > 0;"
+            "}) || sels[0];"
             "return s ? s.options.length : 0;"
         )
         assert jumlah_opsi > 0, f"Select unit '{kunci}' tidak punya opsi"

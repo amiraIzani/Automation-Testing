@@ -1,0 +1,1032 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\user\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.2', 'Platform': 'Windows-11-10.0.26200-SP0', 'Packages': {'pytest': '9.1.1', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.2.0', 'metadata': '3.1.1'}}
+rootdir: D:\Magang\ANTAM\opel-automation
+configfile: pytest.ini
+plugins: html-4.2.0, metadata-3.1.1
+collecting ... collected 68 items / 22 deselected / 46 selected
+
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Data Rekap Statistik K3] 
+V [Safety - Buka Semua Tab [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Incident Investigation] 
+V [Safety - Buka Semua Tab [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Safety Recap] 
+V [Safety - Buka Semua Tab [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Witness Statement] 
+V [Safety - Buka Semua Tab [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_delete 
+X [Safety - Master Alat (Delete)] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_master_alat_delete_20260826_153121.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[statistic_safety_recapitulation] 
+X [Safety - Lagging (Semua Fitur) [statistic_safety_recapitulation]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_lagging_deep[statistic_safety_recapitulation]_20260826_153152.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1317
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smk3] 
+X [Safety - Lagging (Semua Fitur) [smk3]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_lagging_deep[smk3]_20260826_153204.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1308
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smkp] 
+X [Safety - Lagging (Semua Fitur) [smkp]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_lagging_deep[smkp]_20260826_153222.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1307
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Data Rekap Statistik K3] 
+V [Safety - Tombol Toolbar [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Emergency Drill Daily] 
+V [Safety - Tombol Toolbar [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Emergency Drill Recap] 
+V [Safety - Tombol Toolbar [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Golden Rules] 
+V [Safety - Tombol Toolbar [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Golden Rules Recap] 
+V [Safety - Tombol Toolbar [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Incident Investigation] 
+V [Safety - Tombol Toolbar [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Initial Incident/Accident] 
+V [Safety - Tombol Toolbar [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Lagging Indicator] 
+V [Safety - Tombol Toolbar [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Leading Indicator] 
+V [Safety - Tombol Toolbar [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Master Alat Keselamatan] 
+V [Safety - Tombol Toolbar [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[MWT Daily] 
+V [Safety - Tombol Toolbar [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[MWT Recapitulation] 
+V [Safety - Tombol Toolbar [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[KKP/P2K3 Committee Meeting] 
+V [Safety - Tombol Toolbar [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Safety Recap] 
+V [Safety - Tombol Toolbar [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[SMK3] 
+V [Safety - Tombol Toolbar [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[SMKP] 
+V [Safety - Tombol Toolbar [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[SOC Recapitulation] 
+V [Safety - Tombol Toolbar [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Statistic Safety Recap] 
+V [Safety - Tombol Toolbar [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Witness Statement] 
+V [Safety - Tombol Toolbar [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Data Rekap Statistik K3] 
+V [Safety - Coba Semua Tombol [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Emergency Drill Daily] 
+V [Safety - Coba Semua Tombol [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Emergency Drill Recap] 
+V [Safety - Coba Semua Tombol [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Golden Rules] 
+V [Safety - Coba Semua Tombol [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Golden Rules Recap] 
+V [Safety - Coba Semua Tombol [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Incident Investigation] 
+X [Safety - Coba Semua Tombol [Incident Investigation]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_coba_semua_tombol[Incident Investigation]_20260826_154006.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Initial Incident/Accident] 
+V [Safety - Coba Semua Tombol [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Lagging Indicator] 
+V [Safety - Coba Semua Tombol [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Leading Indicator] 
+V [Safety - Coba Semua Tombol [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Master Alat Keselamatan] 
+V [Safety - Coba Semua Tombol [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[MWT Daily] 
+V [Safety - Coba Semua Tombol [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[MWT Recapitulation] 
+V [Safety - Coba Semua Tombol [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[KKP/P2K3 Committee Meeting] 
+V [Safety - Coba Semua Tombol [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Safety Recap] 
+V [Safety - Coba Semua Tombol [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[SMK3] 
+V [Safety - Coba Semua Tombol [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[SMKP] 
+V [Safety - Coba Semua Tombol [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[SOC Recapitulation] 
+V [Safety - Coba Semua Tombol [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Statistic Safety Recap] 
+V [Safety - Coba Semua Tombol [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Witness Statement] 
+X [Safety - Coba Semua Tombol [Witness Statement]] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_coba_semua_tombol[Witness Statement]_20260826_154945.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1336
+FAILED
+========================================
+       AUTOMATION TESTING RESULT
+========================================
+
+V [Safety - Buka Semua Tab [Data Rekap Statistik K3]] berhasil
+V [Safety - Buka Semua Tab [Incident Investigation]] berhasil
+V [Safety - Buka Semua Tab [Safety Recap]] berhasil
+V [Safety - Buka Semua Tab [Witness Statement]] berhasil
+X [Safety - Master Alat (Delete)] GAGAL
+X [Safety - Lagging (Semua Fitur) [statistic_safety_recapitulation]] GAGAL
+X [Safety - Lagging (Semua Fitur) [smk3]] GAGAL
+X [Safety - Lagging (Semua Fitur) [smkp]] GAGAL
+V [Safety - Tombol Toolbar [Data Rekap Statistik K3]] berhasil
+V [Safety - Tombol Toolbar [Emergency Drill Daily]] berhasil
+V [Safety - Tombol Toolbar [Emergency Drill Recap]] berhasil
+V [Safety - Tombol Toolbar [Golden Rules]] berhasil
+V [Safety - Tombol Toolbar [Golden Rules Recap]] berhasil
+V [Safety - Tombol Toolbar [Incident Investigation]] berhasil
+V [Safety - Tombol Toolbar [Initial Incident/Accident]] berhasil
+V [Safety - Tombol Toolbar [Lagging Indicator]] berhasil
+V [Safety - Tombol Toolbar [Leading Indicator]] berhasil
+V [Safety - Tombol Toolbar [Master Alat Keselamatan]] berhasil
+V [Safety - Tombol Toolbar [MWT Daily]] berhasil
+V [Safety - Tombol Toolbar [MWT Recapitulation]] berhasil
+V [Safety - Tombol Toolbar [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Tombol Toolbar [Safety Recap]] berhasil
+V [Safety - Tombol Toolbar [SMK3]] berhasil
+V [Safety - Tombol Toolbar [SMKP]] berhasil
+V [Safety - Tombol Toolbar [SOC Recapitulation]] berhasil
+V [Safety - Tombol Toolbar [Statistic Safety Recap]] berhasil
+V [Safety - Tombol Toolbar [Witness Statement]] berhasil
+V [Safety - Coba Semua Tombol [Data Rekap Statistik K3]] berhasil
+V [Safety - Coba Semua Tombol [Emergency Drill Daily]] berhasil
+V [Safety - Coba Semua Tombol [Emergency Drill Recap]] berhasil
+V [Safety - Coba Semua Tombol [Golden Rules]] berhasil
+V [Safety - Coba Semua Tombol [Golden Rules Recap]] berhasil
+X [Safety - Coba Semua Tombol [Incident Investigation]] GAGAL
+V [Safety - Coba Semua Tombol [Initial Incident/Accident]] berhasil
+V [Safety - Coba Semua Tombol [Lagging Indicator]] berhasil
+V [Safety - Coba Semua Tombol [Leading Indicator]] berhasil
+V [Safety - Coba Semua Tombol [Master Alat Keselamatan]] berhasil
+V [Safety - Coba Semua Tombol [MWT Daily]] berhasil
+V [Safety - Coba Semua Tombol [MWT Recapitulation]] berhasil
+V [Safety - Coba Semua Tombol [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Coba Semua Tombol [Safety Recap]] berhasil
+V [Safety - Coba Semua Tombol [SMK3]] berhasil
+V [Safety - Coba Semua Tombol [SMKP]] berhasil
+V [Safety - Coba Semua Tombol [SOC Recapitulation]] berhasil
+V [Safety - Coba Semua Tombol [Statistic Safety Recap]] berhasil
+X [Safety - Coba Semua Tombol [Witness Statement]] GAGAL
+
+========================================
+TOTAL TEST : 46
+PASSED     : 40
+FAILED     : 6
+STATUS     : FAILED
+========================================
+
+
+================================== FAILURES ===================================
+________________ TestSafetyHss.test_safety_master_alat_delete _________________
+
+self = <tests.test_safety.TestSafetyHss object at 0x0000025F32116830>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="e2daa43e3e0078614935b081be59c19e")>
+test_data = {'_catatan': 'Data uji terpusat di sini, dimuat lewat fixture test_data (conftest.py). Nilai di bawah adalah hasil sca...t_default': '[AT10] KANTOR PUSAT', 'filter_unit_alternate': '[AT02] UBP NIKEL SULTRA', 'filter_bulan': '2026-08', ...}}
+
+    @pytest.mark.safety_transaction
+    def test_safety_master_alat_delete(self, driver, test_data):
+        """Contoh fitur HAPUS (hanya Master Alat yang punya tombol
+        Delete per baris): klik Delete di baris dummy -> jawab
+        konfirmasi Ya -> baris BENAR2 terhapus. Sekalian
+        membersihkan SEMUA baris dummy test yang menumpuk dari run
+        sebelumnya (penanda 'AUTO-TEST' dari test create + 'Dummy'
+        dari test coba semua tombol) -- data asli tidak tersentuh.
+        Kalau tidak ada baris dummy sama sekali (test dijalankan
+        SENDIRIAN tanpa test create sebelumnya), SATU baris dummy
+        dibuat dulu lewat Create with Form lalu dihapus -- test
+        mandiri dan tidak pernah skip."""
+        data = test_data["hss_safety"]["master_alat"]
+        page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        page.reset_cari_grid()
+    
+        def _jumlah_dummy():
+            return page.driver.execute_script(
+                f"const t = {page.JS_GRID};"
+                "return t ? [...t.querySelectorAll('tbody tr')]"
+                ".filter(tr => {"
+                "  const teks = tr.innerText;"
+                "  const nilai = [...tr.querySelectorAll('input')]"
+                "    .map(i => i.value || '').join(' ');"
+                "  return teks.includes('AUTO-TEST') || teks.includes('Dummy')"
+                "    || nilai.includes('AUTO-TEST') || nilai.includes('Dummy');"
+                "}).length : 0;"
+            )
+    
+        def _klik_delete_dummy():
+            """Klik tombol Delete baris dummy PERTAMA yang ketemu
+            (cek teks + nilai input sel)."""
+            return page.driver.execute_script(
+                f"const t = {page.JS_GRID};"
+                "if (!t) return false;"
+                "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
+                "  const teks = r.innerText;"
+                "  const nilai = [...r.querySelectorAll('input')]"
+                "    .map(i => i.value || '').join(' ');"
+                "  return teks.includes('AUTO-TEST') || teks.includes('Dummy')"
+                "    || nilai.includes('AUTO-TEST') || nilai.includes('Dummy');"
+                "});"
+                "if (!tr) return false;"
+                "const b = tr.querySelector('a.btn-delete');"
+                "if (b) { b.click(); return true; }"
+                "return false;"
+            )
+    
+        if _jumlah_dummy() == 0:
+            # mandiri: buat 1 dummy dulu (alur sama dengan test create)
+            equip = data["equipment_prefix"] + time.strftime("%H%M%S")
+            page.buka_form_create()
+            page.isi_form_create_otomatis(tambahan={"Equipment No": equip})
+            page.simpan_form()
+            page.submit_changes()
+            page.tunggu_processing_selesai()
+            page.buka_halaman("master_alat_keselamatan_operasi")
+            page.reset_cari_grid()
+            assert _jumlah_dummy() >= 1, (
+                "Baris dummy gagal dibuat untuk contoh hapus"
+            )
+    
+        dihapus = 0
+        coba = 0
+        while coba < 300:  # batas pengaman -- jangan loop selamanya
+            coba += 1
+            sebelum = _jumlah_dummy()
+            if sebelum == 0:
+                break
+            if not _klik_delete_dummy():
+                # tombol delete tidak ketemu padahal baris dummy ada
+                # (grid stale?) -- reload halaman lalu coba lagi
+                page.buka_halaman("master_alat_keselamatan_operasi")
+                page.reset_cari_grid()
+                continue
+            page.pace(1.0)
+            page.jawab_konfirmasi()   # Ya kalau ada konfirmasi
+            # TUNGGU jumlah dummy BENAR-BENAR berkurang sebelum lanjut
+            # -- POST delete di server DEV bisa lambat, dan reload
+            # terlalu cepat MEMUTUS POST yang masih jalan sehingga
+            # baris tidak pernah terhapus (pola yang sama terbukti di
+            # Submit, 2026-08-24; probe 2026-08-26: klik delete di
+            # sesi fresh langsung mengurangi baris dalam hitungan
+            # detik). Syarat lanjut = baris hilang, bukan sekadar klik
+            # terkirim -- sebelumnya klik "dihitung" walau baris tidak
+            # pernah hilang, dan loop 60x habis sebelum bersih.
+            try:
+                page._wait(config.LONG_TIMEOUT).until(
+                    lambda _: _jumlah_dummy() < sebelum
+                )
+                dihapus += 1
+            except TimeoutException:
+                # jumlah tidak berkurang (klik tidak mempan / POST
+                # terputus) -- reload supaya state bersih sebelum
+                # klik berikutnya
+                page.buka_halaman("master_alat_keselamatan_operasi")
+                page.reset_cari_grid()
+        page.buka_halaman("master_alat_keselamatan_operasi")
+        page.reset_cari_grid()
+        sisa = _jumlah_dummy()
+        assert dihapus >= 1, "Tidak ada baris dummy yang terhapus"
+>       assert sisa == 0, (
+            f"Masih tersisa {sisa} baris dummy setelah hapus"
+        )
+E       AssertionError: Masih tersisa 38 baris dummy setelah hapus
+E       assert 38 == 0
+
+tests\test_safety.py:353: AssertionError
+___ TestSafetyHss.test_safety_lagging_deep[statistic_safety_recapitulation] ___
+
+self = <tests.test_safety.TestSafetyHss object at 0x0000025F32205540>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="e2daa43e3e0078614935b081be59c19e")>
+test_data = {'_catatan': 'Data uji terpusat di sini, dimuat lewat fixture test_data (conftest.py). Nilai di bawah adalah hasil sca...t_default': '[AT10] KANTOR PUSAT', 'filter_unit_alternate': '[AT02] UBP NIKEL SULTRA', 'filter_bulan': '2026-08', ...}}
+kunci = 'statistic_safety_recapitulation', tanggal_uji = '2026-07'
+field_edit = 'PenyakitAkibatKerja'
+anchor = {'Month': 'July', 'TipePegawai': 'Pegawai'}, nilai_uji = '2'
+edit_tersimpan = False
+
+    @pytest.mark.safety
+    @pytest.mark.safety_transaction
+    @pytest.mark.parametrize(
+        "kunci, tanggal_uji, field_edit, anchor, nilai_uji, edit_tersimpan",
+        LAGGING_DEEP,
+        ids=[k for k, _, _, _, _, _ in LAGGING_DEEP],
+    )
+    def test_safety_lagging_deep(
+        self, driver, test_data, kunci, tanggal_uji, field_edit,
+        anchor, nilai_uji, edit_tersimpan
+    ):
+        """Semua fitur halaman Lagging: view tabel -> edit grid inline
+        + Submit Changes (nilai uji diverifikasi masuk, lalu
+        DIKEMBALIKAN ke nilai awal supaya data DEV tidak berubah) ->
+        filter tanggal -> filter unit (verifikasi elemen) -> Export
+        (file terunduh) -> Import (buka modal + template terunduh,
+        tanpa unggah data -- upload import menulis ke DEV, sengaja
+        dihindari)."""
+        page = _buka_halaman(driver, kunci)
+        assert page.tabel_report_tampil(), f"Tabel '{kunci}' tidak tampil"
+    
+        # 1) Edit grid inline -> Submit Changes -> verifikasi -> revert
+        #    (verifikasi dibaca SETELAH reload halaman: bacaan grid
+        #    langsung pasca-submit tidak andal -- state sampah sementara,
+        #    data asli baru terlihat setelah reload, 2026-08-24)
+        page.reset_cari_grid()
+        nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
+        assert nilai_awal, (
+            f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
+        )
+        if nilai_uji is None:
+            # field angka: nilai uji = nilai awal + 1 (mudah di-revert)
+            nilai_uji = str(int(float(nilai_awal)) + 1)
+        page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+        page.submit_changes()
+        page.buka_halaman(kunci)
+        if edit_tersimpan:
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
+                f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
+                "Submit Changes"
+            )
+            page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+            page.submit_changes()
+            page.buka_halaman(kunci)
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+                f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                "setelah revert"
+            )
+        else:
+            # halaman yang tidak menyimpan perubahan inline (template
+            # MonthlyReport): alur edit + Submit tetap DICOBA, dan
+            # verifikasinya = data TIDAK rusak (nilai tetap awal).
+            # Kalau aplikasi suatu saat mulai menyimpan, kembalikan
+            # nilainya seperti semula (2026-08-26).
+            baca = page.baca_sel_grid_anchor(field_edit, anchor)
+            if baca != nilai_awal:
+                page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+                page.submit_changes()
+                page.buka_halaman(kunci)
+                assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+                    f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                    "setelah revert"
+                )
+    
+        # 1b) Cancel: buat perubahan pending -> klik Cancel -> perubahan
+        #     TIDAK tersimpan (data tetap nilai awal)
+        page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+        page.click_js_saat_tampil(page.BTN_CANCEL_GRID)
+        page.jawab_konfirmasi()
+        page.tunggu_processing_selesai()
+        page.buka_halaman(kunci)
+        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+            f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
+            "sudah diklik"
+        )
+    
+        # 2) Filter tanggal -> value berubah & tabel tetap tampil ->
+        #    kembalikan
+        tanggal_awal = page.baca_filter_tanggal()
+        page.set_filter_tanggal(tanggal_uji)
+        page.tunggu_processing_selesai()
+        assert page.baca_filter_tanggal() == tanggal_uji, (
+            f"Filter tanggal tidak berubah ke '{tanggal_uji}' di '{kunci}'"
+        )
+        assert page.tabel_report_tampil(), (
+            f"Tabel '{kunci}' tidak tampil setelah filter tanggal '{tanggal_uji}'"
+        )
+        page.set_filter_tanggal(tanggal_awal)
+        page.tunggu_processing_selesai()
+        assert page.tabel_report_tampil(), (
+            f"Tabel '{kunci}' tidak tampil setelah filter tanggal dikembalikan"
+        )
+    
+        # 3) Filter unit -> elemen ada + punya opsi (penggantian nilai
+        #    terkunci aplikasi di halaman ini)
+>       assert page.is_visible(page.FILTER_UNIT), (
+            f"Select unit tidak tampil di '{kunci}'"
+        )
+E       AssertionError: Select unit tidak tampil di 'statistic_safety_recapitulation'
+E       assert False
+E        +  where False = is_visible(('id', 'cbDistrict'))
+E        +    where is_visible = <pages.safety_statistic_safety_recapitulation_page.SafetyStatisticSafetyRecapitulationPage object at 0x0000025F3211F770>.is_visible
+E        +    and   ('id', 'cbDistrict') = <pages.safety_statistic_safety_recapitulation_page.SafetyStatisticSafetyRecapitulationPage object at 0x0000025F3211F770>.FILTER_UNIT
+
+tests\test_safety.py:535: AssertionError
+________________ TestSafetyHss.test_safety_lagging_deep[smk3] _________________
+
+self = <tests.test_safety.TestSafetyHss object at 0x0000025F32205630>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="e2daa43e3e0078614935b081be59c19e")>
+test_data = {'_catatan': 'Data uji terpusat di sini, dimuat lewat fixture test_data (conftest.py). Nilai di bawah adalah hasil sca...t_default': '[AT10] KANTOR PUSAT', 'filter_unit_alternate': '[AT02] UBP NIKEL SULTRA', 'filter_bulan': '2026-08', ...}}
+kunci = 'smk3', tanggal_uji = '2026', field_edit = 'PPkomKetidaksesuaianMaj'
+anchor = {'Month': 'Juli'}, nilai_uji = '7', edit_tersimpan = True
+
+    @pytest.mark.safety
+    @pytest.mark.safety_transaction
+    @pytest.mark.parametrize(
+        "kunci, tanggal_uji, field_edit, anchor, nilai_uji, edit_tersimpan",
+        LAGGING_DEEP,
+        ids=[k for k, _, _, _, _, _ in LAGGING_DEEP],
+    )
+    def test_safety_lagging_deep(
+        self, driver, test_data, kunci, tanggal_uji, field_edit,
+        anchor, nilai_uji, edit_tersimpan
+    ):
+        """Semua fitur halaman Lagging: view tabel -> edit grid inline
+        + Submit Changes (nilai uji diverifikasi masuk, lalu
+        DIKEMBALIKAN ke nilai awal supaya data DEV tidak berubah) ->
+        filter tanggal -> filter unit (verifikasi elemen) -> Export
+        (file terunduh) -> Import (buka modal + template terunduh,
+        tanpa unggah data -- upload import menulis ke DEV, sengaja
+        dihindari)."""
+        page = _buka_halaman(driver, kunci)
+        assert page.tabel_report_tampil(), f"Tabel '{kunci}' tidak tampil"
+    
+        # 1) Edit grid inline -> Submit Changes -> verifikasi -> revert
+        #    (verifikasi dibaca SETELAH reload halaman: bacaan grid
+        #    langsung pasca-submit tidak andal -- state sampah sementara,
+        #    data asli baru terlihat setelah reload, 2026-08-24)
+        page.reset_cari_grid()
+        nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
+        assert nilai_awal, (
+            f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
+        )
+        if nilai_uji is None:
+            # field angka: nilai uji = nilai awal + 1 (mudah di-revert)
+            nilai_uji = str(int(float(nilai_awal)) + 1)
+        page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+        page.submit_changes()
+        page.buka_halaman(kunci)
+        if edit_tersimpan:
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
+                f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
+                "Submit Changes"
+            )
+>           page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+
+tests\test_safety.py:481: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\hss_safety_page.py:1270: in isi_sel_grid_anchor
+    self._ketik_sel(element, nilai)
+pages\hss_safety_page.py:1286: in _ketik_sel
+    element.send_keys(str(nilai))
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webelement.py:276: in send_keys
+    self._execute(
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webelement.py:508: in _execute
+    return self._parent.execute(command, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webdriver.py:492: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000025F322486E0>
+response = {'status': 400, 'value': '{"value":{"error":"element not interactable","message":"element not interactable\\n  (Sessio...7+2397]\\n\\tKERNEL32!BaseThreadInitThunk [0x7ffecb3ae957+17]\\n\\tntdll!RtlUserThreadStart [0x7ffecd5e7c1c+2c]\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -> None:
+        """Check that a JSON response from the WebDriver does not have an error.
+    
+        Args:
+            response: The JSON response from the WebDriver server as a dictionary
+                object.
+    
+        Raises:
+            WebDriverException: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message") if isinstance(message, dict) else None
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "<anonymous>")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "<anonymous>")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)
+>       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable
+E         (Session info: chrome=151.0.7922.174); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+E       Stacktrace:
+E       	chromedriver!GetHandleVerifier [0x7ff696a6abb5+151b5]
+E       	chromedriver!GetHandleVerifier [0x7ff696a6ac10+15210]
+E       	chromedriver!(No symbol) [0x7ff696595b56]
+E       	chromedriver!(No symbol) [0x7ff6965ec099]
+E       	chromedriver!(No symbol) [0x7ff6965e9c5a]
+E       	chromedriver!(No symbol) [0x7ff696619d0a]
+E       	chromedriver!(No symbol) [0x7ff6965e4f76]
+E       	chromedriver!(No symbol) [0x7ff69663ec0b]
+E       	chromedriver!(No symbol) [0x7ff6965e37cc]
+E       	chromedriver!(No symbol) [0x7ff6965e46f3]
+E       	chromedriver!GetHandleVerifier [0x7ff69708b79b+635d9b]
+E       	chromedriver!GetHandleVerifier [0x7ff697085ac6+6300c6]
+E       	chromedriver!GetHandleVerifier [0x7ff6970abcee+6562ee]
+E       	chromedriver!GetHandleVerifier [0x7ff696a88ffe+335fe]
+E       	chromedriver!GetHandleVerifier [0x7ff696a9147c+3ba7c]
+E       	chromedriver!GetHandleVerifier [0x7ff696a74d64+1f364]
+E       	chromedriver!GetHandleVerifier [0x7ff696a74ef4+1f4f4]
+E       	chromedriver!GetHandleVerifier [0x7ff696a57d97+2397]
+E       	KERNEL32!BaseThreadInitThunk [0x7ffecb3ae957+17]
+E       	ntdll!RtlUserThreadStart [0x7ffecd5e7c1c+2c]
+
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\errorhandler.py:232: ElementNotInteractableException
+________________ TestSafetyHss.test_safety_lagging_deep[smkp] _________________
+
+self = <tests.test_safety.TestSafetyHss object at 0x0000025F322056D0>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="e2daa43e3e0078614935b081be59c19e")>
+test_data = {'_catatan': 'Data uji terpusat di sini, dimuat lewat fixture test_data (conftest.py). Nilai di bawah adalah hasil sca...t_default': '[AT10] KANTOR PUSAT', 'filter_unit_alternate': '[AT02] UBP NIKEL SULTRA', 'filter_bulan': '2026-08', ...}}
+kunci = 'smkp', tanggal_uji = '2026', field_edit = 'Deskripsi'
+anchor = {'Month': 'Juli'}, nilai_uji = 'AUTO-TEST', edit_tersimpan = True
+
+    @pytest.mark.safety
+    @pytest.mark.safety_transaction
+    @pytest.mark.parametrize(
+        "kunci, tanggal_uji, field_edit, anchor, nilai_uji, edit_tersimpan",
+        LAGGING_DEEP,
+        ids=[k for k, _, _, _, _, _ in LAGGING_DEEP],
+    )
+    def test_safety_lagging_deep(
+        self, driver, test_data, kunci, tanggal_uji, field_edit,
+        anchor, nilai_uji, edit_tersimpan
+    ):
+        """Semua fitur halaman Lagging: view tabel -> edit grid inline
+        + Submit Changes (nilai uji diverifikasi masuk, lalu
+        DIKEMBALIKAN ke nilai awal supaya data DEV tidak berubah) ->
+        filter tanggal -> filter unit (verifikasi elemen) -> Export
+        (file terunduh) -> Import (buka modal + template terunduh,
+        tanpa unggah data -- upload import menulis ke DEV, sengaja
+        dihindari)."""
+        page = _buka_halaman(driver, kunci)
+        assert page.tabel_report_tampil(), f"Tabel '{kunci}' tidak tampil"
+    
+        # 1) Edit grid inline -> Submit Changes -> verifikasi -> revert
+        #    (verifikasi dibaca SETELAH reload halaman: bacaan grid
+        #    langsung pasca-submit tidak andal -- state sampah sementara,
+        #    data asli baru terlihat setelah reload, 2026-08-24)
+        page.reset_cari_grid()
+        nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
+        assert nilai_awal, (
+            f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
+        )
+        if nilai_uji is None:
+            # field angka: nilai uji = nilai awal + 1 (mudah di-revert)
+            nilai_uji = str(int(float(nilai_awal)) + 1)
+        page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+        page.submit_changes()
+        page.buka_halaman(kunci)
+        if edit_tersimpan:
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
+                f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
+                "Submit Changes"
+            )
+            page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+            page.submit_changes()
+            page.buka_halaman(kunci)
+            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+                f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                "setelah revert"
+            )
+        else:
+            # halaman yang tidak menyimpan perubahan inline (template
+            # MonthlyReport): alur edit + Submit tetap DICOBA, dan
+            # verifikasinya = data TIDAK rusak (nilai tetap awal).
+            # Kalau aplikasi suatu saat mulai menyimpan, kembalikan
+            # nilainya seperti semula (2026-08-26).
+            baca = page.baca_sel_grid_anchor(field_edit, anchor)
+            if baca != nilai_awal:
+                page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
+                page.submit_changes()
+                page.buka_halaman(kunci)
+                assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+                    f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                    "setelah revert"
+                )
+    
+        # 1b) Cancel: buat perubahan pending -> klik Cancel -> perubahan
+        #     TIDAK tersimpan (data tetap nilai awal)
+>       page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
+
+tests\test_safety.py:506: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\hss_safety_page.py:1270: in isi_sel_grid_anchor
+    self._ketik_sel(element, nilai)
+pages\hss_safety_page.py:1286: in _ketik_sel
+    element.send_keys(str(nilai))
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webelement.py:276: in send_keys
+    self._execute(
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webelement.py:508: in _execute
+    return self._parent.execute(command, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webdriver.py:492: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x0000025F322486E0>
+response = {'status': 400, 'value': '{"value":{"error":"element not interactable","message":"element not interactable\\n  (Sessio...7+2397]\\n\\tKERNEL32!BaseThreadInitThunk [0x7ffecb3ae957+17]\\n\\tntdll!RtlUserThreadStart [0x7ffecd5e7c1c+2c]\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -> None:
+        """Check that a JSON response from the WebDriver does not have an error.
+    
+        Args:
+            response: The JSON response from the WebDriver server as a dictionary
+                object.
+    
+        Raises:
+            WebDriverException: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message") if isinstance(message, dict) else None
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "<anonymous>")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "<anonymous>")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)
+>       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable
+E         (Session info: chrome=151.0.7922.174); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+E       Stacktrace:
+E       	chromedriver!GetHandleVerifier [0x7ff696a6abb5+151b5]
+E       	chromedriver!GetHandleVerifier [0x7ff696a6ac10+15210]
+E       	chromedriver!(No symbol) [0x7ff696595b56]
+E       	chromedriver!(No symbol) [0x7ff6965ec099]
+E       	chromedriver!(No symbol) [0x7ff6965e9c5a]
+E       	chromedriver!(No symbol) [0x7ff696619d0a]
+E       	chromedriver!(No symbol) [0x7ff6965e4f76]
+E       	chromedriver!(No symbol) [0x7ff69663ec0b]
+E       	chromedriver!(No symbol) [0x7ff6965e37cc]
+E       	chromedriver!(No symbol) [0x7ff6965e46f3]
+E       	chromedriver!GetHandleVerifier [0x7ff69708b79b+635d9b]
+E       	chromedriver!GetHandleVerifier [0x7ff697085ac6+6300c6]
+E       	chromedriver!GetHandleVerifier [0x7ff6970abcee+6562ee]
+E       	chromedriver!GetHandleVerifier [0x7ff696a88ffe+335fe]
+E       	chromedriver!GetHandleVerifier [0x7ff696a9147c+3ba7c]
+E       	chromedriver!GetHandleVerifier [0x7ff696a74d64+1f364]
+E       	chromedriver!GetHandleVerifier [0x7ff696a74ef4+1f4f4]
+E       	chromedriver!GetHandleVerifier [0x7ff696a57d97+2397]
+E       	KERNEL32!BaseThreadInitThunk [0x7ffecb3ae957+17]
+E       	ntdll!RtlUserThreadStart [0x7ffecd5e7c1c+2c]
+
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\errorhandler.py:232: ElementNotInteractableException
+_____ TestSafetyHss.test_safety_coba_semua_tombol[Incident Investigation] _____
+
+self = <tests.test_safety.TestSafetyHss object at 0x0000025F32206030>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="e2daa43e3e0078614935b081be59c19e")>
+kunci_halaman = 'incident_investigation_form'
+
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        sorted(PAGE_OBJECTS),
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_coba_semua_tombol(self, driver, kunci_halaman):
+        """SETIAP tombol fitur halaman DIKLIK satu per satu sesuai
+        daftar HssSafetyPage.TOMBOL_HALAMAN (permintaan user
+        2026-08-24), dengan jeda 2.5 detik antar-aksi supaya alur
+        bisa diikuti mata. Aksi tiap tombol:
+          Reload Data    -> klik + tunggu tabel dimuat ulang
+          Import         -> modal terbuka lalu ditutup
+          Create         -> baris draft bertambah lalu Cancel
+          Create w/ Form -> modal form terbuka lalu Cancel
+          Submit Changes -> klik (tanpa perubahan pending = aman)
+          Export         -> file Excel terunduh ke folder unduhan
+          Export Excel   -> (Safety Recap) file terunduh
+          Instructions   -> diklik, apa pun yang muncul ditutup
+          Select Finding -> (SOC) modal lookup terbuka lalu ditutup
+          Columns        -> dropdown daftar kolom buka lalu tutup
+          FullScreen     -> masuk fullscreen lalu kembali normal
+          Cancel         -> diklik (tanpa pending = aman)"""
+        page = _buka_halaman(driver, kunci_halaman)
+        daftar = HssSafetyPage.TOMBOL_HALAMAN[kunci_halaman]
+        for nama in daftar:
+>           page.coba_tombol(nama)
+
+tests\test_safety.py:605: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\hss_safety_page.py:1525: in coba_tombol
+    self.export_dan_tunggu_file()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pages.safety_incident_investigation_form_page.SafetyIncidentInvestigationFormPage object at 0x0000025F322756D0>
+ekstensi = '.xlsx'
+
+    def export_dan_tunggu_file(self, ekstensi=".xlsx"):
+        """Klik Export lalu tunggu file BARU ber-ekstensi `ekstensi`
+        muncul di folder unduhan (config.DOWNLOAD_DIR -- diarahkan lewat
+        prefs Chrome di conftest). Kembalikan path file hasil unduhan.
+    
+        Retry klik Export sampai 3x: di sesi panjang (banyak halaman
+        dibuka beruntun) SPA kadang "stuck" sehingga klik pertama tidak
+        memicu unduhan sama sekali -- diamati run 2026-08-24 (export
+        Incident Investigation timeout) padahal sesi fresh mengunduh
+        dalam 5 detik (probe 2026-08-26). Klik ulang + tutup modal sisa
+        memulihkan alurnya. Dialog sisa (alert sukses tanpa tombol
+        Yes/OK) ditutup supaya tidak menumpuk dengan modal berikutnya
+        (2026-08-24)."""
+        sebelum = set(os.listdir(config.DOWNLOAD_DIR))
+        for percobaan in range(3):
+            self.export_data()
+            try:
+                file_unduh = self.tunggu_file_baru(
+                    ekstensi, sebelum,
+                    timeout=config.LONG_TIMEOUT if percobaan == 2 else 30,
+                )
+                if self._ada_modal_tampil():
+                    self.tutup_modal()
+                return file_unduh
+            except TimeoutException:
+                # klik export tidak memicu unduhan -- tutup modal sisa
+                # (kalau ada) lalu coba klik lagi
+                if self._ada_modal_tampil():
+                    self.tutup_modal()
+                self.tunggu_processing_selesai()
+                self.pace(1.0)
+>       raise TimeoutException(
+            "File export tidak kunjung muncul di folder unduhan "
+            f"({config.DOWNLOAD_DIR}) setelah 3x klik Export"
+        )
+E       selenium.common.exceptions.TimeoutException: Message: File export tidak kunjung muncul di folder unduhan (D:\Magang\ANTAM\opel-automation\reports\downloads) setelah 3x klik Export
+
+pages\hss_safety_page.py:649: TimeoutException
+_______ TestSafetyHss.test_safety_coba_semua_tombol[Witness Statement] ________
+
+self = <tests.test_safety.TestSafetyHss object at 0x0000025F32206530>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="e2daa43e3e0078614935b081be59c19e")>
+kunci_halaman = 'witness_statement_report'
+
+    @pytest.mark.safety
+    @pytest.mark.safety_toolbar
+    @pytest.mark.parametrize(
+        "kunci_halaman",
+        sorted(PAGE_OBJECTS),
+        ids=lambda k: NAMA_HALAMAN[k],
+    )
+    def test_safety_coba_semua_tombol(self, driver, kunci_halaman):
+        """SETIAP tombol fitur halaman DIKLIK satu per satu sesuai
+        daftar HssSafetyPage.TOMBOL_HALAMAN (permintaan user
+        2026-08-24), dengan jeda 2.5 detik antar-aksi supaya alur
+        bisa diikuti mata. Aksi tiap tombol:
+          Reload Data    -> klik + tunggu tabel dimuat ulang
+          Import         -> modal terbuka lalu ditutup
+          Create         -> baris draft bertambah lalu Cancel
+          Create w/ Form -> modal form terbuka lalu Cancel
+          Submit Changes -> klik (tanpa perubahan pending = aman)
+          Export         -> file Excel terunduh ke folder unduhan
+          Export Excel   -> (Safety Recap) file terunduh
+          Instructions   -> diklik, apa pun yang muncul ditutup
+          Select Finding -> (SOC) modal lookup terbuka lalu ditutup
+          Columns        -> dropdown daftar kolom buka lalu tutup
+          FullScreen     -> masuk fullscreen lalu kembali normal
+          Cancel         -> diklik (tanpa pending = aman)"""
+        page = _buka_halaman(driver, kunci_halaman)
+        daftar = HssSafetyPage.TOMBOL_HALAMAN[kunci_halaman]
+        for nama in daftar:
+>           page.coba_tombol(nama)
+
+tests\test_safety.py:605: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\hss_safety_page.py:1518: in coba_tombol
+    self.create_dengan_form_sungguhan()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <pages.safety_witness_statement_report_page.SafetyWitnessStatementReportPage object at 0x0000025F32275810>
+
+    def create_dengan_form_sungguhan(self):
+        """Create with Form SUNGGUHAN: buka modal form -> isi SEMUA
+        field dummy otomatis (teks '<penanda> <label>') -> Save ->
+        Submit Changes -> verifikasi penanda UNIK masuk grid.
+        Penanda unik per run (Dummy + HHMMSS) supaya verifikasi tepat
+        sasaran walau grid sudah penuh dummy dari run sebelumnya
+        (2026-08-24). Dipakai test coba semua tombol (permintaan
+        user: Create = dibuat).
+    
+        Verifikasi: cek grid LANGSUNG dulu (aplikasi me-reload grid
+        sendiri setelah Submit); reload manual HANYA kalau belum
+        ketemu, dan itupun setelah jeda -- reload terlalu cepat bisa
+        MEMUTUS POST Submit yang masih jalan (server DEV lambat,
+        2026-08-24) sehingga baris tidak pernah ter-commit."""
+        url_awal = self.driver.current_url
+        penanda = "Dummy " + time.strftime("%H%M%S")
+        self.buka_form_create()
+        self.pace(1.0)
+        self.isi_form_create_otomatis(penanda=penanda)
+        self.simpan_form()
+        self.submit_changes()
+        self.tunggu_processing_selesai()
+        # 1) grid langsung pasca-Submit (aplikasi reload sendiri)
+        if self.tabel_berisi(penanda, timeout=config.DEFAULT_TIMEOUT):
+            self.reset_cari_grid()
+            return
+        # 1b) baris baru bisa jatuh di halaman LAIN (pagination) --
+        #     cari lewat DataTables API (search SERVER-side, bukan
+        #     filter halaman) supaya baris di halaman berapa pun
+        #     ketemu. Tanpa ini halaman ber-grid panjang (mis. Witness
+        #     Statement) gagal sia-sia padahal barisnya tersimpan
+        #     (2026-08-26).
+        self.cari_di_grid(penanda)
+        if self.tabel_berisi(penanda, timeout=config.DEFAULT_TIMEOUT):
+            self.reset_cari_grid()
+            return
+        # 2) beri waktu commit lalu reload manual + cek ulang (reload
+        #    terlalu cepat bisa MEMUTUS POST Submit yang masih jalan --
+        #    server DEV lambat, 2026-08-24)
+        self.pace(3.0)
+        self.driver.get(url_awal)
+        self._tunggu_tabel()
+        self.tunggu_processing_selesai()
+        self.reset_cari_grid()
+        self.cari_di_grid(penanda)
+        if self.tabel_berisi(penanda, timeout=config.LONG_TIMEOUT):
+            self.reset_cari_grid()
+            return
+>       raise AssertionError(
+            "Create dengan form tidak menyimpan data dummy: "
+            f"penanda '{penanda}' tidak muncul di grid setelah Submit"
+        )
+E       AssertionError: Create dengan form tidak menyimpan data dummy: penanda 'Dummy 154740' tidak muncul di grid setelah Submit
+
+pages\hss_safety_page.py:1438: AssertionError
+- Generated html report: file:///D:/Magang/ANTAM/opel-automation/reports/report.html -
+=========================== short test summary info ===========================
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_master_alat_delete - ...
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[statistic_safety_recapitulation]
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smk3] - ...
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smkp] - ...
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Incident Investigation]
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Witness Statement]
+========== 6 failed, 40 passed, 22 deselected in 1284.36s (0:21:24) ===========

@@ -1,0 +1,10 @@
+[OK] login
+[statistik] awal='4'
+[statistik] SEGERA setelah isi: '5'
+[statistik] state sel: {'cls': 'form-control form-control-xs dt-input-text ', 'html': '<input type="number" step="1" class="form-control form-control-xs dt-input-text " data-rowindex="0" data-fieldname="FirstAidCase" data-fieldtype="Integer" data-triggermeta="[]" value="4" style=" " pattern="d*">', 'value': '5'}
+[statistik] SETELAH submit+reload: '4'
+[smk3] awal='6'
+[smk3] SEGERA setelah isi: '7'
+[smk3] SETELAH submit+reload: '7' (harap '7')
+[smk3] setelah revert: '6'
+[SELESAI]

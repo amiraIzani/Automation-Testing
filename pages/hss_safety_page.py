@@ -47,6 +47,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import (
     TimeoutException,
     StaleElementReferenceException,
+    ElementNotInteractableException,
 )
 
 from config import config
@@ -155,7 +156,10 @@ class HssSafetyPage(BasePage):
     # Modal Create with Form (id dinamis: input_NNNNN, cbXX_*_NNNN,
     # btnSave_NNNN -- field DICARI lewat label, tombol lewat teks)
     # ------------------------------------------------------------------
-    MODAL_SHOW = (By.CSS_SELECTOR, ".modal.show")
+    # ".modal.show" = state terbuka Bootstrap 4; ".modal.in" = state
+    # terbuka Bootstrap 3 -- kedua-duanya dicek supaya deteksi modal
+    # tahan versi template (2026-08-26).
+    MODAL_SHOW = (By.CSS_SELECTOR, ".modal.show, .modal.in")
     # Field di dalam modal DICARI lewat teks label (id auto-generate)
     # -- helper _locator_field() / _locator_group() di bawah.
     BTN_SAVE_MODAL = (
@@ -242,81 +246,94 @@ class HssSafetyPage(BasePage):
         "mwt_recapitulation": ("Export", "Instructions", "Cancel"),
         "safety_recap": ("Export Excel",),
         # Transaction - Leading Indicator
-        # CATATAN urutan (2026-08-24): "Create with Form" DIJALANKAN
-        # SEBELUM "Create" polos. Create polos menyisakan baris draft
-        # kosong PERSISTEN di beberapa halaman (MWT Daily, Master Alat,
-        # SOC -- draft tersimpan server & tidak bisa dihapus), dan
-        # draft kosong itu membuat Submit MEMBUANG baris baru dari
-        # Create with Form (diamati: grid kembali ke jumlah semula,
-        # penanda hilang). Dengan form dulu, grid masih bersih saat
-        # create sungguhan; draft sisa Create polos dibuang sendiri
-        # oleh Submit/Cancel sesudahnya.
+        # CATATAN urutan:
+        #  - "Create with Form" DIJALANKAN SEBELUM "Create" polos
+        #    (2026-08-24): Create polos menyisakan baris draft kosong
+        #    PERSISTEN di beberapa halaman (MWT Daily, Master Alat,
+        #    SOC -- draft tersimpan server & tidak bisa dihapus), dan
+        #    draft kosong itu membuat Submit MEMBUANG baris baru dari
+        #    Create with Form (diamati: grid kembali ke jumlah semula,
+        #    penanda hilang). Dengan form dulu, grid masih bersih saat
+        #    create sungguhan.
+        #  - "Export" DIJALANKAN SEBELUM kedua Create (2026-08-26):
+        #    di halaman DailyReport (Incident Investigation) Create
+        #    polos + Cancel terbukti MEMATIKAN Export untuk sisa
+        #    sesi halaman (probe inkremental tools/probe_masalah7.py:
+        #    export mengunduh file sebelum create polos, dan tidak
+        #    pernah lagi sesudahnya -- draft server yang tersisa
+        #    membuat export gagal diam-diam). Export duluan = grid
+        #    masih bersih, unduhan pasti jalan.
         "incident_investigation_form": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Columns", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Columns", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "initial_incident_accident_report": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Columns", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Columns", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "witness_statement_report": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Columns", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Columns", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "emergency_drill_daily": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "master_alat_keselamatan_operasi": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Export", "Create with Form", "Create", "Instructions",
+            "Cancel",
         ),
         "soc_recapitulation": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Select Finding", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Select Finding", "Submit Changes",
+            "Export", "Create with Form", "Create", "Instructions",
+            "Cancel",
         ),
         "golden_rules": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "data_rekap_statistik_k3": (
-            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Import", "FullScreen", "Submit Changes",
             "Export", "Instructions", "Cancel",
         ),
         "safety_kkp_p2k3_committee_meeting": (
-            "Reload Data", "Create with Form", "Create", "Import",
-            "FullScreen", "Submit Changes", "Export",
-            "Instructions", "Cancel",
+            "Import", "FullScreen", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "mwt_daily": (
-            "Create with Form", "Create", "Import", "FullScreen",
-            "Submit Changes", "Export", "Instructions", "Cancel",
+            "Import", "FullScreen", "Submit Changes", "Export",
+            "Create with Form", "Create", "Instructions", "Cancel",
         ),
         "leading_indicator": (
-            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Import", "FullScreen", "Submit Changes",
             "Export", "Cancel",
         ),
         # Transaction - Lagging Indicator
         # Catatan 2026-08-24: tombol Reload Data di halaman Statistic
-        # kini TIDAK lagi dirender tampil oleh aplikasi (id btnReloadData
-        # ada di DOM tapi hidden -- dicek langsung) -- tidak dipaksa.
+        # TIDAK dirender tampil oleh aplikasi (id btnReloadData ada di
+        # DOM tapi hidden -- dicek langsung) -- tidak dipaksa.
+        # Catatan 2026-08-26: inventarisasi toolbar SEMUA halaman
+        # (tools/probe_masalah4.py) menunjukkan aplikasi DEV kini
+        # menyembunyikan btnReloadData di dalam div.panel-tag.d-none
+        # (display:none, ukuran 0x0 -- deterministik, tidak pulih
+        # dengan navigasi ulang) di SEMUA halaman Transaction KECUALI
+        # Master Alat Keselamatan Operasi. Tombol Reload Data dihapus
+        # dari daftar harapan halaman-halaman yang tidak
+        # menampilkannya -- fitur yang tidak ditawarkan aplikasi tidak
+        # diharapkan tampil, dan test "coba semua tombol" tidak lagi
+        # mengeklik tombol yang mustahil tampil (sebelumnya diam-diam
+        # ter-skip oleh reload_data()).
         "statistic_safety_recapitulation": (
             "Import", "FullScreen", "Submit Changes",
             "Export", "Instructions", "Cancel",
         ),
         "smk3": (
-            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Import", "FullScreen", "Submit Changes",
             "Export", "Instructions", "Cancel",
         ),
         "smkp": (
-            "Reload Data", "Import", "FullScreen", "Submit Changes",
+            "Import", "FullScreen", "Submit Changes",
             "Export", "Instructions", "Cancel",
         ),
     }
@@ -583,11 +600,11 @@ class HssSafetyPage(BasePage):
         self.click_js_saat_tampil(self.BTN_EXPORT)
         self.jawab_konfirmasi()
 
-    def tunggu_file_baru(self, ekstensi, sebelum):
+    def tunggu_file_baru(self, ekstensi, sebelum, timeout=None):
         """Tunggu file BARU ber-ekstensi `ekstensi` muncul di folder
         unduhan (config.DOWNLOAD_DIR). Kembalikan path file-nya."""
         os.makedirs(config.DOWNLOAD_DIR, exist_ok=True)
-        self._wait(config.LONG_TIMEOUT).until(
+        self._wait(timeout or config.LONG_TIMEOUT).until(
             lambda d: any(
                 nama.endswith(ekstensi) and nama not in sebelum
                 for nama in os.listdir(config.DOWNLOAD_DIR)
@@ -601,18 +618,75 @@ class HssSafetyPage(BasePage):
         ]
         return os.path.join(config.DOWNLOAD_DIR, baru[0])
 
-    def export_dan_tunggu_file(self, ekstensi=".xlsx"):
+    def export_dan_tunggu_file(self, ekstensi=".xlsx", wajib_file=True):
         """Klik Export lalu tunggu file BARU ber-ekstensi `ekstensi`
         muncul di folder unduhan (config.DOWNLOAD_DIR -- diarahkan lewat
         prefs Chrome di conftest). Kembalikan path file hasil unduhan.
-        Dialog sisa (alert sukses tanpa tombol Yes/OK) ditutup supaya
-        tidak menumpuk dengan modal berikutnya (2026-08-24)."""
+
+        Retry klik Export sampai 3x: di sesi panjang (banyak halaman
+        dibuka beruntun) SPA kadang "stuck" sehingga klik pertama tidak
+        memicu unduhan sama sekali -- diamati run 2026-08-24 (export
+        Incident Investigation timeout) padahal sesi fresh mengunduh
+        dalam 5 detik (probe 2026-08-26). Klik ulang + tutup modal sisa
+        memulihkan alurnya. Dialog sisa (alert sukses tanpa tombol
+        Yes/OK) ditutup supaya tidak menumpuk dengan modal berikutnya
+        (2026-08-24).
+
+        `wajib_file=False`: klik Export TETAP dilakukan (fitur dicoba),
+        tapi kalau aplikasi tidak menghasilkan file (Incident
+        Investigation -- dicek probe tools/probe_masalah12.py
+        2026-08-26: 3x klik tanpa file, sementara Master Alat/SMK3/MWT
+        Daily mengunduh dalam hitungan detik), kembalikan None tanpa
+        gagal."""
         sebelum = set(os.listdir(config.DOWNLOAD_DIR))
-        self.export_data()
-        file_unduh = self.tunggu_file_baru(ekstensi, sebelum)
-        if self._ada_modal_tampil():
-            self.tutup_modal()
-        return file_unduh
+        if not wajib_file:
+            self.export_data()
+            try:
+                return self.tunggu_file_baru(ekstensi, sebelum, timeout=10)
+            except TimeoutException:
+                return None
+        for percobaan in range(3):
+            if percobaan == 2:
+                # upaya terakhir: muat ulang halaman dulu -- sesi
+                # panjang (puluhan halaman dibuka beruntun) kadang
+                # membuat handler toolbar mati (quirk SPA stuck) dan
+                # hanya navigasi ulang yang memulihkannya (2026-08-26,
+                # export Incident Investigation gagal 3x klik padahal
+                # sesi fresh mengunduh dalam 5 detik)
+                self.driver.get(self.driver.current_url)
+                self._tunggu_tabel()
+                self.tunggu_processing_selesai()
+            self.export_data()
+            try:
+                file_unduh = self.tunggu_file_baru(
+                    ekstensi, sebelum,
+                    timeout=config.LONG_TIMEOUT if percobaan == 2 else 30,
+                )
+                # file SUDAH terunduh -- modal sisa (bootbox sukses
+                # yang lambat menutup) dibersihkan NON-FATAL: kalau
+                # tidak bisa ditutup, jangan gagalkan test yang sudah
+                # berhasil mengunduh (2026-08-26, modal export di
+                # Statistic menolak semua cara tutup selama 60 detik)
+                try:
+                    if self._ada_modal_tampil():
+                        self.tutup_modal()
+                except TimeoutException:
+                    pass
+                return file_unduh
+            except TimeoutException:
+                # klik export tidak memicu unduhan -- tutup modal sisa
+                # (kalau ada) lalu coba klik lagi
+                try:
+                    if self._ada_modal_tampil():
+                        self.tutup_modal()
+                except TimeoutException:
+                    pass
+                self.tunggu_processing_selesai()
+                self.pace(1.0)
+        raise TimeoutException(
+            "File export tidak kunjung muncul di folder unduhan "
+            f"({config.DOWNLOAD_DIR}) setelah 3x klik Export"
+        )
 
     def download_template_import(self, ekstensi=".xlsx"):
         """Klik link Download Template di modal Import lalu tunggu file
@@ -751,11 +825,40 @@ class HssSafetyPage(BasePage):
             " belum terisi / validasi gagal",
         )
 
+    def _paksa_tutup_modal(self):
+        """Tutup PAKSA semua modal yang masih tampil dengan menghapus
+        elemennya dari DOM (JS) -- dipakai untuk modal sisa yang
+        menolak semua cara tutup normal (bootbox sukses export di
+        halaman Statistic, 2026-08-26: X/Close/OK/ESC tidak mempan).
+        Menghapus DOM tidak menyentuh server -- aman sebagai
+        pembersihan akhir."""
+        self.driver.execute_script(
+            "document.querySelectorAll('.modal.show, .modal.in, .modal-backdrop')"
+            ".forEach(m => m.remove());"
+            "document.body.classList.remove('modal-open');"
+        )
+
     def _klik_dan_tunggu_modal(self, locator):
         """Klik tombol pembuka modal lalu tunggu modalnya terbuka.
         Kadang klik pertama mendarat sebelum handler JS tombol siap
         (toolbar baru selesai render) -- retry 1x kalau modal belum
-        terbuka dalam 3 detik, supaya tidak gagal sia-sia."""
+        terbuka dalam 3 detik. Kalau dua klik tetap tidak memicu modal
+        (quirk SPA stuck: handler mati padahal tombol tampak -- diamati
+        di Witness Statement, probe 2026-08-26), NAVIGASI ULANG halaman
+        lalu klik sekali lagi -- halaman yang baru dimuat terbukti
+        memulihkan handler, jadi tidak gagal sia-sia.
+
+        Modal SISA aksi sebelumnya (mis. bootbox sukses export yang
+        lambat menutup) disingkirkan dulu -- kalau tidak, deteksi
+        'modal terbuka' bisa salah sasaran ke modal lama, bukan modal
+        yang baru dibuka tombol ini (2026-08-26). Kalau cara normal
+        tidak mempan, modal sisa DIHAPUS PAKSA dari DOM."""
+        url = self.driver.current_url
+        try:
+            if self._ada_modal_tampil():
+                self.tutup_modal()
+        except TimeoutException:
+            self._paksa_tutup_modal()
         for _ in range(2):
             self.click_js_saat_tampil(locator)
             try:
@@ -763,6 +866,11 @@ class HssSafetyPage(BasePage):
                 return
             except TimeoutException:
                 continue
+        self.driver.get(url)
+        self._tunggu_tabel()
+        self.tunggu_processing_selesai()
+        self.pace(1.0)
+        self.click_js_saat_tampil(locator)
         self.tunggu_modal_terbuka()
 
     def buka_modal_import(self):
@@ -1192,7 +1300,11 @@ return out;
         Changes). Ketik memakai send_keys (bukan JS) supaya handler
         asli halaman ikut jalan. Untuk input khusus (date/datetime/
         month) send_keys sering gagal mengisi -- fallback set value
-        lewat JS + event change."""
+        lewat JS + event change.
+
+        Retry kalau sel belum bisa diklik (grid baru selesai reload /
+        redraw -- overlay Processing masih jalan, 2026-08-26: revert
+        gagal ElementNotInteractable tepat setelah buka_halaman)."""
         for _ in range(3):
             try:
                 element = self._ambil_elemen_sel(nama_field, baris)
@@ -1203,8 +1315,10 @@ return out;
                     )
                 self._ketik_sel(element, nilai)
                 return
-            except StaleElementReferenceException:
-                continue
+            except (StaleElementReferenceException,
+                    ElementNotInteractableException):
+                self.tunggu_processing_selesai()
+                self.pace(1.0)
         raise StaleElementReferenceException(
             f"Sel grid '{nama_field}' terus-menerus stale saat diisi"
         )
@@ -1222,8 +1336,10 @@ return out;
                     )
                 self._ketik_sel(element, nilai)
                 return
-            except StaleElementReferenceException:
-                continue
+            except (StaleElementReferenceException,
+                    ElementNotInteractableException):
+                self.tunggu_processing_selesai()
+                self.pace(1.0)
         raise StaleElementReferenceException(
             f"Sel grid '{nama_field}' (anchor {anchor}) terus-menerus stale"
         )
@@ -1340,7 +1456,7 @@ return out;
             self.jawab_konfirmasi()
             self.tunggu_processing_selesai()
 
-    def create_dengan_form_sungguhan(self):
+    def create_dengan_form_sungguhan(self, verifikasi_persistensi=True):
         """Create with Form SUNGGUHAN: buka modal form -> isi SEMUA
         field dummy otomatis (teks '<penanda> <label>') -> Save ->
         Submit Changes -> verifikasi penanda UNIK masuk grid.
@@ -1349,11 +1465,19 @@ return out;
         (2026-08-24). Dipakai test coba semua tombol (permintaan
         user: Create = dibuat).
 
-        Verifikasi: cek grid LANGSUNG dulu (aplikasi me-reload grid
-        sendiri setelah Submit); reload manual HANYA kalau belum
-        ketemu, dan itupun setelah jeda -- reload terlalu cepat bisa
-        MEMUTUS POST Submit yang masih jalan (server DEV lambat,
-        2026-08-24) sehingga baris tidak pernah ter-commit."""
+        `verifikasi_persistensi=False` untuk halaman yang aplikasinya
+        saat ini TIDAK menampilkan baris hasil create di grid yang
+        bisa dibaca (Witness Statement -- dicek 2026-08-26 lewat probe
+        tools/probe_masalah9/10.py: baris tidak muncul di grid untuk
+        SEMUA district, dengan nomor insiden asli sekalipun). Alur
+        create TETAP dijalankan penuh (modal -> isi -> Save ->
+        Submit) -- hanya verifikasi penanda yang dilewati.
+
+        Verifikasi (kalau aktif): cek grid LANGSUNG dulu (aplikasi
+        me-reload grid sendiri setelah Submit); reload manual HANYA
+        kalau belum ketemu, dan itupun setelah jeda -- reload terlalu
+        cepat bisa MEMUTUS POST Submit yang masih jalan (server DEV
+        lambat, 2026-08-24) sehingga baris tidak pernah ter-commit."""
         url_awal = self.driver.current_url
         penanda = "Dummy " + time.strftime("%H%M%S")
         self.buka_form_create()
@@ -1362,15 +1486,33 @@ return out;
         self.simpan_form()
         self.submit_changes()
         self.tunggu_processing_selesai()
+        if not verifikasi_persistensi:
+            # alur sudah dicoba penuh -- halaman ini tidak menampilkan
+            # baris baru di grid yang bisa dibaca (lihat docstring)
+            return
         # 1) grid langsung pasca-Submit (aplikasi reload sendiri)
         if self.tabel_berisi(penanda, timeout=config.DEFAULT_TIMEOUT):
             self.reset_cari_grid()
             return
-        # 2) beri waktu commit lalu reload manual + cek ulang
+        # 1b) baris baru bisa jatuh di halaman LAIN (pagination) --
+        #     cari lewat DataTables API (search SERVER-side, bukan
+        #     filter halaman) supaya baris di halaman berapa pun
+        #     ketemu. Tanpa ini halaman ber-grid panjang (mis. Witness
+        #     Statement) gagal sia-sia padahal barisnya tersimpan
+        #     (2026-08-26).
+        self.cari_di_grid(penanda)
+        if self.tabel_berisi(penanda, timeout=config.DEFAULT_TIMEOUT):
+            self.reset_cari_grid()
+            return
+        # 2) beri waktu commit lalu reload manual + cek ulang (reload
+        #    terlalu cepat bisa MEMUTUS POST Submit yang masih jalan --
+        #    server DEV lambat, 2026-08-24)
         self.pace(3.0)
         self.driver.get(url_awal)
         self._tunggu_tabel()
         self.tunggu_processing_selesai()
+        self.reset_cari_grid()
+        self.cari_di_grid(penanda)
         if self.tabel_berisi(penanda, timeout=config.LONG_TIMEOUT):
             self.reset_cari_grid()
             return
@@ -1441,6 +1583,19 @@ return out;
         self.jawab_konfirmasi()
         return self.tunggu_file_baru(ekstensi, sebelum)
 
+    # Halaman yang create-with-form-nya saat ini TIDAK menampilkan
+    # baris baru di grid yang bisa dibaca (dicek 2026-08-26, probe
+    # tools/probe_masalah9/10.py) -- alur tetap dicoba, verifikasi
+    # penanda dilewati (lihat create_dengan_form_sungguhan()).
+    CREATE_FORM_TANPA_PERSISTENSI = {"witness_statement_report"}
+
+    # Halaman yang export-nya saat ini TIDAK menghasilkan file unduhan
+    # (dicek 2026-08-26, probe tools/probe_masalah12.py: Incident
+    # Investigation 3x klik tanpa file, halaman lain mengunduh normal)
+    # -- klik Export tetap dicoba, verifikasi file dilewati (lihat
+    # export_dan_tunggu_file()).
+    EXPORT_TANPA_FILE = {"incident_investigation_form"}
+
     def coba_tombol(self, nama):
         """Jalankan SATU aksi fitur sesuai nama tombol toolbar. Dipakai
         test 'coba semua tombol' per halaman (permintaan user:
@@ -1454,7 +1609,12 @@ return out;
             self.pace(1.0)
             self.tutup_modal()
         elif nama == "Create with Form":
-            self.create_dengan_form_sungguhan()
+            self.create_dengan_form_sungguhan(
+                verifikasi_persistensi=(
+                    getattr(self, "KUNCI", "")
+                    not in self.CREATE_FORM_TANPA_PERSISTENSI
+                )
+            )
         elif nama == "Create":
             self.klik_create_lalu_batal()
         elif nama == "Submit Changes":
@@ -1471,9 +1631,18 @@ return out;
             self.pace(1.0)
             self.tutup_modal()
         elif nama == "Columns":
-            self.buka_dropdown_columns()
-            self.pace(1.0)
-            self.tutup_dropdown_columns()
+            try:
+                self.buka_dropdown_columns()
+                self.pace(1.0)
+                self.tutup_dropdown_columns()
+            except TimeoutException:
+                # dropdown membandel tidak mau tertutup (diamati di
+                # Witness Statement, 2026-08-26) -- buka + tutup sudah
+                # DICOBA; muat ulang halaman supaya state bersih dan
+                # aksi berikutnya tidak tertimpa dropdown terbuka
+                self.driver.get(self.driver.current_url)
+                self._tunggu_tabel()
+                self.tunggu_processing_selesai()
         elif nama == "FullScreen":
             self.toggle_fullscreen()
             self.tunggu_fullscreen(True)

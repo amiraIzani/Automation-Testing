@@ -1,0 +1,17 @@
+[OK] login
+[A-delete] jumlah dummy awal: 39
+[A-delete] klik delete OK -> Submit Changes...
+[A-delete] setelah submit (lokal): 39
+[A-delete] SETELAH RELOAD: 39 (awal 39)
+[B-incident] urutan export inkremental...
+  [export:sebelum-aksi] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx']
+  [export:setelah-create-form] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx', 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (2).xlsx']
+  [export:setelah-create-polos] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx', 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (2).xlsx']
+  [export:setelah-import] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx', 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (2).xlsx']
+  [export:setelah-fullscreen] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx', 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (2).xlsx']
+  [export:setelah-columns] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx', 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (2).xlsx']
+  [export:setelah-submit] file_baru=['Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (1).xlsx', 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) 20260826 (2).xlsx']
+[C-witness] create ERROR AssertionError: Create dengan form tidak menyimpan data dummy: penanda 'Dummy 165551' tidak muncul di grid setelah Submit
+[C-witness] grid: {"baris": ["No data available in table :: "], "grid": true, "info": "Showing 0 to 0 of 0 entries", "total_baris": 1}
+[C-witness] setelah search PROBE7: 1 baris
+[SELESAI]

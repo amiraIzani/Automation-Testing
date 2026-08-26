@@ -44,7 +44,7 @@ Page object: satu file per halaman di `pages/safety_*_page.py`
 |---|---|---|
 | FILTER_TANGGAL | `#tbDate` | Input tanggal. Format bulanan `2026-08`, tahunan `2026`. TIDAK ada di halaman Static Input (Master Alat, Leading Indicator) |
 | FILTER_UNIT | `#cbDistrict` | Select unit/distrik (opsi seperti `[AT10] KANTOR PUSAT`) |
-| BTN_RELOAD_DATA | `#btnReloadData` | Tombol "Reload Data" (tidak ada di MWT DAILY) |
+| BTN_RELOAD_DATA | `#btnReloadData` | Tombol "Reload Data". CATATAN 2026-08-26: aplikasi DEV kini merender tombol ini di dalam `div.panel-tag.d-none` (display:none) di hampir semua halaman -- hanya Master Alat Keselamatan Operasi yang masih menampilkannya. Halaman yang tidak menampilkan tombol ini TIDAK dimasukkan daftar harapan toolbar (lihat `TOMBOL_HALAMAN`) |
 | BTN_EXPORT | `#btnExport` | Tombol "Export" |
 | BTN_SUBMIT | `#btnSubmit` | Tombol "Submit Changes" (halaman Edit) |
 | BTN_CANCEL_GRID | `#btnCancel` | Tombol "Cancel" grid |
@@ -75,6 +75,8 @@ yang terlihat: `//a[contains(@class,'nav-link')][normalize-space(.)='<teks>']`
 |---|---|
 | Incident Investigation Form | Data Insiden, Data Korban, Fakta & Analisis Penyebab, Kesimpulan & Usulan Investigasi, Rekomendasi & Tindakan Perbaikan, Saksi & Tim Investigasi |
 | Data Rekap Statistik K3 | Frequency Rate, Severity Rate, TRIR, Fatality Rate |
+| Witness Statement Report | Keterangan Saksi, Pertanyaan Wawancara |
+| Safety Recap | Bulanan, Tahunan |
 
 ### Modal Import (id stabil — sama di semua halaman transaction)
 
