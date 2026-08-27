@@ -1,0 +1,374 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\user\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.2', 'Platform': 'Windows-11-10.0.26200-SP0', 'Packages': {'pytest': '9.1.1', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.2.0', 'metadata': '3.1.1'}}
+rootdir: D:\Magang\ANTAM\opel-automation
+configfile: pytest.ini
+testpaths: tests
+plugins: html-4.2.0, metadata-3.1.1
+collecting ... collected 69 items / 1 deselected / 68 selected
+
+tests/test_safety.py::TestSafetyHss::test_safety_menu_dan_landing 
+X [Safety - Navigasi Menu] GAGAL
+
+[SCREENSHOT SAAT GAGAL] D:\Magang\ANTAM\opel-automation\reports\screenshots\test_safety_menu_dan_landing_20260827_092120.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1307
+FAILED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_indicator_view 
+V [Safety - Lagging Indicator (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_golden_rules_recap_view 
+V [Safety - Golden Rules Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_emergency_drill_recap_view 
+V [Safety - Emergency Drill Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_mwt_recapitulation_view 
+V [Safety - MWT Recapitulation (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_recap_view 
+V [Safety - Safety Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_incident_investigation_view 
+V [Safety - Incident Investigation Form] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_incident_investigation_tab 
+V [Safety - Incident Investigation (Tab)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Data Rekap Statistik K3] 
+V [Safety - Buka Semua Tab [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Incident Investigation] 
+V [Safety - Buka Semua Tab [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Safety Recap] 
+V [Safety - Buka Semua Tab [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_buka_semua_tab[Witness Statement] 
+V [Safety - Buka Semua Tab [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_initial_incident_view 
+V [Safety - Initial Incident/Accident Report] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_witness_statement_view 
+V [Safety - Witness Statement Report] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_emergency_drill_daily_view 
+V [Safety - Emergency Drill Daily] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_view 
+V [Safety - Master Alat Keselamatan Operasi] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_create 
+V [Safety - Master Alat (Create with Form)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_delete 
+V [Safety - Master Alat (Delete)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_soc_recapitulation_view 
+V [Safety - SOC Recapitulation] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_golden_rules_view 
+V [Safety - Golden Rules] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_data_rekap_k3_view 
+V [Safety - Data Rekap Statistik K3] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_kkp_p2k3_view 
+V [Safety - SAFETY/KKP/P2K3 Committee Meeting] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_mwt_daily_view 
+V [Safety - MWT Daily] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_indicator_view 
+V [Safety - Leading Indicator] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_statistic_safety_view 
+V [Safety - Statistic Safety Recapitulation] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_smk3_view 
+V [Safety - SMK3] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_smkp_view 
+V [Safety - SMKP] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[statistic_safety_recapitulation] 
+V [Safety - Lagging (Semua Fitur) [statistic_safety_recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smk3] 
+V [Safety - Lagging (Semua Fitur) [smk3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smkp] 
+V [Safety - Lagging (Semua Fitur) [smkp]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Data Rekap Statistik K3] 
+V [Safety - Tombol Toolbar [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Emergency Drill Daily] 
+V [Safety - Tombol Toolbar [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Emergency Drill Recap] 
+V [Safety - Tombol Toolbar [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Golden Rules] 
+V [Safety - Tombol Toolbar [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Golden Rules Recap] 
+V [Safety - Tombol Toolbar [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Incident Investigation] 
+V [Safety - Tombol Toolbar [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Initial Incident/Accident] 
+V [Safety - Tombol Toolbar [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Lagging Indicator] 
+V [Safety - Tombol Toolbar [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Leading Indicator] 
+V [Safety - Tombol Toolbar [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Master Alat Keselamatan] 
+V [Safety - Tombol Toolbar [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[MWT Daily] 
+V [Safety - Tombol Toolbar [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[MWT Recapitulation] 
+V [Safety - Tombol Toolbar [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[KKP/P2K3 Committee Meeting] 
+V [Safety - Tombol Toolbar [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Safety Recap] 
+V [Safety - Tombol Toolbar [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[SMK3] 
+V [Safety - Tombol Toolbar [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[SMKP] 
+V [Safety - Tombol Toolbar [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[SOC Recapitulation] 
+V [Safety - Tombol Toolbar [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Statistic Safety Recap] 
+V [Safety - Tombol Toolbar [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_tombol_toolbar[Witness Statement] 
+V [Safety - Tombol Toolbar [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Data Rekap Statistik K3] 
+V [Safety - Coba Semua Tombol [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Emergency Drill Daily] 
+V [Safety - Coba Semua Tombol [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Emergency Drill Recap] 
+V [Safety - Coba Semua Tombol [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Golden Rules] 
+V [Safety - Coba Semua Tombol [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Golden Rules Recap] 
+V [Safety - Coba Semua Tombol [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Incident Investigation] 
+V [Safety - Coba Semua Tombol [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Initial Incident/Accident] 
+V [Safety - Coba Semua Tombol [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Lagging Indicator] 
+V [Safety - Coba Semua Tombol [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Leading Indicator] 
+V [Safety - Coba Semua Tombol [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Master Alat Keselamatan] 
+V [Safety - Coba Semua Tombol [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[MWT Daily] 
+V [Safety - Coba Semua Tombol [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[MWT Recapitulation] 
+V [Safety - Coba Semua Tombol [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[KKP/P2K3 Committee Meeting] 
+V [Safety - Coba Semua Tombol [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Safety Recap] 
+V [Safety - Coba Semua Tombol [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[SMK3] 
+V [Safety - Coba Semua Tombol [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[SMKP] 
+V [Safety - Coba Semua Tombol [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[SOC Recapitulation] 
+V [Safety - Coba Semua Tombol [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Statistic Safety Recap] 
+V [Safety - Coba Semua Tombol [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_coba_semua_tombol[Witness Statement] 
+V [Safety - Coba Semua Tombol [Witness Statement]] berhasil
+PASSED
+========================================
+       AUTOMATION TESTING RESULT
+========================================
+
+X [Safety - Navigasi Menu] GAGAL
+V [Safety - Lagging Indicator (View)] berhasil
+V [Safety - Golden Rules Recap (View)] berhasil
+V [Safety - Emergency Drill Recap (View)] berhasil
+V [Safety - MWT Recapitulation (View)] berhasil
+V [Safety - Safety Recap (View)] berhasil
+V [Safety - Incident Investigation Form] berhasil
+V [Safety - Incident Investigation (Tab)] berhasil
+V [Safety - Buka Semua Tab [Data Rekap Statistik K3]] berhasil
+V [Safety - Buka Semua Tab [Incident Investigation]] berhasil
+V [Safety - Buka Semua Tab [Safety Recap]] berhasil
+V [Safety - Buka Semua Tab [Witness Statement]] berhasil
+V [Safety - Initial Incident/Accident Report] berhasil
+V [Safety - Witness Statement Report] berhasil
+V [Safety - Emergency Drill Daily] berhasil
+V [Safety - Master Alat Keselamatan Operasi] berhasil
+V [Safety - Master Alat (Create with Form)] berhasil
+V [Safety - Master Alat (Delete)] berhasil
+V [Safety - SOC Recapitulation] berhasil
+V [Safety - Golden Rules] berhasil
+V [Safety - Data Rekap Statistik K3] berhasil
+V [Safety - SAFETY/KKP/P2K3 Committee Meeting] berhasil
+V [Safety - MWT Daily] berhasil
+V [Safety - Leading Indicator] berhasil
+V [Safety - Statistic Safety Recapitulation] berhasil
+V [Safety - SMK3] berhasil
+V [Safety - SMKP] berhasil
+V [Safety - Lagging (Semua Fitur) [statistic_safety_recapitulation]] berhasil
+V [Safety - Lagging (Semua Fitur) [smk3]] berhasil
+V [Safety - Lagging (Semua Fitur) [smkp]] berhasil
+V [Safety - Tombol Toolbar [Data Rekap Statistik K3]] berhasil
+V [Safety - Tombol Toolbar [Emergency Drill Daily]] berhasil
+V [Safety - Tombol Toolbar [Emergency Drill Recap]] berhasil
+V [Safety - Tombol Toolbar [Golden Rules]] berhasil
+V [Safety - Tombol Toolbar [Golden Rules Recap]] berhasil
+V [Safety - Tombol Toolbar [Incident Investigation]] berhasil
+V [Safety - Tombol Toolbar [Initial Incident/Accident]] berhasil
+V [Safety - Tombol Toolbar [Lagging Indicator]] berhasil
+V [Safety - Tombol Toolbar [Leading Indicator]] berhasil
+V [Safety - Tombol Toolbar [Master Alat Keselamatan]] berhasil
+V [Safety - Tombol Toolbar [MWT Daily]] berhasil
+V [Safety - Tombol Toolbar [MWT Recapitulation]] berhasil
+V [Safety - Tombol Toolbar [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Tombol Toolbar [Safety Recap]] berhasil
+V [Safety - Tombol Toolbar [SMK3]] berhasil
+V [Safety - Tombol Toolbar [SMKP]] berhasil
+V [Safety - Tombol Toolbar [SOC Recapitulation]] berhasil
+V [Safety - Tombol Toolbar [Statistic Safety Recap]] berhasil
+V [Safety - Tombol Toolbar [Witness Statement]] berhasil
+V [Safety - Coba Semua Tombol [Data Rekap Statistik K3]] berhasil
+V [Safety - Coba Semua Tombol [Emergency Drill Daily]] berhasil
+V [Safety - Coba Semua Tombol [Emergency Drill Recap]] berhasil
+V [Safety - Coba Semua Tombol [Golden Rules]] berhasil
+V [Safety - Coba Semua Tombol [Golden Rules Recap]] berhasil
+V [Safety - Coba Semua Tombol [Incident Investigation]] berhasil
+V [Safety - Coba Semua Tombol [Initial Incident/Accident]] berhasil
+V [Safety - Coba Semua Tombol [Lagging Indicator]] berhasil
+V [Safety - Coba Semua Tombol [Leading Indicator]] berhasil
+V [Safety - Coba Semua Tombol [Master Alat Keselamatan]] berhasil
+V [Safety - Coba Semua Tombol [MWT Daily]] berhasil
+V [Safety - Coba Semua Tombol [MWT Recapitulation]] berhasil
+V [Safety - Coba Semua Tombol [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Coba Semua Tombol [Safety Recap]] berhasil
+V [Safety - Coba Semua Tombol [SMK3]] berhasil
+V [Safety - Coba Semua Tombol [SMKP]] berhasil
+V [Safety - Coba Semua Tombol [SOC Recapitulation]] berhasil
+V [Safety - Coba Semua Tombol [Statistic Safety Recap]] berhasil
+V [Safety - Coba Semua Tombol [Witness Statement]] berhasil
+
+========================================
+TOTAL TEST : 68
+PASSED     : 67
+FAILED     : 1
+STATUS     : FAILED
+========================================
+
+
+================================== FAILURES ===================================
+_________________ TestSafetyHss.test_safety_menu_dan_landing __________________
+
+self = <tests.test_safety.TestSafetyHss object at 0x000001A7D3F93250>
+driver = <selenium.webdriver.chrome.webdriver.WebDriver (session="f9451f65a4302383c60a657bbd477548")>
+
+    @pytest.mark.safety
+    def test_safety_menu_dan_landing(self, driver):
+        """Klik menu sidebar HSS -- pastikan submenu Safety (dengan
+        anak Reporting & Transaction) muncul di sidebar."""
+        page = HssSafetyPage(driver)
+>       page.buka_menu_hss_safety()
+
+tests\test_safety.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+pages\hss_safety_page.py:409: in buka_menu_hss_safety
+    self.buka_submenu("HSS")
+pages\hss_safety_page.py:397: in buka_submenu
+    self._wait(timeout).until(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <selenium.webdriver.support.wait.WebDriverWait (session="f9451f65a4302383c60a657bbd477548")>
+method = <function HssSafetyPage.buka_submenu.<locals>._terbuka at 0x000001A7D4099C60>
+message = "Submenu sidebar 'HSS' tidak kunjung terbuka setelah klik collapse-sign"
+
+    def until(self, method: Callable[[D], Literal[False] | T], message: str = "") -> T:
+        """Wait until the method returns a value that is not False.
+    
+        Calls the method provided with the driver as an argument until the
+        return value does not evaluate to ``False``.
+    
+        Args:
+            method: A callable object that takes a WebDriver instance as an
+                argument.
+            message: Optional message for TimeoutException.
+    
+        Returns:
+            The result of the last call to `method`.
+    
+        Raises:
+            TimeoutException: If 'method' does not return a truthy value within
+                the WebDriverWait object's timeout.
+    
+        Example:
+            >>> from selenium.webdriver.common.by import By
+            >>> from selenium.webdriver.support.ui import WebDriverWait
+            >>> from selenium.webdriver.support import expected_conditions as EC
+            >>>
+            >>> # Wait until an element is visible on the page
+            >>> wait = WebDriverWait(driver, 10)
+            >>> element = wait.until(EC.visibility_of_element_located((By.ID, "exampleId")))
+            >>> print(element.text)
+        """
+        screen = None
+        stacktrace = None
+    
+        end_time = time.monotonic() + self._timeout
+        while True:
+            try:
+                value = method(self._driver)
+                if value:
+                    return value
+            except self._ignored_exceptions as exc:
+                screen = getattr(exc, "screen", None)
+                stacktrace = getattr(exc, "stacktrace", None)
+            if time.monotonic() > end_time:
+                break
+            time.sleep(self._poll)
+>       raise TimeoutException(message, screen, stacktrace)
+E       selenium.common.exceptions.TimeoutException: Message: Submenu sidebar 'HSS' tidak kunjung terbuka setelah klik collapse-sign
+
+C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\support\wait.py:121: TimeoutException
+- Generated html report: file:///D:/Magang/ANTAM/opel-automation/reports/report.html -
+=========================== short test summary info ===========================
+FAILED tests/test_safety.py::TestSafetyHss::test_safety_menu_dan_landing - se...
+=========== 1 failed, 67 passed, 1 deselected in 1004.68s (0:16:44) ===========

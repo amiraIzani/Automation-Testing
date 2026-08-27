@@ -1,0 +1,37 @@
+[OK] login
+[form] SEBELUM upload: [
+ {
+  "anchor": "<a href=\"javascript:;\" class=\"btn btn-block btn-sm btn-danger text-white text-nowrap dt-input-upload\" data-sysid=\"undefined\" data-fieldname=\"LampiranBiaya\" data-fieldtype=\"String\" data-inputtype=\"FirebaseDocUpload\"><i cl",
+  "fileInput": null,
+  "hidden": null,
+  "label": "Lampiran Biaya",
+  "teksGroup": "Lampiran Biaya Upload"
+ },
+ {
+  "anchor": "<a href=\"javascript:;\" class=\"btn btn-block btn-sm btn-danger text-white text-nowrap dt-input-upload\" data-sysid=\"undefined\" data-fieldname=\"LampiranSketsa\" data-fieldtype=\"String\" data-inputtype=\"FirebaseImageUpload\"><i",
+  "fileInput": null,
+  "hidden": null,
+  "label": "Lampiran Sketsa/Gambar",
+  "teksGroup": "Lampiran Sketsa/Gambar Upload"
+ }
+]
+[form] jumlah input file = 0
+[form] SETELAH upload: [
+ {
+  "anchor": "<a href=\"javascript:;\" class=\"btn btn-block btn-sm btn-danger text-white text-nowrap dt-input-upload\" data-sysid=\"undefined\" data-fieldname=\"LampiranBiaya\" data-fieldtype=\"String\" data-inputtype=\"FirebaseDocUpload\"><i cl",
+  "fileInput": null,
+  "hidden": null,
+  "label": "Lampiran Biaya",
+  "teksGroup": "Lampiran Biaya Upload"
+ },
+ {
+  "anchor": "<a href=\"javascript:;\" class=\"btn btn-block btn-sm btn-danger text-white text-nowrap dt-input-upload\" data-sysid=\"undefined\" data-fieldname=\"LampiranSketsa\" data-fieldtype=\"String\" data-inputtype=\"FirebaseImageUpload\"><i",
+  "fileInput": null,
+  "hidden": null,
+  "label": "Lampiran Sketsa/Gambar",
+  "teksGroup": "Lampiran Sketsa/Gambar Upload"
+ }
+]
+[net] POST setelah pilih file: []
+[net] POST setelah Cancel: []
+[SELESAI]

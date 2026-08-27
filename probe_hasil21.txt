@@ -1,0 +1,5 @@
+[OK] login
+[hal]  {'modal': 0, 'tombol': [{'rect': [951.3250122070312, 359.5, 77.0250015258789, 31.600000381469727], 'tampil': True, 'teks': 'Create'}, {'rect': [1031.3499755859375, 359.5, 134.90000915527344, 31.600000381469727], 'tampil': True, 'teks': 'Create with Form'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create with Form'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create with Form'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create with Form'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create with Form'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create'}, {'rect': [0, 0, 0, 0], 'tampil': False, 'teks': 'Create with Form'}], 'url': 'https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334'}
+[klik] modal .show setelah klik JS: 1
+[klik] console error: []
+[SELESAI]

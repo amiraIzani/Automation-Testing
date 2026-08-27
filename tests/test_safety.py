@@ -118,6 +118,16 @@ class TestSafetyHss:
         """Klik menu sidebar HSS -- pastikan submenu Safety (dengan
         anak Reporting & Transaction) muncul di sidebar."""
         page = HssSafetyPage(driver)
+        # Chrome memakai profil dengan session-restore: tab halaman
+        # terakhir bisa terbuka lagi saat browser start, dan halaman
+        # Timesheet yang ter-restore bisa masih loading saat menu
+        # diklik (gagal 2026-08-27). Mulai dari dashboard yang SUDAH
+        # dimuat penuh dulu supaya test deterministik.
+        page.driver.get(config.BASE_URL)
+        page._wait(config.LONG_TIMEOUT).until(
+            lambda _: page.is_any_visible(page.MENU_HSS),
+            "Sidebar (menu HSS) tidak muncul setelah buka dashboard",
+        )
         page.buka_menu_hss_safety()
         # submenu Safety punya 2 anak: Reporting & Transaction
         assert page.is_any_visible(
@@ -474,20 +484,36 @@ class TestSafetyHss:
         page = _buka_halaman(driver, kunci)
         assert page.tabel_report_tampil(), f"Tabel '{kunci}' tidak tampil"
 
+        def _tunggu_anchor():
+            """Tunggu input sel anchor benar2 ter-render di grid utama
+            (baris bisa muncul dulu dengan input belum dibuat -- nilai
+            diisi AJAX belakangan, bacaan '' palsu 2026-08-26)."""
+            page._wait(config.LONG_TIMEOUT).until(
+                lambda _: page._ambil_elemen_sel_anchor(field_edit, anchor)
+                is not None,
+                f"Baris {anchor} di '{kunci}' tidak kunjung ter-render",
+            )
+
         # 1) Edit grid inline -> Submit Changes -> verifikasi -> revert
         #    (verifikasi dibaca SETELAH reload halaman: bacaan grid
         #    langsung pasca-submit tidak andal -- state sampah sementara,
         #    data asli baru terlihat setelah reload, 2026-08-24)
         page.reset_cari_grid()
-        # TUNGGU data anchor benar2 terisi -- baris bisa ter-render
-        # lebih dulu dengan input masih kosong (nilai diisi AJAX
-        # belakangan) sehingga bacaan langsung = '' palsu (2026-08-26,
-        # smk3/smkp gagal baca {Month: Juli} padahal barisnya ada)
-        page._wait(config.LONG_TIMEOUT).until(
-            lambda _: page.baca_sel_grid_anchor(field_edit, anchor) != "",
-            f"Data '{field_edit}' di baris {anchor} tidak kunjung terisi",
-        )
+        _tunggu_anchor()
         nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
+        if not nilai_awal:
+            # Field target di baris anchor KOSONG (data DEV berubah --
+            # 2026-08-27: PPkomKetidaksesuaianMaj SMK3 & Deskripsi SMKP
+            # bulan Juli kosong). Pindah ke baris LAIN yang field-nya
+            # terisi supaya fitur edit tetap dites sungguhan (tetap
+            # di-revert, data DEV tidak rusak).
+            anchor_baru = page.cari_anchor_field_terisi(field_edit, anchor)
+            assert anchor_baru, (
+                f"Field '{field_edit}' kosong di baris {anchor} dan tidak "
+                f"ada baris lain yang terisi di '{kunci}'"
+            )
+            anchor = anchor_baru
+            nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
         assert nilai_awal, (
             f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
         )
@@ -497,6 +523,7 @@ class TestSafetyHss:
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
         page.submit_changes()
         page.buka_halaman(kunci)
+        _tunggu_anchor()
         if edit_tersimpan:
             assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
                 f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
@@ -505,6 +532,7 @@ class TestSafetyHss:
             page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
             page.submit_changes()
             page.buka_halaman(kunci)
+            _tunggu_anchor()
             assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
                 f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
                 "setelah revert"
@@ -520,6 +548,7 @@ class TestSafetyHss:
                 page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
                 page.submit_changes()
                 page.buka_halaman(kunci)
+                _tunggu_anchor()
                 assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
                     f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
                     "setelah revert"
@@ -532,6 +561,7 @@ class TestSafetyHss:
         page.jawab_konfirmasi()
         page.tunggu_processing_selesai()
         page.buka_halaman(kunci)
+        _tunggu_anchor()
         assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
             f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
             "sudah diklik"

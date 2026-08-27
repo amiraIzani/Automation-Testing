@@ -1,0 +1,22 @@
+[OK] login
+[dashboard] {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': '', 'w': 161.65000915527344}]}
+[dashboard] SETELAH klik sign: {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': 'open', 'w': 161.65000915527344}]}
+[dashboard] SETELAH klik Safety: {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': 'open', 'w': 161.65000915527344}]}
+[smkp] {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': '', 'w': 161.65000915527344}]}
+Traceback (most recent call last):
+  File "D:\Magang\ANTAM\opel-automation\tools\probe_masalah15.py", line 59, in <module>
+    page.buka_submenu("HSS")
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "D:\Magang\ANTAM\opel-automation\pages\hss_safety_page.py", line 397, in buka_submenu
+    self._wait(timeout).until(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        _terbuka,
+        ^^^^^^^^^
+        f"Submenu sidebar '{judul}' tidak kunjung terbuka setelah klik collapse-sign",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\support\wait.py", line 121, in until
+    raise TimeoutException(message, screen, stacktrace)
+selenium.common.exceptions.TimeoutException: Message: Submenu sidebar 'HSS' tidak kunjung terbuka setelah klik collapse-sign
+

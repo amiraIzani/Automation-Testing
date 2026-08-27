@@ -77,6 +77,25 @@ pytest -m safety_view           # hanya halaman view/reporting
   stuck) -- `export_dan_tunggu_file()` retry 3x dan
   `_klik_dan_tunggu_modal()` fallback navigasi ulang.
 
+## Catatan tambahan (2026-08-27)
+
+- **Anchor edit lagging smk3/smkp**: field target di baris Juli ternyata
+  KOSONG di data DEV (PPkomKetidaksesuaianMaj SMK3 & Deskripsi SMKP,
+  dicek tools/probe_masalah14.py) -- test sekarang pindah OTOMATIS ke
+  bulan lain yang field-nya terisi (`cari_anchor_field_terisi()`),
+  edit tetap dites sungguhan lalu di-revert.
+- **Menu sidebar di halaman Timesheet**: klik `b.collapse-sign` native
+  TIDAK mempan di halaman YearlyReport Edit (padahal di dashboard
+  mempan) -- `buka_submenu()` sekarang klik MOUSE asli (ActionChains)
+  berurutan sign -> span, dan test menu mulai dari dashboard dulu
+  (Chrome me-restore tab sesi lama dari profil).
+- **Export Incident Investigation** memang tidak menghasilkan file
+  (probe 12) -- tombol Export tetap diklik, verifikasi file dilewati
+  lewat `EXPORT_TANPA_FILE` (sekarang benar-benar dipakai di
+  `coba_tombol()`).
+- Hasil full suite 2026-08-27: **67/68 hijau**; sisa 1 (menu) sudah
+  diperbaiki & diverifikasi terpisah.
+
 ## Langkah selanjutnya
 
 1. Jalankan `pytest -k safety` untuk memvalidasi semua page object.

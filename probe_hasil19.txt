@@ -1,0 +1,40 @@
+[OK] login
+[form] SEBELUM klik: {'dropzone': 22, 'elBaru': [], 'iframe': 0, 'inputFile': 0, 'modalBaru': ['New Data Insiden A. Identitas Laporan No. Insiden Divisi No. Urut Buku Daftar Kecelakaan B. Penggolongan Insiden Penggolongan Insiden Cedera/Penyakit Insiden Al'], 'showOpenFilePicker': True}
+[form] posisi anchor: {'x': 931.8250427246094, 'y': 1364.3999757766724}
+Traceback (most recent call last):
+  File "D:\Magang\ANTAM\opel-automation\tools\probe_masalah19.py", line 79, in <module>
+    int(dari["x"]), int(dari["y"])).click().perform()
+                                            ~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\common\action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\common\actions\action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\webdriver.py", line 492, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.MoveTargetOutOfBoundsException: Message: move target out of bounds
+  (Session info: chrome=151.0.7922.174)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7e9a6abb5+151b5]
+	chromedriver!GetHandleVerifier [0x7ff7e9a6ac10+15210]
+	chromedriver!(No symbol) [0x7ff7e9595b56]
+	chromedriver!(No symbol) [0x7ff7e964a168]
+	chromedriver!(No symbol) [0x7ff7e9619d0a]
+	chromedriver!(No symbol) [0x7ff7e963ec0b]
+	chromedriver!(No symbol) [0x7ff7e95e37cc]
+	chromedriver!(No symbol) [0x7ff7e95e46f3]
+	chromedriver!GetHandleVerifier [0x7ff7ea08b79b+635d9b]
+	chromedriver!GetHandleVerifier [0x7ff7ea085ac6+6300c6]
+	chromedriver!GetHandleVerifier [0x7ff7ea0abcee+6562ee]
+	chromedriver!GetHandleVerifier [0x7ff7e9a88ffe+335fe]
+	chromedriver!GetHandleVerifier [0x7ff7e9a9147c+3ba7c]
+	chromedriver!GetHandleVerifier [0x7ff7e9a74d64+1f364]
+	chromedriver!GetHandleVerifier [0x7ff7e9a74ef4+1f4f4]
+	chromedriver!GetHandleVerifier [0x7ff7e9a57d97+2397]
+	KERNEL32!BaseThreadInitThunk [0x7ffecb3ae957+17]
+	ntdll!RtlUserThreadStart [0x7ffecd5e7c1c+2c]
+

@@ -38,6 +38,7 @@ DataTables (table.reportData.dataTable). Grid kolom punya atribut
 STABIL data-name -> locator kolom: th[data-name='...'].
 """
 
+import base64
 import os
 import time
 
@@ -376,12 +377,23 @@ class HssSafetyPage(BasePage):
         (indikator terbukti, 2026-08-24). Klik dilakukan HANYA kalau
         submenu belum terbuka -- klik saat terbuka = menutup (toggle).
 
-        catatan quirk: handler toggle terikat ke <b class="collapse-sign">
-        dan butuh klik MOUSE asli -- JS .click() tidak memicu handler
-        (dicek tools/cek_menu.py, 2026-08-24)."""
+        catatan quirk:
+          - handler toggle butuh klik MOUSE asli -- JS .click() tidak
+            memicu handler di dashboard (dicek tools/cek_menu.py,
+            2026-08-24).
+          - di halaman Timesheet (YearlyReport Edit) klik sign NATIVE
+            juga TIDAK mempan -- yang terbukti mempan di sana = klik
+            mouse asli pada SPAN teks menu (probe 15/16, 2026-08-27:
+            test menu gagal karena browser restore tab smkp).
+            Karena itu klik dicoba BERURUTAN: sign -> span, berhenti
+            begitu submenu terbuka."""
         sign = (
             By.CSS_SELECTOR,
             self.MENU_SIGN[1].format(judul=judul),
+        )
+        span = (
+            By.XPATH,
+            f"//span[normalize-space(text())='{judul}']",
         )
 
         def _terbuka(d):
@@ -393,7 +405,15 @@ class HssSafetyPage(BasePage):
             ))
 
         if not _terbuka(self.driver):
-            self.click(sign, timeout=timeout)
+            for lokasi in (sign, span):
+                if _terbuka(self.driver):
+                    break
+                try:
+                    element = self._ambil_js_visible(lokasi, timeout=timeout)
+                    ActionChains(self.driver).move_to_element(element).click().perform()
+                except TimeoutException:
+                    continue
+                self.pace(0.5)
         self._wait(timeout).until(
             _terbuka,
             f"Submenu sidebar '{judul}' tidak kunjung terbuka setelah klik collapse-sign",
@@ -1070,6 +1090,85 @@ return out;
         """Heuristic: label yang menyebut satuan/kuantitas diisi ANGKA."""
         return any(k in label.lower() for k in cls._LABEL_ANGKA)
 
+    # Halaman yang field upload-nya (.dt-input-upload) BENAR2 diisi
+    # file dummy. File hanya dikirim ke server saat Save (multipart
+    # form -> server yang mengirim ke Firebase Storage) -- TIDAK ada
+    # file yatim walau form di-Cancel (dicek probe 23/24, 2026-08-27:
+    # tidak ada POST firebase dari browser saat memilih file). Halaman
+    # lain tetap dilewati supaya jejak upload di server seminimal
+    # mungkin.
+    UPLOAD_HALAMAN = {"incident_investigation_form"}
+
+    # PNG 1x1 transparan (67 byte) -- file dummy TERKECIL yang bisa
+    # dibuat supaya jejak upload di server seminimal mungkin.
+    PNG_DUMMY_B64 = (
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"
+        "AAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    )
+
+    def _siapkan_png_dummy(self):
+        """Tulis PNG 1x1 dummy ke reports/ (sekali saja) dan kembalikan
+        path-nya -- dipakai upload_file_dummy()."""
+        path = os.path.join(config.REPORTS_DIR, "dummy_upload.png")
+        if not os.path.exists(path):
+            with open(path, "wb") as f:
+                f.write(base64.b64decode(self.PNG_DUMMY_B64))
+        return path
+
+    def upload_file_dummy(self, label):
+        """Isi field upload `label` (widget .dt-input-upload) dengan
+        file dummy PNG terkecil, ALUR AMAN (dipetakan probe 17-25,
+        2026-08-27):
+
+        1. klik anchor Upload -> aplikasi membuat input#imgFile
+           (input[type=file] BERSAMA yang dipindah ke group field yang
+           diklik -- bukan input statis per field);
+        2. send_keys file dummy ke input -> aplikasi menyimpan file
+           per field (TIDAK ada POST firebase dari browser; file
+           dikirim ke server baru saat Save lewat multipart form);
+        3. verifikasi file benar2 terpasang (files == 1).
+
+        Sebelum klik, HTMLInputElement.prototype.click di-patch supaya
+        dialog file OS TIDAK muncul (selenium tidak bisa mengendalikan
+        dialog native) -- patch menyimpan fungsi asli dan hanya
+        memotong klik input bertipe file, sisanya diteruskan normal."""
+        self.driver.execute_script(
+            "window.__opelFileInputs = window.__opelFileInputs || [];"
+            "if (!window.__opelClickAsli) {"
+            "  window.__opelClickAsli = HTMLInputElement.prototype.click;"
+            "  HTMLInputElement.prototype.click = function () {"
+            "    if (this.type === 'file') {"
+            "      window.__opelFileInputs.push(this); return;"
+            "    }"
+            "    return window.__opelClickAsli.apply(this, arguments);"
+            "  };"
+            "}"
+        )
+        grp = self._locator_group(label)
+        self.click_js_saat_tampil(
+            (By.XPATH, grp + "//a[contains(@class,'dt-input-upload')]")
+        )
+        self._wait(config.DEFAULT_TIMEOUT).until(
+            lambda _: self.driver.execute_script(
+                "const i = document.querySelector('input[type=file]#imgFile');"
+                "return !!i;"
+            ),
+            f"Input file untuk '{label}' tidak muncul setelah klik Upload",
+        )
+        element = self.driver.find_element(
+            By.CSS_SELECTOR, "input[type=file]#imgFile"
+        )
+        element.send_keys(self._siapkan_png_dummy())
+        self._wait(config.DEFAULT_TIMEOUT).until(
+            lambda _: self.driver.execute_script(
+                "const i = document.querySelector('input[type=file]#imgFile');"
+                "return !!(i && i.files && i.files.length > 0);"
+            ),
+            f"File dummy untuk '{label}' tidak terpasang di input file",
+        )
+        print(f"  [upload] '{label}' <- dummy_upload.png (67 byte)")
+        self.pace()
+
     def isi_form_create_otomatis(self, tambahan=None, penanda=None):
         """Isi SEMUA field form create yang terlihat dengan data DUMMY
         otomatis sesuai jenisnya:
@@ -1084,9 +1183,12 @@ return out;
           - label angka    -> isi '10'
           - teks lain      -> isi '<penanda> <label>' (penanda default
             'Dummy'; test coba semua tombol memakai penanda unik)
-        Field UPLOAD (widget .dt-input-upload, mis. Photo) atau group
-        TANPA input SAMA SEKALI DILEWATI -- upload file TIDAK dilakukan
-        (aturan user: jangan menulis file ke DEV).
+          - upload         -> diisi file dummy PNG 1x1 terkecil HANYA
+            di halaman yang terdaftar di UPLOAD_HALAMAN (lihat
+            upload_file_dummy -- aman, file dikirim saat Save dan ikut
+            dummy record yang memang dibuat); halaman lain dilewati
+            supaya jejak upload di server minimal.
+        Group TANPA input SAMA SEKALI dilewati.
         `tambahan` = dict {label: nilai} untuk field yang mau diisi
         nilai tertentu (menimpa otomatis), mis. Equipment No unik."""
         tambahan = tambahan or {}
@@ -1096,7 +1198,15 @@ return out;
             menunggu_select = False
             for f in fields:
                 label, tipe = f["label"], f["type"]
-                if f.get("upload") or f.get("kosong"):
+                # upload DICEK DULU: group upload TIDAK punya input
+                # statis (input#imgFile dibuat saat anchor diklik),
+                # jadi juga terdeteksi kosong -- kalau kosong dicek
+                # duluan, upload tidak pernah dijalankan (2026-08-27)
+                if f.get("upload"):
+                    if getattr(self, "KUNCI", "") in self.UPLOAD_HALAMAN:
+                        self.upload_file_dummy(label)
+                    continue
+                if f.get("kosong"):
                     continue
                 if label in tambahan:
                     self.isi_field_modal(label, tambahan[label])
@@ -1292,6 +1402,40 @@ return out;
             return element.get_attribute("value") or ""
         except StaleElementReferenceException:
             return self.baca_sel_grid_anchor(nama_field, anchor)
+
+    def cari_anchor_field_terisi(self, nama_field, anchor):
+        """Cari baris PENGGANTI anchor: baris pertama di grid utama
+        yang punya SEMUA field `anchor` terisi DAN `nama_field`-nya
+        terisi non-kosong. Kembalikan dict anchor {key: nilai_baris}
+        atau None kalau tidak ada baris seperti itu.
+
+        Dipakai saat field target di baris anchor asli ternyata KOSONG
+        (data DEV berubah -- 2026-08-27: PPkomKetidaksesuaianMaj SMK3
+        & Deskripsi SMKP bulan Juli kosong). Alih-alih gagal, test
+        pindah ke bulan yang field-nya terisi supaya fitur edit tetap
+        dites SUNGGUHAN (tetap di-revert, data DEV tidak rusak)."""
+        return self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (!t) return null;"
+            "const keys = Object.keys(arguments[1]);"
+            "for (const tr of t.querySelectorAll('tbody tr')) {"
+            "  const vals = {};"
+            "  let cocok = true;"
+            "  for (const k of keys) {"
+            "    const inp = tr.querySelector("
+            "      \"input[data-fieldname='\" + k + \"']\");"
+            "    if (!inp || inp.value === '') { cocok = false; break; }"
+            "    vals[k] = inp.value;"
+            "  }"
+            "  if (!cocok) continue;"
+            "  const f = tr.querySelector("
+            "    \"input[data-fieldname='\" + arguments[0] + \"']\");"
+            "  if (f && f.value !== '') return vals;"
+            "}"
+            "return null;",
+            nama_field,
+            anchor,
+        )
 
     def isi_sel_grid(self, nama_field, nilai, baris=0):
         """Ubah nilai sel grid inline-edit DI GRID UTAMA: klik input ->
@@ -1621,7 +1765,10 @@ return out;
             self.submit_changes()
             self.tunggu_processing_selesai()
         elif nama == "Export":
-            self.export_dan_tunggu_file()
+            self.export_dan_tunggu_file(
+                wajib_file=getattr(self, "KUNCI", "")
+                not in self.EXPORT_TANPA_FILE
+            )
         elif nama == "Export Excel":
             self.export_excel_dan_tunggu_file()
         elif nama == "Instructions":

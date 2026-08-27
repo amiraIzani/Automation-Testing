@@ -1,0 +1,8 @@
+[OK] login
+[dashboard] {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': '', 'w': 161.65000915527344}]}
+[dashboard] SETELAH klik sign: {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': 'open', 'w': 161.65000915527344}]}
+[dashboard] SETELAH klik Safety: {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': 'open', 'w': 161.65000915527344}]}
+[smkp] {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': '', 'w': 161.65000915527344}]}
+[smkp] SETELAH klik sign: {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': 'open', 'w': 161.65000915527344}]}
+[smkp] SETELAH klik Safety: {'nav': 2, 'spans': [{'h': 16.80000114440918, 'liCls': 'open', 'w': 161.65000915527344}]}
+[SELESAI]
