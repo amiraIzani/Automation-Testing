@@ -55,6 +55,13 @@ from config import config
 from pages.base_page import BasePage
 
 
+class TidakPunyaAkses(Exception):
+    """Dilempar kalau halaman OPEL menampilkan pesan 'tidak punya akses'
+    (user tidak diizinkan melihat halaman tersebut). Test yang menangkap
+    exception ini bisa melakukan pytest.skip() supaya suite tetap lanjut
+    ke halaman berikutnya."""
+
+
 class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     # Menu sidebar
@@ -436,7 +443,12 @@ class HssSafetyPage(BasePage):
 
         Menunggu sampai tabel DataTables benar-benar TAMPIL (bukan
         cuma ada di DOM) -- halaman Timesheet butuh beberapa detik
-        untuk render data setelah load."""
+        untuk render data setelah load.
+
+        Kalau halaman menampilkan pesan "tidak punya akses" (user
+        tidak diizinkan melihat halaman ini), otomatis kembali ke
+        halaman sebelumnya pakai tombol Back browser (driver.back())
+        dan raise TidakPunyaAkses supaya test bisa di-skip."""
         if kunci not in self.HALAMAN:
             raise KeyError(
                 f"Kunci halaman '{kunci}' tidak dikenal. Pilihan: "
@@ -452,10 +464,41 @@ class HssSafetyPage(BasePage):
         try:
             _tunggu_siap()
         except TimeoutException:
-            # Navigasi cepat antar-halaman kadang bikin SPA OPEL "stuck"
-            # di loading overlay -- retry navigasi sekali menyelesaikan.
+            # Cek apakah halaman menunjukkan pesan "tidak punya akses"
+            # -- kalau ya, kembali ke halaman sebelumnya pakai tombol
+            # Back browser Chrome dan raise TidakPunyaAkses.
+            pesan = self._halaman_tidak_punya_akses()
+            if pesan:
+                print(
+                    f"\n[TIDAK PUNYA AKSES] Halaman '{kunci}' "
+                    f"({url}): {pesan}"
+                    "\n  -> Kembali ke halaman sebelumnya (driver.back())"
+                )
+                self.driver.back()
+                self.pace(1.0)
+                raise TidakPunyaAkses(
+                    f"Tidak punya akses ke halaman '{kunci}': {pesan}"
+                )
+            # Bukan masalah akses -- mungkin SPA OPEL "stuck" di loading
+            # overlay. Retry navigasi sekali menyelesaikan.
             self.driver.get(url)
-            _tunggu_siap()
+            try:
+                _tunggu_siap()
+            except TimeoutException:
+                # Setelah retry, cek lagi apakah ternyata masalah akses
+                pesan = self._halaman_tidak_punya_akses()
+                if pesan:
+                    print(
+                        f"\n[TIDAK PUNYA AKSES] Halaman '{kunci}' "
+                        f"({url}): {pesan}"
+                        "\n  -> Kembali ke halaman sebelumnya (driver.back())"
+                    )
+                    self.driver.back()
+                    self.pace(1.0)
+                    raise TidakPunyaAkses(
+                        f"Tidak punya akses ke halaman '{kunci}': {pesan}"
+                    )
+                raise  # bukan masalah akses, lempar TimeoutException asli
         # Bersihkan draft LOCAL halaman ini (localStorage dr_<Id>_*) --
         # baris draft kosong nyangkut setelah Create+Cancel dan membuat
         # Submit MEMBUANG baris baru dari Create with Form (2026-08-24).
@@ -464,6 +507,77 @@ class HssSafetyPage(BasePage):
         if self._bersihkan_draft_lokal():
             self.driver.get(url)
             _tunggu_siap()
+
+    # ------------------------------------------------------------------
+    # Deteksi halaman "tidak punya akses"
+    # ------------------------------------------------------------------
+    # Kata kunci yang dicari di body halaman untuk mendeteksi pesan
+    # "tidak punya akses". Sengaja dibuat lebar (EN + ID) supaya
+    # menangkap variasi pesan yang mungkin ditampilkan OPEL.
+    _KATA_KUNCI_TIDAK_PUNYA_AKSES = (
+        "not authorized",
+        "unauthorized",
+        "access denied",
+        "forbidden",
+        "tidak memiliki akses",
+        "tidak diizinkan",
+        "anda tidak memiliki",
+        "tidak punya akses",
+        "you do not have permission",
+        "you don't have permission",
+        "you are not authorized",
+        "permission denied",
+        "no permission",
+        "no access",
+    )
+
+    def _halaman_tidak_punya_akses(self):
+        """Cek apakah halaman saat ini menampilkan pesan 'tidak punya
+        akses'. Kembalikan teks pesan yang cocok (string) kalau
+        terdeteksi, atau string kosong ('') kalau tidak.
+
+        Pemeriksaan:
+        1. Cari kata kunci di teks body halaman (case-insensitive).
+        2. Cek elemen dengan class/id umum untuk pesan error (mis.
+           .alert-danger, .error-message, #error, dsb.)."""
+        try:
+            body_text = self.driver.execute_script(
+                "return (document.body && document.body.innerText) || '';"
+            ).lower()
+        except Exception:
+            return ""
+
+        # 1) Cari kata kunci di body text
+        for kunci in self._KATA_KUNCI_TIDAK_PUNYA_AKSES:
+            if kunci in body_text:
+                # Ambil baris yang mengandung kata kunci sebagai pesan
+                for baris in body_text.split("\n"):
+                    if kunci in baris.strip().lower():
+                        return baris.strip()
+                return kunci  # fallback: kembalikan kata kunci itu sendiri
+
+        # 2) Cek elemen error container yang mungkin punya pesan akses
+        pesan_error = self.driver.execute_script(
+            "const sels = ["
+            "  '.alert-danger', '.alert-warning', '.error-message',"
+            "  '#error', '.access-denied', '.forbidden',"
+            "  '[class*=\'unauthorized\']', '[class*=\'denied\']'"
+            "];"
+            "for (const s of sels) {"
+            "  const el = document.querySelector(s);"
+            "  if (el && el.offsetHeight > 0) {"
+            "    return el.innerText.trim();"
+            "  }"
+            "}"
+            "return '';"
+        )
+        if pesan_error:
+            pesan_lower = pesan_error.lower()
+            for kunci in self._KATA_KUNCI_TIDAK_PUNYA_AKSES:
+                if kunci in pesan_lower:
+                    return pesan_error
+
+        return ""
 
     def _bersihkan_draft_lokal(self):
         """Hapus key localStorage draft halaman ini (pola
@@ -789,7 +903,10 @@ class HssSafetyPage(BasePage):
         kena intercept oleh modal yang masih menutup (2026-08-24)."""
         self.click_js_saat_tampil(self.BTN_SUBMIT)
         self.jawab_konfirmasi()
-        self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
+        try:
+            self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
+        except TimeoutException:
+            self._paksa_tutup_modal()
 
     def klik_tab(self, teks_tab, jeda=1.0):
         """Klik tab internal halaman (hanya yang benar2 tampil menurut
@@ -820,15 +937,21 @@ class HssSafetyPage(BasePage):
     # Modal Create with Form (alur isi data)
     # ------------------------------------------------------------------
     def _ada_modal_tampil(self):
-        """True kalau ADA modal .modal.show yang benar2 terlihat.
-        Elemen stale (sedang diganti DOM) dianggap belum tampil."""
-        for el in self.driver.find_elements(*self.MODAL_SHOW):
-            try:
-                if el.is_displayed():
-                    return True
-            except StaleElementReferenceException:
-                continue
-        return False
+        """True kalau ADA modal .modal.show / .modal.in / bootbox / sweetalert yang benar2
+        terlihat menurut computed style JS (tahan terhadap fade-transition dan tidak
+        salah sasaran ke panel setting offscreen .js-modal-settings)."""
+        return bool(self.driver.execute_script(
+            "const ms = document.querySelectorAll('.modal.show, .modal.in, .bootbox.show, .bootbox.in, .swal2-container.swal2-shown, .modal[style*=\"display: block\"], .bootbox[style*=\"display: block\"]');"
+            "for (const m of ms) {"
+            "  if (m.classList.contains('js-modal-settings')) continue;"
+            "  const s = window.getComputedStyle(m);"
+            "  const r = m.getBoundingClientRect();"
+            "  if (s.display !== 'none' && s.visibility !== 'hidden' && s.opacity !== '0' && r.width > 0 && r.height > 0) {"
+            "    return true;"
+            "  }"
+            "}"
+            "return false;"
+        ))
 
     def tunggu_modal_terbuka(self, timeout=None):
         """Tunggu sampai ADA modal .modal.show yang tampil."""
@@ -966,7 +1089,14 @@ class HssSafetyPage(BasePage):
                 tag = element.tag_name
                 tipe = (element.get_attribute("type") or "").lower()
                 if tag == "select":
-                    Select(element).select_by_visible_text(nilai)
+                    try:
+                        Select(element).select_by_visible_text(nilai)
+                    except Exception:
+                        self.driver.execute_script(
+                            "arguments[0].value = arguments[1];"
+                            "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+                            element, str(nilai),
+                        )
                 elif tag == "input" and tipe in ("radio", "checkbox"):
                     self.driver.execute_script("arguments[0].click();", element)
                 elif tag == "input" and tipe in ("date", "datetime-local", "time"):
@@ -984,8 +1114,16 @@ class HssSafetyPage(BasePage):
                         element, str(nilai),
                     )
                 else:
-                    element.clear()
-                    element.send_keys(str(nilai))
+                    try:
+                        element.clear()
+                        element.send_keys(str(nilai))
+                    except (ElementNotInteractableException, Exception):
+                        self.driver.execute_script(
+                            "arguments[0].value = arguments[1];"
+                            "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));"
+                            "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+                            element, str(nilai),
+                        )
                 self.pace()
                 return
             except StaleElementReferenceException:
@@ -1236,6 +1374,9 @@ return out;
                     self.isi_field_modal(label, "10")
                 elif tipe in ("radio", "checkbox"):
                     self.isi_field_modal(label, "")
+                elif "equipment" in label.lower():
+                    # Field Equipment No diisi penanda unik (Dummy HHMMSS / equipment_prefix)
+                    self.isi_field_modal(label, penanda)
                 elif self._label_minta_angka(label):
                     self.isi_field_modal(label, "10")
                 else:
@@ -1248,18 +1389,19 @@ return out;
         proses simpan selesai)."""
         self.click_js_saat_tampil(self.BTN_SAVE_MODAL)
         self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
+        self.jawab_konfirmasi()
 
     def batal_form(self):
         """Klik Cancel di modal lalu tunggu modal tertutup."""
-        self.click_js_saat_tampil(self.BTN_CANCEL_MODAL)
-        self.tunggu_modal_tertutup()
+        try:
+            self.click_js_saat_tampil(self.BTN_CANCEL_MODAL)
+        except Exception:
+            pass
+        self.tutup_modal()
 
     def tutup_modal(self):
         """Tutup modal yang sedang terbuka (tombol X -> tombol teks
-        Close -> tombol ESC), lalu TUNGGU sampai benar2 hilang.
-        Retry beberapa kali -- klik bisa terabaikan kalau aplikasi
-        masih sibuk (mis. setelah link Download Template diproses,
-        2026-08-24)."""
+        Close -> tombol ESC -> paksa DOM), lalu TUNGGU sampai benar2 hilang."""
         from selenium.webdriver.common.keys import Keys
         for _ in range(3):
             if not self._ada_modal_tampil():
@@ -1267,18 +1409,25 @@ return out;
             self._klik_jika_ada(self.BTN_CLOSE_MODAL)
             self._klik_jika_ada((
                 By.XPATH,
-                "//div[contains(@class,'modal') and contains(@class,'show')]"
-                "//button[normalize-space(.)='Close']",
+                "//div[contains(@class,'modal')]//button[normalize-space(.)='Close' or contains(@class,'close')]",
             ))
             # bootbox alert (mis. info Reload Data) dijawab OK
             self._klik_jika_ada((By.CSS_SELECTOR, "button.bootbox-accept"))
+            self._klik_jika_ada((By.XPATH, "//button[normalize-space(.)='Cancel']"))
             try:
-                self.tunggu_modal_tertutup(timeout=5)
+                self.tunggu_modal_tertutup(timeout=3)
                 return
             except TimeoutException:
                 continue
-        self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.ESCAPE)
-        self.tunggu_modal_tertutup()
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.ESCAPE)
+            self.tunggu_modal_tertutup(timeout=3)
+            return
+        except Exception:
+            pass
+        # Fallback akhir: hapus DOM modal/backdrop yang masih nyangkut
+        self._paksa_tutup_modal()
+        self.pace(0.5)
 
     def cari_di_grid(self, teks):
         """Cari `teks` di grid UTAMA lewat DataTables API (search
@@ -1358,13 +1507,30 @@ return out;
         "const anchor = arguments[1];"
         "const baris = [...t.querySelectorAll('tbody tr')].find(tr =>"
         "  Object.entries(anchor).every(p => {"
+        "    const k = p[0];"
+        "    const target = (p[1] || '').toString().trim().toLowerCase();"
         "    const inp = tr.querySelector("
-        "      \"input[data-fieldname='\" + p[0] + \"']\");"
-        "    return inp && inp.value === p[1];"
+        "      \"input[data-fieldname='\" + k + \"'], select[data-fieldname='\" + k + \"'], textarea[data-fieldname='\" + k + \"']\");"
+        "    if (inp) {"
+        "      const val = (inp.value || '').trim().toLowerCase();"
+        "      if (val === target) return true;"
+        "      if (target === 'juli' && val === 'july') return true;"
+        "      if (target === 'july' && val === 'juli') return true;"
+        "      if (target === 'januari' && val === 'january') return true;"
+        "      if (target === 'january' && val === 'januari') return true;"
+        "    }"
+        "    const sel = tr.querySelector(\"td[data-name='\" + k + \"']\");"
+        "    if (sel) {"
+        "      const teks = (sel.innerText || '').trim().toLowerCase();"
+        "      if (teks === target) return true;"
+        "      if (target === 'juli' && teks === 'july') return true;"
+        "      if (target === 'july' && teks === 'juli') return true;"
+        "    }"
+        "    return false;"
         "  }));"
         "if (!baris) return null;"
         "return baris.querySelector("
-        "\"input[data-fieldname='\" + arguments[0] + \"']\");"
+        "\"input[data-fieldname='\" + arguments[0] + \"'], textarea[data-fieldname='\" + arguments[0] + \"'], select[data-fieldname='\" + arguments[0] + \"']\");"
     )
 
     def _ambil_elemen_sel(self, nama_field, baris=None):

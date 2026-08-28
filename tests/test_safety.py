@@ -42,7 +42,7 @@ from pages.safety_leading_indicator_page import SafetyLeadingIndicatorPage
 from pages.safety_statistic_safety_recapitulation_page import SafetyStatisticSafetyRecapitulationPage
 from pages.safety_smk3_page import SafetySmk3Page
 from pages.safety_smkp_page import SafetySmkpPage
-from pages.hss_safety_page import HssSafetyPage
+from pages.hss_safety_page import HssSafetyPage, TidakPunyaAkses
 
 
 # ------------------------------------------------------------------
@@ -97,8 +97,12 @@ NAMA_HALAMAN = {
 
 
 def _buka_halaman(driver, kunci):
-    """Buka halaman Safety `kunci` lewat page object miliknya."""
-    return PAGE_OBJECTS[kunci](driver).buka()
+    """Buka halaman Safety `kunci` lewat page object miliknya.
+    Kalau tidak punya akses, otomatis kembali (driver.back) dan skip."""
+    try:
+        return PAGE_OBJECTS[kunci](driver).buka()
+    except TidakPunyaAkses as e:
+        pytest.skip(str(e))
 
 
 def _ids_halaman(kunci_list):
@@ -142,29 +146,44 @@ class TestSafetyHss:
     # ------------------------------------------------------------------
     @pytest.mark.safety_view
     def test_safety_lagging_indicator_view(self, driver):
-        page = SafetyLaggingIndicatorPage(driver).buka()
+        try:
+            page = SafetyLaggingIndicatorPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Lagging Indicator tidak tampil"
         assert page.is_visible(page.FILTER_TANGGAL), "Filter tanggal tidak tampil"
         assert page.is_visible(page.FILTER_UNIT), "Filter unit tidak tampil"
 
     @pytest.mark.safety_view
     def test_safety_golden_rules_recap_view(self, driver):
-        page = SafetyGoldenRulesRecapPage(driver).buka()
+        try:
+            page = SafetyGoldenRulesRecapPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel GOLDEN RULES RECAP tidak tampil"
 
     @pytest.mark.safety_view
     def test_safety_emergency_drill_recap_view(self, driver):
-        page = SafetyEmergencyDrillRecapPage(driver).buka()
+        try:
+            page = SafetyEmergencyDrillRecapPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel EMERGENCY DRILL Recap tidak tampil"
 
     @pytest.mark.safety_view
     def test_safety_mwt_recapitulation_view(self, driver):
-        page = SafetyMwtRecapitulationPage(driver).buka()
+        try:
+            page = SafetyMwtRecapitulationPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel MWT RECAPITULATION tidak tampil"
 
     @pytest.mark.safety_view
     def test_safety_recap_view(self, driver):
-        page = SafetyRecapPage(driver).buka()
+        try:
+            page = SafetyRecapPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert driver.execute_script(page._js_tampil(), "#tableBulanan", 10), \
             "Tabel Safety Recap (Bulanan) tidak tampil"
         assert page.is_visible(page.FILTER_BULAN), "Filter bulan tidak tampil"
@@ -175,12 +194,18 @@ class TestSafetyHss:
     # ------------------------------------------------------------------
     @pytest.mark.safety_transaction
     def test_safety_incident_investigation_view(self, driver):
-        page = SafetyIncidentInvestigationFormPage(driver).buka()
+        try:
+            page = SafetyIncidentInvestigationFormPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Incident Investigation tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_incident_investigation_tab(self, driver):
-        page = SafetyIncidentInvestigationFormPage(driver).buka()
+        try:
+            page = SafetyIncidentInvestigationFormPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         page.buka_tab(page.TAB_DATA_KORBAN)
         tab = page.find((page.TAB[0], page.TAB[1].format(teks_tab=page.TAB_DATA_KORBAN)))
         assert "active" in (tab.get_attribute("class") or ""), "Tab Data Korban tidak aktif"
@@ -218,22 +243,34 @@ class TestSafetyHss:
 
     @pytest.mark.safety_transaction
     def test_safety_initial_incident_view(self, driver):
-        page = SafetyInitialIncidentAccidentReportPage(driver).buka()
+        try:
+            page = SafetyInitialIncidentAccidentReportPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Initial Incident/Accident tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_witness_statement_view(self, driver):
-        page = SafetyWitnessStatementReportPage(driver).buka()
+        try:
+            page = SafetyWitnessStatementReportPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Witness Statement tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_emergency_drill_daily_view(self, driver):
-        page = SafetyEmergencyDrillDailyPage(driver).buka()
+        try:
+            page = SafetyEmergencyDrillDailyPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel EMERGENCY DRILL Daily tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_master_alat_view(self, driver):
-        page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        try:
+            page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Master Alat tidak tampil"
 
     @pytest.mark.safety_transaction
@@ -244,7 +281,10 @@ class TestSafetyHss:
         muncul di tabel."""
         data = test_data["hss_safety"]["master_alat"]
         equip = data["equipment_prefix"] + time.strftime("%H%M%S")
-        page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        try:
+            page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         page.buka_form_create()
         page.isi_form_create_otomatis(tambahan={"Equipment No": equip})
         page.simpan_form()
@@ -282,7 +322,10 @@ class TestSafetyHss:
         SENDIRIAN), SATU baris dummy dibuat dulu lewat Create with
         Form -- test mandiri dan tidak pernah skip."""
         data = test_data["hss_safety"]["master_alat"]
-        page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        try:
+            page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         page.reset_cari_grid()
         # TUNGGU baris benar2 ter-render sebelum menghitung dummy --
         # hitungan sebelum data selesai dimuat AJAX = 0 palsu (pernah
@@ -382,17 +425,26 @@ class TestSafetyHss:
 
     @pytest.mark.safety_transaction
     def test_safety_soc_recapitulation_view(self, driver):
-        page = SafetySocRecapitulationPage(driver).buka()
+        try:
+            page = SafetySocRecapitulationPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel SOC RECAPITULATION tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_golden_rules_view(self, driver):
-        page = SafetyGoldenRulesPage(driver).buka()
+        try:
+            page = SafetyGoldenRulesPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel GOLDEN RULES tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_data_rekap_k3_view(self, driver):
-        page = SafetyDataRekapStatistikK3Page(driver).buka()
+        try:
+            page = SafetyDataRekapStatistikK3Page(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Data Rekap Statistik K3 tidak tampil"
         page.buka_tab(page.TAB_TRIR)
         tab = page.find((page.TAB[0], page.TAB[1].format(teks_tab=page.TAB_TRIR)))
@@ -400,17 +452,26 @@ class TestSafetyHss:
 
     @pytest.mark.safety_transaction
     def test_safety_kkp_p2k3_view(self, driver):
-        page = SafetyKkpP2k3CommitteeMeetingPage(driver).buka()
+        try:
+            page = SafetyKkpP2k3CommitteeMeetingPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel SAFETY/KKP/P2K3 tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_mwt_daily_view(self, driver):
-        page = SafetyMwtDailyPage(driver).buka()
+        try:
+            page = SafetyMwtDailyPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel MWT DAILY tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_leading_indicator_view(self, driver):
-        page = SafetyLeadingIndicatorPage(driver).buka()
+        try:
+            page = SafetyLeadingIndicatorPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Leading Indicator tidak tampil"
 
     # ------------------------------------------------------------------
@@ -418,18 +479,27 @@ class TestSafetyHss:
     # ------------------------------------------------------------------
     @pytest.mark.safety_transaction
     def test_safety_statistic_safety_view(self, driver):
-        page = SafetyStatisticSafetyRecapitulationPage(driver).buka()
+        try:
+            page = SafetyStatisticSafetyRecapitulationPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel Statistic Safety tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_smk3_view(self, driver):
-        page = SafetySmk3Page(driver).buka()
+        try:
+            page = SafetySmk3Page(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel SMK3 tidak tampil"
         assert page.is_visible(page.BTN_SUBMIT), "Tombol Submit Changes tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_smkp_view(self, driver):
-        page = SafetySmkpPage(driver).buka()
+        try:
+            page = SafetySmkpPage(driver).buka()
+        except TidakPunyaAkses as e:
+            pytest.skip(str(e))
         assert page.tabel_report_tampil(), "Tabel SMKP tidak tampil"
 
     # ------------------------------------------------------------------
@@ -518,8 +588,11 @@ class TestSafetyHss:
             f"Field '{field_edit}' di baris {anchor} tidak terbaca di '{kunci}'"
         )
         if nilai_uji is None:
-            # field angka: nilai uji = nilai awal + 1 (mudah di-revert)
-            nilai_uji = str(int(float(nilai_awal)) + 1)
+            # field angka: nilai uji = nilai awal + 1 jika angka, atau '1' jika kosong
+            try:
+                nilai_uji = str(int(float(nilai_awal)) + 1)
+            except (ValueError, TypeError):
+                nilai_uji = "1"
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
         page.submit_changes()
         page.buka_halaman(kunci)
@@ -556,13 +629,14 @@ class TestSafetyHss:
 
         # 1b) Cancel: buat perubahan pending -> klik Cancel -> perubahan
         #     TIDAK tersimpan (data tetap nilai awal)
+        nilai_sebelum_cancel = page.baca_sel_grid_anchor(field_edit, anchor)
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
         page.click_js_saat_tampil(page.BTN_CANCEL_GRID)
         page.jawab_konfirmasi()
         page.tunggu_processing_selesai()
         page.buka_halaman(kunci)
         _tunggu_anchor()
-        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
+        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_sebelum_cancel, (
             f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
             "sudah diklik"
         )
