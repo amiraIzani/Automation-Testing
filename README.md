@@ -105,6 +105,13 @@ Tindak lanjut dari 1 kegagalan di atas:
 
 Dengan demikian seluruh **45 test telah terverifikasi lulus**.
 
+> **Catatan (2026-08-31, pasca-merge):** log run di atas direkam
+> SEBELUM branch ini digabung dengan `automation-safety` (fixes bug
+> search-token, empty-draft-blocks-submit, delete dua tahap, dan 4 test
+> berdiri sendiri di tabel "Alur Pengujian" di bawah). Angka **45**
+> belum termasuk 4 test tambahan itu — jalankan ulang `pytest -k safety`
+> untuk angka yang mencerminkan kondisi terkini.
+
 ## Alur Pengujian
 
 Berikut urutan langkah pengujian sesuai isi `tests/test_e2e_opel.py`
@@ -120,6 +127,11 @@ dan `tests/test_safety.py`, dikelompokkan per modul:
 | Master Alat | `test_safety_master_alat_delete` | Delete baris dummy → konfirmasi Yes → baris hilang dari grid |
 | Lagging Mendalam (3 halaman) | `test_safety_lagging_deep` | Edit grid inline + Submit → verifikasi → **revert**; Cancel; filter tanggal; filter unit; Export (file terunduh); Import (modal + template terunduh) |
 | Halaman Lengkap (19 halaman) | `test_safety_halaman_lengkap` | Alur lengkap satu halaman dalam satu kunjungan (lihat rincian di bawah) |
+| Interaksi DataTables | `test_safety_datatables_interaksi` | Sort kolom asc/desc, pagination, Search (DOM + API), show/hide kolom — per halaman ber-grid |
+| Isi File Export | `test_safety_export_isi_file` | Export → file benar-benar bisa dibuka sebagai workbook `.xlsx` dan punya ≥1 baris terisi |
+| Validasi Form Wajib | `test_safety_create_form_validasi` | Create with Form disimpan KOSONG → form harus menolak (modal tetap terbuka / pesan validasi) |
+| Ganti Filter Unit | `test_safety_filter_unit_ganti` | Filter unit benar-benar DIGANTI ke opsi lain (bukan cuma cek elemen ada), tabel tetap tampil, lalu dikembalikan |
+| Leading (Alur Menengah) | `test_safety_leading_deep` | View → filter tanggal (kalau ada) → filter unit (elemen+opsi) → Export (file) → Import (modal + template terunduh) |
 
 Rincian alur `test_safety_halaman_lengkap` untuk setiap halaman:
 
@@ -436,9 +448,13 @@ hasil, dan temuan.
 | Tombol Reload Data | Hanya ditampilkan aplikasi pada halaman Master Alat Keselamatan Operasi; pada halaman lain tombol dirender tersembunyi sehingga tidak masuk daftar harapan toolbar |
 | Statistic Safety Recapitulation | Template MonthlyReport tidak menyimpan perubahan inline lewat Submit Changes — test tetap menjalankan alur edit dan memverifikasi data tidak rusak |
 | Export Incident Investigation | Tidak menghasilkan file unduhan (perilaku aplikasi) — tombol tetap diklik, verifikasi file dilewati |
-| Delete Master Alat | Aplikasi DEV saat ini tidak menyimpan penghapusan ke server (baris muncul lagi setelah reload) — test memverifikasi alur UI dan memiliki assert pengawas apabila perilaku berubah |
+| Delete Master Alat | **(2026-08-31, perilaku berubah dari temuan sebelumnya)** Delete + Yes kini dua tahap: awalnya cuma menandai pending change lokal (baris belum hilang), lalu Submit Changes benar-benar menghapus DAN penghapusan bertahan setelah reload. `test_safety_master_alat_delete` diupdate jadi verifikasi cleanup sungguhan |
 | Upload Import | File dummy (template resmi) dipasang pada input upload untuk menguji widget pemilih file, namun tombol Import tidak diklik sehingga tidak ada data yang dikirim ke server |
 | Sesi panjang | SPA dapat "stuck" pada sesi panjang (handler tombol mati, deteksi modal negatif palsu) — helper sudah dilengkapi retry, deteksi berbasis computed style JS, dan navigasi ulang |
+| Search DataTables kolom Month/Date | Token pencarian dari kolom `Month`/`Date` bisa false-fail di search API server-side — nilai yang DITAMPILKAN dilokalkan (mis. "Januari") sementara backend mencocokkan nilai mentah (mis. "January"). `test_safety_datatables_interaksi` melewati kolom itu saat memilih token pencarian |
+| Create with Form (Master Alat) kehilangan baris baru | Kalau ada draft kosong lain nyangkut di grid, Submit Changes membuang SEMUA baris pending (bukan cuma yang gagal validasi) — bug aplikasi, detail & repro di `reports/bugs/master-alat-submit-drops-new-row.md`. Workaround test: `_hapus_baris_kosong()` dipanggil di awal tiap alur Create with Form |
+| Modal Import di halaman grid berat | Halaman dengan grid berat (banyak kolom per district, mis. Leading Indicator Static Input) bisa bikin modal terdeteksi terlambat oleh Selenium walau sudah terbuka di browser (main thread sibuk render ulang) — percobaan terakhir `_klik_dan_tunggu_modal()` memakai `LONG_TIMEOUT`, bukan `DEFAULT_TIMEOUT` |
+| Test berdiri sendiri di luar Halaman Lengkap | `test_safety_datatables_interaksi`, `test_safety_export_isi_file`, `test_safety_create_form_validasi`, `test_safety_filter_unit_ganti` dipertahankan terpisah (2026-08-31, digabung saat merge branch) karena mencakup hal yang tidak diuji `test_safety_halaman_lengkap`: interaksi DataTables, isi file export, validasi form wajib, dan penggantian filter unit sungguhan |
 
 ## Kesimpulan
 

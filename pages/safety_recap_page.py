@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
 from config import config
-from pages.hss_safety_page import HssSafetyPage
+from pages.hss_safety_page import HssSafetyPage, TidakPunyaAkses
 
 
 class SafetyRecapPage(HssSafetyPage):
@@ -40,7 +40,9 @@ class SafetyRecapPage(HssSafetyPage):
     def buka(self):
         """Buka halaman Safety Recap (tunggu tabel Bulanan tampil).
         Halaman ini kadang butuh fetch data lebih lama (pipeline
-        Supersafe/HSSE) -- retry navigasi sekali kalau timeout."""
+        Supersafe/HSSE) -- retry navigasi sekali kalau timeout.
+        Kalau tidak punya akses, otomatis kembali via driver.back()
+        dan lempar TidakPunyaAkses."""
         url = config.BASE_URL.rstrip("/") + "/" + self.HALAMAN[self.KUNCI].lstrip("/")
 
         def _tunggu():
@@ -53,7 +55,34 @@ class SafetyRecapPage(HssSafetyPage):
         try:
             _tunggu()
         except TimeoutException:
+            pesan = self._halaman_tidak_punya_akses()
+            if pesan:
+                print(
+                    f"\n[TIDAK PUNYA AKSES] Halaman '{self.KUNCI}' "
+                    f"({url}): {pesan}"
+                    "\n  -> Kembali ke halaman sebelumnya (driver.back())"
+                )
+                self.driver.back()
+                self.pace(1.0)
+                raise TidakPunyaAkses(
+                    f"Tidak punya akses ke halaman '{self.KUNCI}': {pesan}"
+                )
             self.driver.get(url)
-            _tunggu()
+            try:
+                _tunggu()
+            except TimeoutException:
+                pesan = self._halaman_tidak_punya_akses()
+                if pesan:
+                    print(
+                        f"\n[TIDAK PUNYA AKSES] Halaman '{self.KUNCI}' "
+                        f"({url}): {pesan}"
+                        "\n  -> Kembali ke halaman sebelumnya (driver.back())"
+                    )
+                    self.driver.back()
+                    self.pace(1.0)
+                    raise TidakPunyaAkses(
+                        f"Tidak punya akses ke halaman '{self.KUNCI}': {pesan}"
+                    )
+                raise
         return self
 

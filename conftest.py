@@ -22,6 +22,7 @@ dibuat (mengikuti pola test_login di bawah).
 
 import json
 import os
+import re
 from datetime import datetime
 
 import pytest
@@ -62,6 +63,14 @@ STEP_LABELS = [
     ("test_safety_smkp_view", "Safety - SMKP"),
     ("test_safety_lagging_deep", "Safety - Lagging (Semua Fitur)"),
     ("test_safety_halaman_lengkap", "Safety - Halaman Lengkap (Tabel+Tab+Tombol)"),
+    # Test berdiri sendiri (tidak diserap ke test_safety_halaman_lengkap):
+    # cakupan DataTables/export-content/validasi-form/filter-unit yang
+    # test gabungan itu tidak menguji (2026-08-31, digabung dari branch
+    # automation-safety saat merge dengan automation-safety-zahra).
+    ("test_safety_datatables_interaksi", "Safety - Interaksi DataTables"),
+    ("test_safety_export_isi_file", "Safety - Verifikasi Isi Export"),
+    ("test_safety_create_form_validasi", "Safety - Validasi Form Wajib"),
+    ("test_safety_filter_unit_ganti", "Safety - Ganti Filter Unit"),
 ]
 
 # Hasil kumulatif: label -> bool (semua step modul lulus); urutan dict = urutan eksekusi.
@@ -168,7 +177,14 @@ def pytest_runtest_makereport(item, call):
         if active_driver:
             os.makedirs(config.SCREENSHOT_DIR, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            screenshot_name = f"{item.name}_{timestamp}.png"
+            # item.name bisa mengandung karakter ilegal untuk nama file
+            # Windows (mis. "/" di ID parametrize seperti "Initial
+            # Incident/Accident") -- "/" khususnya DIAM-DIAM ditafsir
+            # sebagai pemisah folder oleh os.path.join, bikin
+            # save_screenshot gagal nulis (folder tidak ada) tanpa
+            # bukti kegagalan apa pun untuk test itu (2026-08-31).
+            nama_aman = re.sub(r'[\\/:*?"<>|]', "_", item.name)
+            screenshot_name = f"{nama_aman}_{timestamp}.png"
             screenshot_path = os.path.join(config.SCREENSHOT_DIR, screenshot_name)
             try:
                 active_driver.save_screenshot(screenshot_path)
