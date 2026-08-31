@@ -1,5 +1,0 @@
-setelah reload, modal tampil: True
-setelah buka import, modal tampil: True
-semua modal: [{'cls': 'modal fade js-modal-settings modal-backdrop-transparent', 'id': '', 'tampil': False}, {'cls': 'bootbox modal fade modal-alert show', 'id': '', 'tampil': True}, {'cls': 'modal fade show', 'id': 'modalImport', 'tampil': True}]
-tutup_modal GAGAL: TimeoutException()
-modal tersisa: [{'cls': 'modal fade js-modal-settings modal-backdrop-transparent', 'id': '', 'tampil': False}, {'cls': 'bootbox modal fade modal-alert show', 'id': '', 'tampil': True}, {'cls': 'modal fade', 'id': 'modalImport', 'tampil': False}]

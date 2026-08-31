@@ -301,17 +301,19 @@
     </h1>
     <p class="lede">
       Otomasi end-to-end untuk 19 halaman modul HSS&nbsp;Safety aplikasi OPEL:
-      setiap tab dibuka, setiap tombol diklik, dan setiap fitur transaksional
-      dicoba sungguhan — create, edit, export, import, sampai delete — lalu
-      seluruh hasil dirangkum menjadi satu laporan ini.
+      navigasi lewat menu sidebar (dashboard&nbsp;→ HSS&nbsp;→ Safety&nbsp;→
+      Reporting/Transaction), setiap tab dibuka, setiap tombol diklik — di
+      setiap tab — dan setiap fitur transaksional dicoba sungguhan: create,
+      edit, export, import (file dummy dipasang tanpa dikirim ke server),
+      sampai delete. Seluruh hasil dirangkum menjadi satu laporan ini.
     </p>
     <dl class="meta">
       <div><dt>Aplikasi</dt><dd>OPEL — Modul HSS · Safety</dd></div>
       <div><dt>Environment</dt><dd>dev-opel.antm.tech (DEV)</dd></div>
       <div><dt>Penyusun</dt><dd>Zahra Tsuroyya Poetri — QA Intern</dd></div>
-      <div><dt>Tanggal</dt><dd>27 Agustus 2026</dd></div>
-      <div><dt>Periode Pengujian</dt><dd>20 – 27 Agustus 2026</dd></div>
-      <div><dt>Versi Dokumen</dt><dd>1.0</dd></div>
+      <div><dt>Tanggal</dt><dd>31 Agustus 2026</dd></div>
+      <div><dt>Periode Pengujian</dt><dd>20 – 31 Agustus 2026</dd></div>
+      <div><dt>Versi Dokumen</dt><dd>2.0</dd></div>
     </dl>
   </header>
 
@@ -339,16 +341,17 @@
     </ul>
     <p>
       Cakupan: <strong>19 halaman Safety</strong> (5 Reporting, 11 Leading Indicator, 3 Lagging
-      Indicator) dengan <strong>68 kasus uji</strong>. Seluruh kasus kini berstatus
-      <strong class="st ok"><span class="ico">✓</span>lulus</strong> — 67 lulus langsung pada
-      full run 27 Agustus 2026, 1 kasus (navigasi menu) diperbaiki pada hari yang sama dan
-      diverifikasi terpisah.
+      Indicator) dengan <strong>45 kasus uji</strong>. Seluruh kasus kini berstatus
+      <strong class="st ok"><span class="ico">✓</span>lulus</strong> — 44 lulus langsung pada
+      full run 31 Agustus 2026, 1 kasus (Incident Investigation) diperbaiki pada hari yang sama
+      dan diverifikasi ulang; 1 kasus lain yang sempat flaky pada run parsial sesi panjang
+      (Master Alat Create) juga diverifikasi ulang hijau — efektif 45/45.
     </p>
     <div class="kpi">
-      <div class="tile"><div class="num">68</div><div class="lbl">Kasus Uji</div><div class="sub">pytest, modul Safety</div></div>
-      <div class="tile pass"><div class="num">68</div><div class="lbl">Lulus (Hijau)</div><div class="sub">67 full run + 1 perbaikan terverifikasi</div></div>
-      <div class="tile"><div class="num">19</div><div class="lbl">Halaman Diuji</div><div class="sub">+ 14 tab internal</div></div>
-      <div class="tile"><div class="num">16:44</div><div class="lbl">Durasi Full Suite</div><div class="sub">1 sesi browser, dari login sampai laporan</div></div>
+      <div class="tile"><div class="num">45</div><div class="lbl">Kasus Uji</div><div class="sub">pytest, modul Safety</div></div>
+      <div class="tile pass"><div class="num">45</div><div class="lbl">Lulus (Hijau)</div><div class="sub">44 full run + 2 verifikasi ulang pasca-perbaikan</div></div>
+      <div class="tile"><div class="num">19</div><div class="lbl">Halaman Diuji</div><div class="sub">+ 14 tab internal, semua tombol per tab</div></div>
+      <div class="tile"><div class="num">±55′</div><div class="lbl">Durasi Full Suite</div><div class="sub">1 sesi browser; meningkat karena tombol diuji per tab</div></div>
     </div>
     <h3>Teknologi</h3>
     <p>
@@ -389,7 +392,7 @@
 │   └── safety_*_page.py     <span class="c">19 page object — satu per sub-halaman Safety</span>
 ├── <span class="d">tests/</span>
 │   ├── test_e2e_opel.py     <span class="c">login</span>
-│   └── test_safety.py       <span class="c">68 kasus uji Safety (view, tab, toolbar, fitur transaksional)</span>
+│   └── test_safety.py       <span class="c">45 kasus uji Safety (view, tab, toolbar, fitur transaksional)</span>
 ├── <span class="d">tools/</span>               <span class="c">scanner locator (remote debugging) &amp; probe diagnostik perilaku aplikasi</span>
 ├── <span class="d">locators/</span>            <span class="c">dokumentasi locator hasil scan (md)</span>
 └── <span class="d">reports/</span>             <span class="c">report.html, screenshot kegagalan, file unduhan export</span></pre>
@@ -399,7 +402,7 @@
     <div class="diagram">
       <h4>Alur Teknis — dari Kasus Uji ke Aplikasi</h4>
       <div class="layers">
-        <div class="layer"><div class="t">Test Suite</div><div class="a">pytest · 68 kasus uji · marker per modul (safety_view / transaction / toolbar)</div></div>
+        <div class="layer"><div class="t">Test Suite</div><div class="a">pytest · 45 kasus uji · marker per modul (safety_view / transaction / toolbar)</div></div>
         <div class="arrow">→</div>
         <div class="layer"><div class="t">Page Objects</div><div class="a">19 kelas halaman + HssSafetyPage + BasePage — locator hasil scan &amp; aksi fitur</div></div>
         <div class="arrow">→</div>
@@ -435,11 +438,12 @@
     <h3>3.1 Alur Satu Sesi Suite (End-to-End)</h3>
     <ol class="steps">
       <li><b>Login otomatis</b><span>Chrome dibuka dengan profil bersesi Azure AD B2C — 1 redirect langsung ke dashboard, tanpa isi form.</span></li>
-      <li><b>Navigasi menu</b><span>Menu sidebar HSS → Safety diverifikasi terbuka dengan anak Reporting &amp; Transaction.</span></li>
-      <li><b>View 19 halaman</b><span>Setiap halaman dibuka lewat URL templatenya, tabel DataTables diverifikasi benar-benar tampil dengan data.</span></li>
-      <li><b>Tab internal</b><span>14 tab di 4 halaman dibuka satu per satu dan diverifikasi menjadi aktif.</span></li>
-      <li><b>Tombol toolbar</b><span>Tombol yang diharapkan tampil di tiap halaman diverifikasi benar-benar ter-render (daftar per halaman hasil scan).</span></li>
-      <li><b>Coba semua tombol</b><span>Setiap tombol DIKLIK sesuai fungsinya — Import membuka modal, Export mengunduh file, Create membuat data, Columns/FullScreen dibuka lalu ditutup.</span></li>
+      <li><b>Navigasi menu</b><span>Mulai dari dashboard → sidebar HSS → Safety dibuka, lalu sub <strong>Reporting</strong> dan <strong>Transaction</strong> dibuka satu per satu — link halaman diverifikasi muncul (sidebar bersifat accordion dan memuat judul menu duplikat, ditangani dengan rantai menu berjenjang).</span></li>
+      <li><b>View 19 halaman</b><span>Setiap halaman dibuka, tabel DataTables diverifikasi benar-benar tampil dengan data.</span></li>
+      <li><b>Alur menu per halaman</b><span>Test Halaman Lengkap membuka halaman lewat <strong>klik link di menu sidebar</strong> (bukan URL langsung) — dashboard → HSS → Safety → Reporting/Transaction → link halaman.</span></li>
+      <li><b>Tab internal</b><span>14 tab di 4 halaman dibuka satu per satu dan diverifikasi menjadi aktif; toolbar dicek <strong>dan seluruh tombol fitur dijalankan di setiap tab</strong> (kecuali tombol pembuat data dan Cancel, yang dijalankan di tab utama).</span></li>
+      <li><b>Tombol toolbar</b><span>Tombol yang diharapkan tampil di tiap halaman diverifikasi benar-benar ter-render di setiap tab (daftar per halaman hasil scan).</span></li>
+      <li><b>Coba semua tombol</b><span>Setiap tombol DIKLIK sesuai fungsinya — Import membuka modal lalu file dummy dipasang pada input upload (tanpa dikirim), Export mengunduh file, Create membuat data dummy, Columns dibuka lalu item Settings diklik, FullScreen masuk-keluar.</span></li>
       <li><b>Transaksi mendalam</b><span>3 halaman Lagging diuji penuh: edit grid inline + Submit, filter tanggal/unit, export, import template. Master Alat: create dummy &amp; delete.</span></li>
       <li><b>Laporan</b><span>Kotak hasil per label dicetak di akhir sesi; report.html + screenshot otomatis setiap kegagalan.</span></li>
     </ol>
@@ -453,10 +457,10 @@
           <tr><td class="nama">Create polos</td><td>Klik Create → baris draft bertambah → Cancel → draft dibersihkan</td><td>Jumlah baris kembali ke semula; sisa draft dihapus</td></tr>
           <tr><td class="nama">Edit grid inline</td><td>Nilai sel diubah → Submit Changes → reload → <strong>nilai DI-REVERT ke awal</strong> → Submit lagi</td><td>Nilai uji tersimpan lalu kembali ke nilai asli (data DEV tidak berubah)</td></tr>
           <tr><td class="nama">Export</td><td>Klik Export (retry + navigasi ulang bila SPA stuck) → jawab dialog</td><td>File Excel baru benar-benar muncul di folder unduhan</td></tr>
-          <tr><td class="nama">Import</td><td>Modal Import dibuka → <strong>Download Template</strong> (tanpa unggah — upload menulis ke DEV, sengaja dihindari)</td><td>File template terunduh; modal ditutup bersih</td></tr>
+          <tr><td class="nama">Import</td><td>Modal Import dibuka → <strong>Download Template</strong> (sekali per halaman per sesi) → file template <strong>dipasang pada input upload</strong> → modal ditutup; tombol Import <strong>tidak diklik</strong> (klik = menulis data ke DEV)</td><td>File terpasang di input (<span class="mono">files==1</span>); tidak ada data yang dikirim ke server</td></tr>
           <tr><td class="nama">Delete</td><td>Tombol Delete baris dummy → dialog konfirmasi → Yes</td><td>Baris hilang dari tampilan (perilaku server dicatat di §6)</td></tr>
-          <tr><td class="nama">Columns / FullScreen</td><td>Dropdown kolom dibuka lalu ditutup; fullscreen masuk lalu keluar (klik mouse asli mousedown+mouseup)</td><td>State kembali normal, aksi berikutnya tidak terganggu</td></tr>
-          <tr><td class="nama">Instructions / Select Finding</td><td>Link Instructions diklik (modal/tab baru ditutup); lookup Select Finding dibuka lalu ditutup</td><td>Tidak ada sisa modal yang menumpuk</td></tr>
+          <tr><td class="nama">Columns / FullScreen</td><td>Dropdown Columns dibuka → item <strong>Settings</strong> diklik → modal Freeze Column (daftar kolom) muncul lalu ditutup; fullscreen masuk lalu keluar (klik mouse asli mousedown+mouseup)</td><td>Modal terbuka jadi bukti item diklik; state kembali normal, aksi berikutnya tidak terganggu</td></tr>
+          <tr><td class="nama">Instructions / Select Finding</td><td>Link Instructions sengaja <strong>tidak diklik</strong> (permintaan); lookup Select Finding dibuka lalu ditutup</td><td>Tidak ada sisa modal yang menumpuk</td></tr>
         </tbody>
       </table>
     </div>
@@ -465,8 +469,9 @@
     <p>
       Pengujian transaksional <strong>tidak merusak data produksi DEV</strong>: setiap perubahan
       di-revert ke nilai awal, dummy dibuat dengan penanda unik untuk verifikasi tepat sasaran,
-      dan upload import tidak pernah dilakukan. Fitur yang memang tidak ditawarkan aplikasi
-      (mis. Reload Data tersembunyi, delete yang tidak commit — lihat §6) diverifikasi
+      dan file dummy pada modal Import hanya <strong>dipasang pada input</strong> tanpa pernah
+      dikirim ke server (tombol Import tidak diklik). Fitur yang memang tidak ditawarkan
+      aplikasi (mis. Reload Data tersembunyi, delete yang tidak commit — lihat §6) diverifikasi
       elemennya tanpa dipaksa.
     </p>
   </section>
@@ -477,7 +482,9 @@
     <p>
       Daftar tombol per halaman adalah hasil scan langsung dari website OPEL
       (v2.6.7) dan diverifikasi dua lapis: test <em>toolbar tampil</em> memastikan tombol
-      ter-render, test <em>coba semua tombol</em> mengekliknya satu per satu.
+      ter-render di setiap tab, test <em>coba semua tombol</em> mengekliknya satu per satu —
+      di tab utama dan di setiap tab internal halaman. Link Instructions dikecualikan dari
+      daftar klik (permintaan).
     </p>
     <div class="tbl-wrap">
       <table>
@@ -485,32 +492,33 @@
           <tr><th>Halaman</th><th>Template (Id)</th><th>Tombol yang Dicoba</th><th>Tab</th></tr>
         </thead>
         <tbody>
-          <tr><td class="nama">Lagging Indicator</td><td><span class="mono">MonthlyReport · View 1306</span></td><td><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Golden Rules Recap</td><td><span class="mono">YearlyReport · View 1324</span></td><td><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Emergency Drill Recap</td><td><span class="mono">YearlyReport · View 1325</span></td><td><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">MWT Recapitulation</td><td><span class="mono">YearlyReport · View 1323</span></td><td><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Lagging Indicator</td><td><span class="mono">MonthlyReport · View 1306</span></td><td><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Golden Rules Recap</td><td><span class="mono">YearlyReport · View 1324</span></td><td><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Emergency Drill Recap</td><td><span class="mono">YearlyReport · View 1325</span></td><td><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">MWT Recapitulation</td><td><span class="mono">YearlyReport · View 1323</span></td><td><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
           <tr><td class="nama">Safety Recap</td><td><span class="mono">ReportingSafetyRecap</span></td><td><span class="chip">Export Excel</span></td><td>2 — Bulanan, Tahunan</td></tr>
-          <tr><td class="nama">Incident Investigation Form</td><td><span class="mono">DailyReport · Edit 1334</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Columns</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>6 — Data Insiden, Data Korban, Fakta &amp; Analisis, Kesimpulan, Rekomendasi, Saksi &amp; Tim</td></tr>
-          <tr><td class="nama">Initial Incident/Accident Report</td><td><span class="mono">DailyReport · Edit 1335</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Columns</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Witness Statement Report</td><td><span class="mono">DailyReport · Edit 1336</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Columns</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>2 — Keterangan Saksi, Pertanyaan Wawancara</td></tr>
-          <tr><td class="nama">Emergency Drill Daily</td><td><span class="mono">MonthlyReport · Edit 1319</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Master Alat Keselamatan Operasi</td><td><span class="mono">StaticReport · Edit 1321</span></td><td><span class="chip">Reload Data</span><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span><br><span class="sub-nama">+ create dummy sungguhan &amp; delete per baris</span></td><td>—</td></tr>
-          <tr><td class="nama">SOC Recapitulation</td><td><span class="mono">YearlyReport · Edit 1310</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Select Finding</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Golden Rules</td><td><span class="mono">MonthlyReport · Edit 1316</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Data Rekap Statistik K3</td><td><span class="mono">YearlyReport · Edit 1315</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>4 — Frequency Rate, Severity Rate, TRIR, Fatality Rate</td></tr>
-          <tr><td class="nama">Safety / KKP / P2K3 Committee Meeting</td><td><span class="mono">YearlyReport · Edit 1313</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">MWT Daily</td><td><span class="mono">MonthlyReport · Edit 1312</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Incident Investigation Form</td><td><span class="mono">DailyReport · Edit 1334</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Columns</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>6 — Data Insiden, Data Korban, Fakta &amp; Analisis, Kesimpulan, Rekomendasi, Saksi &amp; Tim</td></tr>
+          <tr><td class="nama">Initial Incident/Accident Report</td><td><span class="mono">DailyReport · Edit 1335</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Columns</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Witness Statement Report</td><td><span class="mono">DailyReport · Edit 1336</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Columns</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>2 — Keterangan Saksi, Pertanyaan Wawancara</td></tr>
+          <tr><td class="nama">Emergency Drill Daily</td><td><span class="mono">MonthlyReport · Edit 1319</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Master Alat Keselamatan Operasi</td><td><span class="mono">StaticReport · Edit 1321</span></td><td><span class="chip">Reload Data</span><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span><br><span class="sub-nama">+ create dummy sungguhan &amp; delete per baris</span></td><td>—</td></tr>
+          <tr><td class="nama">SOC Recapitulation</td><td><span class="mono">YearlyReport · Edit 1310</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Select Finding</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Golden Rules</td><td><span class="mono">MonthlyReport · Edit 1316</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Data Rekap Statistik K3</td><td><span class="mono">YearlyReport · Edit 1315</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Cancel</span></td><td>4 — Frequency Rate, Severity Rate, TRIR, Fatality Rate</td></tr>
+          <tr><td class="nama">Safety / KKP / P2K3 Committee Meeting</td><td><span class="mono">YearlyReport · Edit 1313</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">MWT Daily</td><td><span class="mono">MonthlyReport · Edit 1312</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Create with Form</span><span class="chip">Create</span><span class="chip">Cancel</span></td><td>—</td></tr>
           <tr><td class="nama">Leading Indicator</td><td><span class="mono">StaticReport · Edit 1309</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">Statistic Safety Recapitulation</td><td><span class="mono">MonthlyReport · Edit 1317</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">SMK3</td><td><span class="mono">YearlyReport · Edit 1308</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
-          <tr><td class="nama">SMKP</td><td><span class="mono">YearlyReport · Edit 1307</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Instructions</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">Statistic Safety Recapitulation</td><td><span class="mono">MonthlyReport · Edit 1317</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">SMK3</td><td><span class="mono">YearlyReport · Edit 1308</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
+          <tr><td class="nama">SMKP</td><td><span class="mono">YearlyReport · Edit 1307</span></td><td><span class="chip">Import</span><span class="chip">FullScreen</span><span class="chip">Submit Changes</span><span class="chip">Export</span><span class="chip">Cancel</span></td><td>—</td></tr>
         </tbody>
       </table>
     </div>
     <p class="tbl-cap">
-      14 tab internal dibuka &amp; diverifikasi aktif. Urutan aksi di halaman DailyReport:
-      Export dijalankan sebelum Create polos — Create polos + Cancel terbukti mematikan Export
-      untuk sisa sesi halaman (lihat §6).
+      14 tab internal dibuka &amp; diverifikasi aktif, dan seluruh tombol fitur dijalankan di
+      setiap tab (kecuali tombol pembuat data &amp; Cancel di tab utama). Urutan aksi di halaman
+      DailyReport: Export dijalankan sebelum Create polos — Create polos + Cancel terbukti
+      mematikan Export untuk sisa sesi halaman (lihat §6).
     </p>
   </section>
 
@@ -521,22 +529,22 @@
       <table>
         <thead><tr><th>Kategori</th><th class="num">Kasus</th><th class="num">Lulus</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td>Navigasi menu HSS → Safety</td><td class="num">1</td><td class="num">1</td><td><span class="st ok"><span class="ico">✓</span>Lulus (diperbaiki 27-08, diverifikasi terpisah)</span></td></tr>
+          <tr><td>Navigasi menu HSS → Safety (sub Reporting &amp; Transaction)</td><td class="num">1</td><td class="num">1</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
           <tr><td>View / smoke — 19 halaman + 1 tab Incident</td><td class="num">20</td><td class="num">20</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
           <tr><td>Transaksi khusus Master Alat (create &amp; delete)</td><td class="num">2</td><td class="num">2</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
-          <tr><td>Buka semua tab (4 halaman, 14 tab)</td><td class="num">4</td><td class="num">4</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
           <tr><td>Fitur mendalam halaman Lagging (Statistic, SMK3, SMKP)</td><td class="num">3</td><td class="num">3</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
-          <tr><td>Tombol toolbar tampil per halaman</td><td class="num">19</td><td class="num">19</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
-          <tr><td>Coba semua tombol per halaman</td><td class="num">19</td><td class="num">19</td><td><span class="st ok"><span class="ico">✓</span>Lulus</span></td></tr>
-          <tr style="font-weight:600"><td>Total</td><td class="num">68</td><td class="num">68</td><td><span class="st ok"><span class="ico">✓</span>Seluruh kasus hijau</span></td></tr>
+          <tr><td>Halaman Lengkap — navigasi menu + tab + semua tombol (19 halaman)</td><td class="num">19</td><td class="num">19</td><td><span class="st ok"><span class="ico">✓</span>Lulus (18 full run + 1 diperbaiki &amp; diverifikasi ulang)</span></td></tr>
+          <tr style="font-weight:600"><td>Total</td><td class="num">45</td><td class="num">45</td><td><span class="st ok"><span class="ico">✓</span>Seluruh kasus hijau</span></td></tr>
         </tbody>
       </table>
     </div>
     <p class="tbl-cap">
-      Full run 27-08-2026: 67/68 lulus dalam 16:44 menit (1 sesi browser, hasil lengkap di
-      <span class="mono">run_full.txt</span> &amp; <span class="mono">reports/report.html</span>).
-      Kasus navigasi menu gagal karena Chrome me-restore tab sesi lama — diperbaiki dan
-      diverifikasi terpisah (1/1) plus probe di dua jenis halaman.
+      Full run 31-08-2026: 44/45 lulus (1 sesi browser, hasil lengkap di
+      <span class="mono">run_full_3108b.txt</span> &amp; <span class="mono">reports/report.html</span>).
+      Satu kegagalan — Incident Investigation: modal Import terbuka tetapi tidak terdeteksi
+      (lihat §5.1) — diperbaiki dan diverifikasi ulang hijau. Master Alat Create sempat flaky
+      satu kali pada run parsial sesi panjang dan juga diverifikasi ulang hijau → efektif
+      45/45.
     </p>
 
     <h3>5.1 Riwayat Perbaikan (26 → 27 Agustus 2026)</h3>
@@ -552,6 +560,19 @@
         </tbody>
       </table>
     </div>
+
+    <h3>5.2 Riwayat Perbaikan (28 → 31 Agustus 2026)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Gejala</th><th>Akar Masalah</th><th>Perbaikan</th></tr></thead>
+        <tbody>
+          <tr><td>Navigasi menu membuka submenu yang salah / tertahan</td><td>Sidebar accordion; judul menu duplikat (<em>Reporting</em> dipakai Health dan Safety, <em>Transaction</em> dipakai menu level-atas); 3 halaman DailyReport berada di subgroup <em>Incident Management</em> yang tersembunyi</td><td><span class="mono">buka_submenu()</span> memakai <strong>rantai menu berjenjang</strong> (walk JS dari induk ke anak) + pemetaan <span class="mono">GRUP_MENU</span>; navigasi halaman lewat <span class="mono">buka_via_menu()</span></td></tr>
+          <tr><td>Modal Import tidak terdeteksi terbuka (Incident, full run 31-08)</td><td>Deteksi modal memakai <span class="mono">is_displayed()</span> yang negatif palsu saat sesi panjang — modal sebenarnya terbuka</td><td>Deteksi modal diganti pemeriksaan computed style JS (<span class="mono">_ada_modal_tampil()</span>); Incident diverifikasi ulang hijau (11:47)</td></tr>
+          <tr><td>Dropdown Columns dibuka tetapi item tidak diklik</td><td>Isi dropdown = <em>Unfreeze</em> &amp; <em>Settings</em> (bukan toggle kolom standar DataTables)</td><td><span class="mono">klik_item_columns()</span> mengklik item Settings → modal Freeze Column dibuka lalu ditutup</td></tr>
+          <tr><td>Master Alat Create gagal 1× pada run parsial sesi panjang (flaky)</td><td>Quirk SPA pada sesi yang sangat panjang (lulus di full run dan run mandiri)</td><td>Diverifikasi ulang mandiri (0:35, hijau); menjadi kasus pantauan flakiness</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
   <!-- ================= 6. TEMUAN ================= -->
@@ -559,7 +580,7 @@
     <div class="sec-head"><span class="num">6</span><h2>Temuan Perilaku Aplikasi (DEV)</h2></div>
     <p>
       Selama pengujian ditemukan beberapa perilaku aplikasi DEV yang menyimpang dari harapan.
-      Semua dibuktikan dengan probe diagnostik tersendiri (<span class="mono">tools/probe_masalah*.py</span>),
+      Semua dibuktikan dengan probe diagnostik tersendiri (<span class="mono">tools/probe_*.py</span>),
       didokumentasikan, dan otomasi disesuaikan agar <strong>tetap menguji fitur tanpa merusak data</strong>.
       Temuan ini disarankan menjadi bahan verifikasi tim pengembang.
     </p>
@@ -573,7 +594,10 @@
           <tr><td class="no">4</td><td class="nama">Create polos mematikan Export</td><td>Di DailyReport, setelah Create polos + Cancel, Export tidak pernah menghasilkan file lagi untuk sisa sesi halaman</td><td>Urutan aksi: Export dijalankan sebelum kedua Create</td></tr>
           <tr><td class="no">5</td><td class="nama">Create Witness tidak menampilkan baris baru</td><td>Form terisi penuh + Submit sukses, tapi baris tidak muncul di grid (semua 20 district dicoba)</td><td>Alur create tetap dijalankan penuh; verifikasi penanda dilewati khusus halaman ini</td></tr>
           <tr><td class="no">6</td><td class="nama">Export Incident Investigation tanpa file</td><td>3× klik Export tidak menghasilkan unduhan (halaman lain mengunduh dalam hitungan detik)</td><td>Klik tetap diuji; verifikasi file dilewati (registry <span class="mono">EXPORT_TANPA_FILE</span>)</td></tr>
-          <tr><td class="no">7</td><td class="nama">Quirk SPA "stuck" pada sesi panjang</td><td>Handler toolbar kadang mati setelah puluhan halaman dibuka beruntun (export/modal tidak terpicu)</td><td>Remedy otomatis: navigasi ulang halaman + retry klik; modal sisa dibersihkan paksa bila perlu</td></tr>
+          <tr><td class="no">7</td><td class="nama">Quirk SPA "stuck" pada sesi panjang</td><td>Handler toolbar kadang mati setelah puluhan halaman dibuka beruntun (export/modal tidak terpicu); deteksi modal <span class="mono">is_displayed()</span> bernilai negatif palsu padahal modal terbuka</td><td>Remedy otomatis: navigasi ulang halaman + retry klik; modal sisa dibersihkan paksa bila perlu; deteksi modal memakai computed style JS</td></tr>
+          <tr><td class="no">8</td><td class="nama">Sidebar accordion dengan judul menu duplikat</td><td>Membuka satu submenu menutup submenu lain; judul <em>Reporting</em> dipakai menu Health dan Safety, <em>Transaction</em> dipakai menu level-atas — pencarian sederhana bisa salah buka menu tetangga</td><td>Navigasi memakai rantai menu berjenjang (walk JS dari induk ke anak) — buka submenu tepat sasaran</td></tr>
+          <tr><td class="no">9</td><td class="nama">Struktur menu lebih dalam dari dokumentasi awal</td><td>Tiga halaman DailyReport (Incident, Initial Incident, Witness) berada di subgroup <em>Incident Management</em> di bawah Leading Indicator — link tidak tampil sebelum subgroup dibuka</td><td>Pemetaan rantai menu per halaman (<span class="mono">GRUP_MENU</span>) diperbarui sesuai struktur sebenarnya</td></tr>
+          <tr><td class="no">10</td><td class="nama">Dropdown Columns bukan toggle kolom standar</td><td>Isinya dua aksi: <em>Unfreeze</em> dan <em>Settings</em>; Settings membuka modal "Freeze Column" berisi daftar kolom grid</td><td>Item Settings diklik dan modal diverifikasi terbuka, lalu ditutup — dropdown benar-benar "dibuka dan diklik"</td></tr>
         </tbody>
       </table>
     </div>
@@ -584,25 +608,27 @@
     <div class="sec-head"><span class="num">7</span><h2>Kesimpulan &amp; Rekomendasi</h2></div>
     <h3>7.1 Kesimpulan</h3>
     <ul class="lead-list">
-      <li><strong>Cakupan penuh tercapai:</strong> 19 halaman Safety + 14 tab internal diuji; setiap tombol toolbar diklik dan setiap fitur transaksional dicoba sungguhan — sesuai standar "test menyentuh fitur, bukan sekadar membuka halaman".</li>
-      <li><strong>68 dari 68 kasus uji hijau</strong>, dijalankan dalam satu sesi browser end-to-end (±17 menit), siap diulang kapan pun sebagai regression test.</li>
-      <li><strong>Data DEV terjaga:</strong> semua perubahan di-revert, dummy ber-penanda unik, upload import dihindari.</li>
-      <li><strong>7 perilaku aplikasi menyimpang terdokumentasi</strong> lengkap dengan bukti probe — menjadi umpan balik konkret bagi tim pengembang.</li>
-      <li><strong>Otomasi tahan perubahan data:</strong> anchor grid dicari dinamis (bulan dengan data terisi), perilaku aplikasi yang berubah otomatis membunyikan alarm lewat assert.</li>
+      <li><strong>Cakupan penuh tercapai:</strong> 19 halaman Safety + 14 tab internal diuji; navigasi dilakukan lewat menu sidebar (dashboard → HSS → Safety → Reporting/Transaction) dan setiap tombol toolbar diklik — di tab utama maupun di setiap tab internal — sesuai standar "test menyentuh fitur, bukan sekadar membuka halaman".</li>
+      <li><strong>45 dari 45 kasus uji hijau</strong> (44 lulus full run 31-08 + 2 verifikasi ulang pasca-perbaikan), dijalankan dalam satu sesi browser end-to-end, siap diulang kapan pun sebagai regression test.</li>
+      <li><strong>Data DEV terjaga:</strong> semua perubahan di-revert, dummy ber-penanda unik, file dummy pada modal Import hanya dipasang pada input tanpa pernah dikirim ke server.</li>
+      <li><strong>10 perilaku aplikasi menyimpang terdokumentasi</strong> lengkap dengan bukti probe — menjadi umpan balik konkret bagi tim pengembang.</li>
+      <li><strong>Otomasi tahan perubahan data:</strong> anchor grid dicari dinamis (bulan dengan data terisi), navigasi menu tahan terhadap accordion &amp; judul duplikat, dan perilaku aplikasi yang berubah otomatis membunyikan alarm lewat assert.</li>
     </ul>
     <h3>7.2 Rekomendasi</h3>
     <div class="reko">
       <div>
         <h4>Untuk Tim Pengembang</h4>
         <ul>
-          <li>Verifikasi 7 temuan §6, terutama <strong>delete yang tidak commit</strong> dan <strong>edit Statistic yang tidak tersimpan</strong> — keduanya berpotensi bug data.</li>
+          <li>Verifikasi temuan §6, terutama <strong>delete yang tidak commit</strong> dan <strong>edit Statistic yang tidak tersimpan</strong> — keduanya berpotensi bug data.</li>
           <li>Periksa <strong>export Incident Investigation</strong> yang tidak menghasilkan file.</li>
           <li>Konfirmasi apakah penyembunyian tombol Reload Data di 18 halaman memang disengaja.</li>
+          <li>Konfirmasi apakah perilaku dropdown Columns (Unfreeze/Settings, bukan toggle kolom standar) sudah sesuai desain.</li>
         </ul>
       </div>
       <div>
         <h4>Untuk Otomasi</h4>
         <ul>
+          <li>Pantau <strong>flakiness sesi panjang</strong> (Incident, Master Alat Create) — bila berulang, pertimbangkan me-refresh sesi browser per kelompok halaman.</li>
           <li>Perdalam uji halaman <strong>Leading Indicator</strong> (edit inline di Static/Monthly Report selain Lagging).</li>
           <li>Jadwalkan <strong>full run berkala</strong> dan perhatikan alarm perilaku aplikasi (assert yang menunggu perubahan perilaku).</li>
           <li>Perluas ke modul OPEL lain (HSS non-Safety) dengan pola page object yang sama.</li>
@@ -612,8 +638,8 @@
   </section>
 
   <footer>
-    <span>Disusun oleh <strong>Zahra Tsuroyya Poetri</strong> — QA Intern · Otomasi Pengujian OPEL · 27 Agustus 2026</span>
-    <span class="mono">Sumber data: run_full.txt · run_verif4/5.txt · probe_hasil14–16.txt · opel-automation v1.0</span>
+    <span>Disusun oleh <strong>Zahra Tsuroyya Poetri</strong> — QA Intern · Otomasi Pengujian OPEL · 31 Agustus 2026</span>
+    <span class="mono">Sumber data: run_full_3108b.txt · run_cek_incident.txt · run_cek_master_alat.txt · opel-automation v2.0</span>
   </footer>
 
 </div>

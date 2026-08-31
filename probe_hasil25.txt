@@ -1,5 +1,0 @@
-[OK] login
-[a1] input sebelum klik: []
-[a1] input setelah klik anchor 1: [{'id': 'imgFile', 'labelGroup': 'File', 'parentCls': 'custom-file fs-sm form-control'}]
-[a2] input setelah klik anchor 2: [{'id': 'imgFile', 'labelGroup': 'Image', 'parentCls': 'custom-file fs-sm form-control'}]
-[SELESAI]

@@ -61,9 +61,7 @@ STEP_LABELS = [
     ("test_safety_smk3_view", "Safety - SMK3"),
     ("test_safety_smkp_view", "Safety - SMKP"),
     ("test_safety_lagging_deep", "Safety - Lagging (Semua Fitur)"),
-    ("test_safety_buka_semua_tab", "Safety - Buka Semua Tab"),
-    ("test_safety_tombol_toolbar", "Safety - Tombol Toolbar"),
-    ("test_safety_coba_semua_tombol", "Safety - Coba Semua Tombol"),
+    ("test_safety_halaman_lengkap", "Safety - Halaman Lengkap (Tabel+Tab+Tombol)"),
 ]
 
 # Hasil kumulatif: label -> bool (semua step modul lulus); urutan dict = urutan eksekusi.

@@ -1,6 +1,0 @@
-[OK] login
-[smkp] HTML: {'anchor': '<a href="#" title="HSS" data-filter-tags="hss" class=" waves-effect waves-themed">\n                    <i class="fas fa-people-group"></i>\n                    <span class="nav-link-text" data-i18n="">HSS</span>\n                <b class="collapse-sign"><em class="fal fa-angle-down"></em></b></a>', 'asideCls': 'page-sidebar', 'backdrop': 0, 'bodyCls': 'mod-bg-1 mod-nav-link mod-skin-light  desktop chrome webkit pace-done'}
-[smkp] klik SIGN via JS: True -> li=
-[smkp] klik ANCHOR via JS: True -> li=
-[smkp] klik SPAN mouse asli -> li=open
-[SELESAI]

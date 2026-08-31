@@ -14,6 +14,8 @@ Jalankan:
     pytest tests/test_safety.py -m safety_view
 """
 
+import json
+import os
 import time
 
 import pytest
@@ -106,6 +108,18 @@ def _ids_halaman(kunci_list):
     return [NAMA_HALAMAN[k] for k in kunci_list]
 
 
+def _urutan_menu_halaman():
+    """Urutan halaman SESUAI MENU sidebar (Dashboard -> HSS -> Safety
+    -> daftar halaman) dari data/test_data.json -- dipakai parametrize
+    supaya suite berjalan berurutan seperti alur user, bukan urutan
+    abjad (permintaan user 2026-08-28)."""
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "data", "test_data.json"
+    )
+    with open(path, encoding="utf-8") as data_file:
+        return list(json.load(data_file)["hss_safety"]["halaman"])
+
+
 @pytest.mark.e2e
 @pytest.mark.safety
 class TestSafetyHss:
@@ -136,6 +150,42 @@ class TestSafetyHss:
         assert page.is_any_visible(
             (By.XPATH, "//span[normalize-space(text())='Transaction']"), timeout=5
         ), "Submenu Transaction tidak muncul setelah klik HSS > Safety"
+        # buka PER SUB Reporting & Transaction (permintaan user
+        # 2026-08-31: halaman dibuka lewat sub-menu-nya) -- scope
+        # induk supaya 'Reporting' tidak salah ambil milik menu Health.
+        # Sidebar pakai ACCORDION (buka satu sub menutup sub lain) --
+        # jadi cek link TIAP sub SETELAH sub itu dibuka, sebelum
+        # sub berikutnya dibuka.
+        page.buka_submenu("Reporting", induk="Safety")
+        assert page.is_any_visible(
+            (By.XPATH,
+             "//nav//a[contains(@href,"
+             "'Reporting/Timesheet/MonthlyReport/View?Id=1306')]"),
+            timeout=5,
+        ), "Link Lagging Indicator tidak muncul di sub Reporting"
+        page.buka_submenu(
+            "Transaction", induk="Safety",
+            rantai=("Safety", "Transaction"),
+        )
+        # link halaman Transaction ada di dalam subgroup BERJENJANG --
+        # buka Leading Indicator lalu Incident Management dulu (probe
+        # tools/probe_menu_href.py, 2026-08-31: link tersembunyi
+        # sampai subgroup-subgroup dibuka)
+        page.buka_submenu(
+            "Leading Indicator", induk="Transaction",
+            rantai=("Safety", "Transaction", "Leading Indicator"),
+        )
+        page.buka_submenu(
+            "Incident Management", induk="Leading Indicator",
+            rantai=("Safety", "Transaction", "Leading Indicator",
+                    "Incident Management"),
+        )
+        assert page.is_any_visible(
+            (By.XPATH,
+             "//nav//a[contains(@href,"
+             "'Reporting/Timesheet/DailyReport/Edit?Id=1334')]"),
+            timeout=5,
+        ), "Link Incident Investigation tidak muncul di sub Transaction"
 
     # ------------------------------------------------------------------
     # Reporting (view / read-only)
@@ -195,26 +245,6 @@ class TestSafetyHss:
         "witness_statement_report": "tab_witness_statement_report",
         "safety_recap": "tab_safety_recap",
     }
-
-    @pytest.mark.safety
-    @pytest.mark.parametrize(
-        "kunci_halaman",
-        sorted(TAB_HALAMAN),
-        ids=lambda k: NAMA_HALAMAN[k],
-    )
-    def test_safety_buka_semua_tab(self, driver, test_data, kunci_halaman):
-        """Buka SETIAP tab di halaman yang punya banyak tab dan
-        pastikan tabnya jadi aktif (data panel ikut berpindah)."""
-        page = _buka_halaman(driver, kunci_halaman)
-        daftar_tab = test_data["hss_safety"][self.TAB_HALAMAN[kunci_halaman]]
-        for teks_tab in daftar_tab:
-            page.klik_tab(teks_tab)
-            tab = page.find(
-                (page.TAB[0], page.TAB[1].format(teks_tab=teks_tab))
-            )
-            assert "active" in (tab.get_attribute("class") or ""), (
-                f"Tab '{teks_tab}' tidak aktif di '{kunci_halaman}'"
-            )
 
     @pytest.mark.safety_transaction
     def test_safety_initial_incident_view(self, driver):
@@ -615,52 +645,98 @@ class TestSafetyHss:
         assert file_template, f"File template import '{kunci}' tidak terunduh"
         page.tutup_modal()
 
-    # ------------------------------------------------------------------
-    # Toolbar tombol per halaman ("bagian tombol pada fitur")
-    # ------------------------------------------------------------------
-    @pytest.mark.safety
-    @pytest.mark.safety_toolbar
-    @pytest.mark.parametrize(
-        "kunci_halaman",
-        sorted(PAGE_OBJECTS),
-        ids=lambda k: NAMA_HALAMAN[k],
-    )
-    def test_safety_tombol_toolbar(self, driver, kunci_halaman):
-        """Semua tombol toolbar yang diharapkan tampil di halaman
-        (daftar per halaman: HssSafetyPage.TOMBOL_HALAMAN -- hasil scan
-        OPEL 2026-08-20)."""
-        page = _buka_halaman(driver, kunci_halaman)
-        hasil = page.cek_tombol_toolbar(kunci_halaman)
-        hilang = [nama for nama, ok in hasil.items() if not ok]
-        assert not hilang, (
-            f"Halaman '{kunci_halaman}': tombol toolbar tidak tampil -> {hilang}"
-        )
+    # Tombol yang DIJALANKAN di tiap tab selain tab utama: SEMUA tombol
+    # fitur KECUALI pembuat data server ("Create with Form" & "Create")
+    # dan "Cancel" (di halaman DailyReport tombol Cancel menavigasi ke
+    # halaman LIST -- menjalankannya di tengah alur tab memutus
+    # kunjungan). Tombol pembuat data dijalankan di TAB UTAMA lewat
+    # daftar TOMBOL_HALAMAN lengkap -- modal create SAMA di semua tab,
+    # dan create dari tab lain menambah baris dummy yang TIDAK bisa
+    # diverifikasi (quirk 2026-08-28).
+    TOMBOL_TAB = ("Reload Data", "Import", "FullScreen", "Columns",
+                  "Submit Changes", "Export", "Export Excel",
+                  "Select Finding")
 
+    # ------------------------------------------------------------------
+    # Alur LENGKAP per halaman dalam SATU kunjungan (permintaan user
+    # 2026-08-31): navigasi lewat ALUR MENU (dashboard -> HSS -> Safety
+    # -> sub Reporting/Transaction -> klik link halaman), tabel ->
+    # TAB DEMI TAB (aktif + tombol toolbar dicek DAN DIKLIK di tiap
+    # tab) -> kembali ke tab pertama -> SEMUA tombol fitur diklik
+    # sesuai urutan daftar. Halaman dikunjungi SESUAI URUTAN MENU
+    # (bukan abjad), jeda antar-aksi SERAGAM (config).
+    # ------------------------------------------------------------------
     @pytest.mark.safety
     @pytest.mark.safety_toolbar
     @pytest.mark.parametrize(
         "kunci_halaman",
-        sorted(PAGE_OBJECTS),
+        _urutan_menu_halaman(),
         ids=lambda k: NAMA_HALAMAN[k],
     )
-    def test_safety_coba_semua_tombol(self, driver, kunci_halaman):
-        """SETIAP tombol fitur halaman DIKLIK satu per satu sesuai
-        daftar HssSafetyPage.TOMBOL_HALAMAN (permintaan user
-        2026-08-24), dengan jeda 2.5 detik antar-aksi supaya alur
-        bisa diikuti mata. Aksi tiap tombol:
-          Reload Data    -> klik + tunggu tabel dimuat ulang
-          Import         -> modal terbuka lalu ditutup
-          Create         -> baris draft bertambah lalu Cancel
-          Create w/ Form -> modal form terbuka lalu Cancel
-          Submit Changes -> klik (tanpa perubahan pending = aman)
-          Export         -> file Excel terunduh ke folder unduhan
-          Export Excel   -> (Safety Recap) file terunduh
-          Instructions   -> diklik, apa pun yang muncul ditutup
-          Select Finding -> (SOC) modal lookup terbuka lalu ditutup
-          Columns        -> dropdown daftar kolom buka lalu tutup
-          FullScreen     -> masuk fullscreen lalu kembali normal
-          Cancel         -> diklik (tanpa pending = aman)"""
-        page = _buka_halaman(driver, kunci_halaman)
-        daftar = HssSafetyPage.TOMBOL_HALAMAN[kunci_halaman]
-        for nama in daftar:
-            page.coba_tombol(nama)
+    def test_safety_halaman_lengkap(self, driver, test_data, kunci_halaman):
+        """Alur lengkap SATU halaman dalam SATU kunjungan:
+          0. navigasi lewat MENU SIDEBAR: dashboard dulu (kalau
+             sidebar belum ada) -> HSS -> Safety -> submenu Reporting
+             / Transaction (Leading|Lagging Indicator) -> klik link
+             halaman di sidebar (buka_via_menu)
+          1. tabel report tampil
+          2. TAB DEMI TAB berurutan: klik tab -> pastikan aktif ->
+             cek tombol toolbar tampil -> SEMUA tombol fitur DIKLIK
+             di tab itu juga (kecuali pembuat data + Cancel, lihat
+             TOMBOL_TAB) -- per tab SAMA dengan tab utama
+          3. KEMBALI ke tab pertama -- SEMUA tombol fitur DIKLIK satu
+             per satu SESUAI URUTAN daftar HssSafetyPage.TOMBOL_HALAMAN.
+             Aksi tiap tombol: Reload Data -> klik + tabel dimuat
+             ulang; Import -> modal buka + file dummy DIPASANG di
+             input upload lalu ditutup TANPA dikirim ke server (aman);
+             Create w/ Form -> isi dummy + Save + Submit (dibuat
+             sungguhan); Create -> draft lalu Cancel; Submit Changes
+             -> klik + konfirmasi; Export -> file terunduh; Select
+             Finding -> (SOC) modal lookup buka-tutup; Columns ->
+             dropdown DIBUKA + item kolom DIKLIK lalu dikembalikan;
+             FullScreen -> masuk-keluar; Cancel -> diklik (tanpa
+             pending = aman).
+             Link Instructions TIDAK diklik (permintaan user)."""
+        page = PAGE_OBJECTS[kunci_halaman](driver)
+        page.buka_via_menu(kunci_halaman)
+        nama = NAMA_HALAMAN[kunci_halaman]
+        # 1) tabel -- TUNGGU sampai tampil (Safety Recap lambat render,
+        #    cek sekali langsung bisa salah, 2026-08-28)
+        page._wait(config.LONG_TIMEOUT).until(
+            lambda _: page.tabel_report_tampil(),
+            f"Tabel '{nama}' tidak tampil",
+        )
+        daftar_tombol = HssSafetyPage.TOMBOL_HALAMAN[kunci_halaman]
+        # 2) TAB DEMI TAB berurutan -- di tiap tab: pastikan aktif +
+        #    tombol toolbar tampil + SEMUA tombol fitur DIKLIK (kecuali
+        #    pembuat data + Cancel, lihat TOMBOL_TAB)
+        if kunci_halaman in self.TAB_HALAMAN:
+            daftar_tab = test_data["hss_safety"][
+                self.TAB_HALAMAN[kunci_halaman]
+            ]
+            for i, teks_tab in enumerate(daftar_tab):
+                page.klik_tab(teks_tab)
+                tab = page.find(
+                    (page.TAB[0], page.TAB[1].format(teks_tab=teks_tab))
+                )
+                assert "active" in (tab.get_attribute("class") or ""), (
+                    f"Tab '{teks_tab}' tidak aktif di '{kunci_halaman}'"
+                )
+                hasil = page.cek_tombol_toolbar(kunci_halaman)
+                hilang = [n for n, ok in hasil.items() if not ok]
+                assert not hilang, (
+                    f"Halaman '{kunci_halaman}' tab '{teks_tab}': "
+                    f"tombol toolbar tidak tampil -> {hilang}"
+                )
+                if i > 0:
+                    # tab selain utama: semua tombol fitur DIKLIK di tab
+                    # ini juga (per tab SAMA dengan tab utama)
+                    for nama_tombol in daftar_tombol:
+                        if nama_tombol in self.TOMBOL_TAB:
+                            page.coba_tombol(nama_tombol)
+            # 3) kembali ke tab pertama
+            page.klik_tab(daftar_tab[0])
+        # 4) SEMUA tombol fitur diklik SESUAI URUTAN daftar (tab utama
+        #    -- termasuk Create with Form & Create yang membuat data)
+        for nama_tombol in daftar_tombol:
+            page.coba_tombol(nama_tombol)

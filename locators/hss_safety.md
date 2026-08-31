@@ -16,9 +16,10 @@ HSS
    │  └─ Safety Recap.                      /Reporting/Supersafe/HSSE/ReportingSafetyRecap  (custom)
    └─ Transaction
       ├─ Leading Indicator
-      │  ├─ Incident Investigation Form     /Reporting/Timesheet/DailyReport/Edit?Id=1334
-      │  ├─ Initial Incident/Accident Report/Reporting/Timesheet/DailyReport/Edit?Id=1335
-      │  ├─ Witness Statement Report        /Reporting/Timesheet/DailyReport/Edit?Id=1336
+      │  ├─ Incident Management (SUBGROUP -- 2026-08-31, probe menu_href)
+      │  │  ├─ Incident Investigation Form     /Reporting/Timesheet/DailyReport/Edit?Id=1334
+      │  │  ├─ Initial Incident/Accident Report/Reporting/Timesheet/DailyReport/Edit?Id=1335
+      │  │  └─ Witness Statement Report        /Reporting/Timesheet/DailyReport/Edit?Id=1336
       │  ├─ EMERGENCY DRILL Daily           /Reporting/Timesheet/MonthlyReport/Edit?Id=1319
       │  ├─ Master Alat keselamatan Operasi /Reporting/Timesheet/StaticReport/Edit?Id=1321
       │  ├─ SOC RECAPITULATION              /Reporting/Timesheet/YearlyReport/Edit?Id=1310
@@ -32,6 +33,14 @@ HSS
          ├─ SMK3                            /Reporting/Timesheet/YearlyReport/Edit?Id=1308
          └─ SMKP                            /Reporting/Timesheet/YearlyReport/Edit?Id=1307
 ```
+
+CATATAN navigasi menu (2026-08-31, tools/probe_menu_href.py):
+- Sidebar pakai ACCORDION: membuka satu submenu menutup submenu lain.
+- Teks menu DUPLIKAT: 'Reporting' dipakai Health DAN Safety; 'Transaction'
+  dipakai menu level-atas DAN HSS>Safety. Cek state pakai rantai
+  berjenjang (buka_submenu(..., rantai=...)).
+- Link halaman di sidebar href-nya RELATIF ('Reporting/...') kecuali
+  halaman Supersafe (Safety Recap) yang ABSOLUT ('/Reporting/...').
 
 Page object: satu file per halaman di `pages/safety_*_page.py`
 (generated dari scan oleh `tools/generate_safety_pages.py`).

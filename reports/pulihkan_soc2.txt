@@ -1,4 +1,0 @@
-klik mouse asli dilakukan
-modal tampil: True
-modal: [{'cls': 'modal fade js-modal-settings modal-backdrop-transparent', 'id': '', 'tampil': False, 'tombol': ['']}, {'cls': 'bootbox modal fade modal-alert show', 'id': '', 'tampil': True, 'tombol': ['No', 'Yes']}]
-jumlah baris sesudah: 11

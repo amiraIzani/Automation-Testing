@@ -1,3 +1,0 @@
-[OK] login
-[picker] showOpenFilePicker dipanggil: []
-[SELESAI]

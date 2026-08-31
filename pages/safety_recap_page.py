@@ -29,6 +29,14 @@ class SafetyRecapPage(HssSafetyPage):
     LINK_BULANAN = (By.ID, "linkBulanan")
     LINK_TAHUNAN = (By.ID, "linkTahunan")
 
+    def tabel_report_tampil(self, min_tinggi=10):
+        """Override: halaman custom ini TIDAK punya table.reportData
+        -- tabel utamanya #tableBulanan (2026-08-28, cek base class
+        gagal sia-sia padahal halaman sudah ter-render)."""
+        return self.driver.execute_script(
+            self._js_tampil(), "#tableBulanan", min_tinggi
+        )
+
     def buka(self):
         """Buka halaman Safety Recap (tunggu tabel Bulanan tampil).
         Halaman ini kadang butuh fetch data lebih lama (pipeline

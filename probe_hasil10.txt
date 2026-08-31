@@ -1,5 +1,0 @@
-[OK] login
-[incident] NoInsiden baris pertama: 'Dummy 153554 No. Insiden'
-[incident] jumlah baris grid: 4
-[witness] setelah create dgn NoInsiden asli: adaPROBE10=False baris=1
-[SELESAI]

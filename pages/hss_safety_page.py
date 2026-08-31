@@ -147,31 +147,36 @@ class HssSafetyPage(BasePage):
     LINK_DOWNLOAD_TEMPLATE = (By.ID, "linkDownloadTemplate")  # Download Template
     INPUT_FILE_IMPORT = (By.ID, "imgFileImport")              # <input type=file> .xlsx
     BTN_IMPORT_CONFIRM = (By.ID, "btnImport")                 # tombol Import di modal
+    # ".modal.show" = state terbuka Bootstrap 4; ".modal.in" = state
+    # terbuka Bootstrap 3 -- kedua-duanya dicek supaya deteksi modal
+    # tahan versi template (2026-08-26).
+    MODAL_SHOW = (By.CSS_SELECTOR, ".modal.show, .modal.in")
+    # XPath dasar modal terbuka -- cek .show DAN .in: modal Bootstrap 3
+    # hanya berkelas 'in', jadi tombol/field di dalamnya tidak ketemu
+    # kalau hanya .show yang dicek (gagal aneh saat modal TERBUKA,
+    # 2026-08-28).
+    XP_MODAL = (
+        "//div[contains(@class,'modal')"
+        " and (contains(@class,'show') or contains(@class,'in'))]"
+    )
     BTN_CLOSE_MODAL = (
         By.XPATH,
-        "//div[contains(@class,'modal') and contains(@class,'show')]"
-        "//button[contains(@class,'close') or normalize-space(.)='Close']",
+        XP_MODAL + "//button[contains(@class,'close') or normalize-space(.)='Close']",
     )
 
     # ------------------------------------------------------------------
     # Modal Create with Form (id dinamis: input_NNNNN, cbXX_*_NNNN,
     # btnSave_NNNN -- field DICARI lewat label, tombol lewat teks)
     # ------------------------------------------------------------------
-    # ".modal.show" = state terbuka Bootstrap 4; ".modal.in" = state
-    # terbuka Bootstrap 3 -- kedua-duanya dicek supaya deteksi modal
-    # tahan versi template (2026-08-26).
-    MODAL_SHOW = (By.CSS_SELECTOR, ".modal.show, .modal.in")
     # Field di dalam modal DICARI lewat teks label (id auto-generate)
     # -- helper _locator_field() / _locator_group() di bawah.
     BTN_SAVE_MODAL = (
         By.XPATH,
-        "//div[contains(@class,'modal') and contains(@class,'show')]"
-        "//button[normalize-space(.)='Save']",
+        XP_MODAL + "//button[normalize-space(.)='Save']",
     )
     BTN_CANCEL_MODAL = (
         By.XPATH,
-        "//div[contains(@class,'modal') and contains(@class,'show')]"
-        "//button[normalize-space(.)='Cancel']",
+        XP_MODAL + "//button[normalize-space(.)='Cancel']",
     )
 
     # ------------------------------------------------------------------
@@ -211,6 +216,56 @@ class HssSafetyPage(BasePage):
     }
 
     # ------------------------------------------------------------------
+    # Rantai submenu sidebar per halaman (setelah 'HSS') -- dipakai
+    # buka_via_menu() supaya navigasi lewat ALUR MENU, bukan URL
+    # langsung (permintaan user 2026-08-31: dashboard -> HSS -> Safety
+    # -> Reporting / Transaction). CATATAN: judul 'Reporting' JUGA
+    # dipakai menu Health -- buka_submenu() diberi `induk` supaya
+    # tidak salah buka submenu tetangga.
+    # ------------------------------------------------------------------
+    GRUP_MENU = {
+        # Reporting
+        "lagging_indicator": ("Safety", "Reporting"),
+        "golden_rules_recap": ("Safety", "Reporting"),
+        "emergency_drill_recap": ("Safety", "Reporting"),
+        "mwt_recapitulation": ("Safety", "Reporting"),
+        "safety_recap": ("Safety", "Reporting"),
+        # Transaction > Leading Indicator
+        # CATATAN 2026-08-31 (probe tools/probe_menu_href.py): 3
+        # halaman DailyReport berada di dalam subgroup BERSARANG
+        # 'Incident Management' di bawah Leading Indicator -- rantai
+        # tanpa subgroup itu = link tidak pernah tampil.
+        "incident_investigation_form": (
+            "Safety", "Transaction", "Leading Indicator",
+            "Incident Management"),
+        "initial_incident_accident_report": (
+            "Safety", "Transaction", "Leading Indicator",
+            "Incident Management"),
+        "witness_statement_report": (
+            "Safety", "Transaction", "Leading Indicator",
+            "Incident Management"),
+        "emergency_drill_daily": (
+            "Safety", "Transaction", "Leading Indicator"),
+        "master_alat_keselamatan_operasi": (
+            "Safety", "Transaction", "Leading Indicator"),
+        "soc_recapitulation": (
+            "Safety", "Transaction", "Leading Indicator"),
+        "golden_rules": ("Safety", "Transaction", "Leading Indicator"),
+        "data_rekap_statistik_k3": (
+            "Safety", "Transaction", "Leading Indicator"),
+        "safety_kkp_p2k3_committee_meeting": (
+            "Safety", "Transaction", "Leading Indicator"),
+        "mwt_daily": ("Safety", "Transaction", "Leading Indicator"),
+        "leading_indicator": (
+            "Safety", "Transaction", "Leading Indicator"),
+        # Transaction > Lagging Indicator
+        "statistic_safety_recapitulation": (
+            "Safety", "Transaction", "Lagging Indicator"),
+        "smk3": ("Safety", "Transaction", "Lagging Indicator"),
+        "smkp": ("Safety", "Transaction", "Lagging Indicator"),
+    }
+
+    # ------------------------------------------------------------------
     # Toolbar tombol per halaman ("bagian tombol pada fitur")
     # ------------------------------------------------------------------
     # Registri tombol toolbar: nama -> locator. Nama dipakai test &
@@ -232,19 +287,19 @@ class HssSafetyPage(BasePage):
 
     # Tombol toolbar yang diharapkan TAMPIL di tiap halaman (hasil scan
     # website OPEL 2026-08-20 -- reports/scan/safety/*.md, bagian BUTTON
-    # + link ber-role button). Halaman View cuma punya Export
-    # (+Instructions/Cancel); halaman Transaction (Edit) punya toolbar
-    # lengkap. Catatan scan:
+    # + link ber-role button). Halaman View cuma punya Export (+Cancel);
+    # halaman Transaction (Edit) punya toolbar lengkap. Link
+    # Instructions TIDAK masuk daftar -- tidak diklik oleh alur coba
+    # tombol (permintaan user 2026-08-28). Catatan scan:
     #   - MWT DAILY tidak punya tombol Reload Data.
-    #   - Leading Indicator tidak punya link Instructions.
     #   - Columns cuma ada di 3 halaman Daily Input (Id=1334/1335/1336).
     #   - SOC RECAPITULATION punya tombol tambahan Select Finding.
     TOMBOL_HALAMAN = {
         # Reporting (View / read-only)
-        "lagging_indicator": ("Export", "Instructions", "Cancel"),
-        "golden_rules_recap": ("Export", "Instructions", "Cancel"),
-        "emergency_drill_recap": ("Export", "Instructions", "Cancel"),
-        "mwt_recapitulation": ("Export", "Instructions", "Cancel"),
+        "lagging_indicator": ("Export", "Cancel"),
+        "golden_rules_recap": ("Export", "Cancel"),
+        "emergency_drill_recap": ("Export", "Cancel"),
+        "mwt_recapitulation": ("Export", "Cancel"),
         "safety_recap": ("Export Excel",),
         # Transaction - Leading Indicator
         # CATATAN urutan:
@@ -266,45 +321,43 @@ class HssSafetyPage(BasePage):
         #    masih bersih, unduhan pasti jalan.
         "incident_investigation_form": (
             "Import", "FullScreen", "Columns", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "initial_incident_accident_report": (
             "Import", "FullScreen", "Columns", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "witness_statement_report": (
             "Import", "FullScreen", "Columns", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "emergency_drill_daily": (
             "Import", "FullScreen", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "master_alat_keselamatan_operasi": (
             "Reload Data", "Import", "FullScreen", "Submit Changes",
-            "Export", "Create with Form", "Create", "Instructions",
-            "Cancel",
+            "Export", "Create with Form", "Create", "Cancel",
         ),
         "soc_recapitulation": (
             "Import", "FullScreen", "Select Finding", "Submit Changes",
-            "Export", "Create with Form", "Create", "Instructions",
-            "Cancel",
+            "Export", "Create with Form", "Create", "Cancel",
         ),
         "golden_rules": (
             "Import", "FullScreen", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "data_rekap_statistik_k3": (
             "Import", "FullScreen", "Submit Changes",
-            "Export", "Instructions", "Cancel",
+            "Export","Cancel",
         ),
         "safety_kkp_p2k3_committee_meeting": (
             "Import", "FullScreen", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "mwt_daily": (
             "Import", "FullScreen", "Submit Changes", "Export",
-            "Create with Form", "Create", "Instructions", "Cancel",
+            "Create with Form", "Create","Cancel",
         ),
         "leading_indicator": (
             "Import", "FullScreen", "Submit Changes",
@@ -327,15 +380,15 @@ class HssSafetyPage(BasePage):
         # ter-skip oleh reload_data()).
         "statistic_safety_recapitulation": (
             "Import", "FullScreen", "Submit Changes",
-            "Export", "Instructions", "Cancel",
+            "Export","Cancel",
         ),
         "smk3": (
             "Import", "FullScreen", "Submit Changes",
-            "Export", "Instructions", "Cancel",
+            "Export","Cancel",
         ),
         "smkp": (
             "Import", "FullScreen", "Submit Changes",
-            "Export", "Instructions", "Cancel",
+            "Export","Cancel",
         ),
     }
 
@@ -371,11 +424,25 @@ class HssSafetyPage(BasePage):
             self._js_tampil(), self.TABLE_REPORT[1], min_tinggi
         )
 
-    def buka_submenu(self, judul, timeout=None):
+    def buka_submenu(self, judul, timeout=None, induk=None, rantai=None):
         """Buka submenu sidebar `judul` (mis. 'HSS') dengan mengklik
         collapse-sign-nya, lalu tunggu parent <li> dapat class 'open'
         (indikator terbukti, 2026-08-24). Klik dilakukan HANYA kalau
         submenu belum terbuka -- klik saat terbuka = menutup (toggle).
+
+        `induk` (opsional) = judul menu PENDUDUK `judul` -- pencarian
+        ELEMEN di-scope ke dalam <li> yang memuat span induk. Dipakai
+        untuk judul yang DUPLIKAT di menu lain (contoh 'Reporting' ada
+        di Health DAN di Safety -- tanpa scope klik bisa jatuh ke
+        Health, 2026-08-31).
+
+        `rantai` (opsional) = tuple judul BERJENJANG dari atas sampai
+        `judul`, mis. ('Safety', 'Transaction', 'Leading Indicator').
+        Cek keadaan JS memakai walk berjenjang supaya TEPAT sasaran:
+        teks 'Transaction' JUGA dipakai menu level-atas (bukan HSS),
+        dan 'Leading Indicator' dipakai grup + link halamannya --
+        pencarian .find() pertama salah sasaran ke situ (diamati probe
+        tools/probe_menu_href.py, 2026-08-31).
 
         catatan quirk:
           - handler toggle butuh klik MOUSE asli -- JS .click() tidak
@@ -387,22 +454,51 @@ class HssSafetyPage(BasePage):
             test menu gagal karena browser restore tab smkp).
             Karena itu klik dicoba BERURUTAN: sign -> span, berhenti
             begitu submenu terbuka."""
+        dasar = "//nav"
+        if induk:
+            dasar += f"//li[.//span[normalize-space(text())='{induk}']]"
         sign = (
-            By.CSS_SELECTOR,
-            self.MENU_SIGN[1].format(judul=judul),
+            By.XPATH,
+            dasar
+            + f"//a[contains(@title,'{judul}')]"
+            + "//b[contains(@class,'collapse-sign')]",
         )
         span = (
             By.XPATH,
-            f"//span[normalize-space(text())='{judul}']",
+            dasar + f"//span[normalize-space(text())='{judul}']",
         )
+        if rantai:
+            js_terbuka = (
+                "let root = document;"
+                "for (const t of arguments[0]) {"
+                "  const s = [...root.querySelectorAll('span')]"
+                "    .find(e => (e.innerText || '').trim() === t);"
+                "  if (!s) return false;"
+                "  root = s.closest('li');"
+                "}"
+                "return (root.className || '').includes('open');"
+            )
 
-        def _terbuka(d):
-            return bool(d.execute_script(
-                "const s = [...document.querySelectorAll('nav span')]"
-                f".filter(e => (e.innerText || '').trim() === '{judul}')[0];"
-                "if (!s) return false;"
-                "return s.closest('li').className.includes('open');"
-            ))
+            def _terbuka(d):
+                return bool(d.execute_script(js_terbuka, list(rantai)))
+        else:
+            js_induk = (
+                "const ind = [...document.querySelectorAll('nav span')]"
+                f".find(e => (e.innerText || '').trim() === '{induk}');"
+                "if (!ind) return false;"
+                "root = ind.closest('li');"
+            ) if induk else ""
+
+            def _terbuka(d):
+                return bool(d.execute_script(
+                    "let root = document;" + js_induk
+                    + "const s = [...root.querySelectorAll('span')]"
+                    ".find(e => (e.innerText || '').trim()"
+                    f" === '{judul}');"
+                    "if (!s) return false;"
+                    "return (s.closest('li').className || '')"
+                    ".includes('open');"
+                ))
 
         if not _terbuka(self.driver):
             for lokasi in (sign, span):
@@ -413,7 +509,7 @@ class HssSafetyPage(BasePage):
                     ActionChains(self.driver).move_to_element(element).click().perform()
                 except TimeoutException:
                     continue
-                self.pace(0.5)
+                self.pace()
         self._wait(timeout).until(
             _terbuka,
             f"Submenu sidebar '{judul}' tidak kunjung terbuka setelah klik collapse-sign",
@@ -428,6 +524,74 @@ class HssSafetyPage(BasePage):
         -- lihat buka_submenu() (terbukti 2026-08-24)."""
         self.buka_submenu("HSS")
         self.buka_submenu("Safety")
+
+    def buka_via_menu(self, kunci):
+        """Buka halaman Safety `kunci` lewat ALUR MENU SIDEBAR
+        (permintaan user 2026-08-31 -- bukan URL langsung):
+          1. dashboard dulu kalau sidebar belum tampil (mis. test
+             dijalankan sendirian);
+          2. buka rantai submenu: HSS -> Safety -> grup (Reporting /
+             Transaction > Leading|Lagging Indicator -- lihat
+             GRUP_MENU);
+          3. klik link halaman di sidebar (klik MOUSE asli -- quirk
+             menu: JS .click() tidak memicu handler, 2026-08-24);
+          4. tunggu halaman siap (sama seperti buka_halaman --
+             `tabel_report_tampil()` polimorfik, Safety Recap punya
+             tabel custom) + bersihkan draft lokal."""
+        if kunci not in self.HALAMAN:
+            raise KeyError(
+                f"Kunci halaman '{kunci}' tidak dikenal. Pilihan: "
+                f"{', '.join(sorted(self.HALAMAN))}"
+            )
+        # 1) pastikan sidebar ada -- kalau belum, mulai dari dashboard
+        if not self.is_any_visible(self.MENU_HSS, timeout=3):
+            self.driver.get(config.BASE_URL)
+            self._wait(config.LONG_TIMEOUT).until(
+                lambda d: self.is_any_visible(self.MENU_HSS),
+                "Sidebar (menu HSS) tidak muncul setelah buka dashboard",
+            )
+        # 2) buka rantai submenu: HSS -> Safety -> grup -> subgrup.
+        #    Cek keadaan pakai `rantai` (walk berjenjang) supaya tidak
+        #    salah sasaran ke menu LAIN yang teksnya sama ('Transaction'
+        #    dipakai menu level-atas juga -- 2026-08-31).
+        induk = None
+        rantai = []
+        for judul in ("HSS",) + self.GRUP_MENU[kunci]:
+            rantai.append(judul)
+            self.buka_submenu(judul, induk=induk, rantai=tuple(rantai))
+            induk = judul
+        # 3) klik link halaman di sidebar
+        href = self.HALAMAN[kunci]
+        url = config.BASE_URL.rstrip("/") + "/" + href.lstrip("/")
+        lokasi = (By.XPATH, f"//nav//a[contains(@href,'{href}')]")
+        for _ in range(2):
+            element = self._ambil_js_visible(lokasi)
+            ActionChains(self.driver).move_to_element(element).click().perform()
+            try:
+                self._wait(config.DEFAULT_TIMEOUT).until(
+                    lambda d: href in d.current_url,
+                    "Klik link menu tidak memindahkan halaman",
+                )
+                break
+            except TimeoutException:
+                continue
+        # 4) tunggu halaman siap -- retry navigasi langsung kalau SPA
+        #    stuck di loading overlay (pola buka_halaman)
+        def _tunggu_siap():
+            self._tunggu_tabel(url)
+            self.tunggu_processing_selesai()
+
+        try:
+            _tunggu_siap()
+        except TimeoutException:
+            self.driver.get(url)
+            _tunggu_siap()
+        # Bersihkan draft LOCAL halaman ini (pola buka_halaman --
+        # localStorage dr_<Id>_* tidak menyentuh server).
+        if self._bersihkan_draft_lokal():
+            self.driver.get(url)
+            _tunggu_siap()
+        return self
 
     def buka_halaman(self, kunci):
         """Buka halaman Safety berdasarkan kunci di HALAMAN (mis.
@@ -702,7 +866,7 @@ class HssSafetyPage(BasePage):
                 except TimeoutException:
                     pass
                 self.tunggu_processing_selesai()
-                self.pace(1.0)
+                self.pace()
         raise TimeoutException(
             "File export tidak kunjung muncul di folder unduhan "
             f"({config.DOWNLOAD_DIR}) setelah 3x klik Export"
@@ -710,27 +874,49 @@ class HssSafetyPage(BasePage):
 
     def download_template_import(self, ekstensi=".xlsx"):
         """Klik link Download Template di modal Import lalu tunggu file
-        template terunduh. Dipakai test Import tanpa mengunggah data
-        (upload nyata menyisipkan data baru di DEV)."""
+        template terunduh. Dipakai pasang_file_dummy_import() -- file
+        template resmi adalah dummy PALING valid untuk input upload."""
         sebelum = set(os.listdir(config.DOWNLOAD_DIR))
         self.click_js_saat_tampil(self.LINK_DOWNLOAD_TEMPLATE)
         return self.tunggu_file_baru(ekstensi, sebelum)
+
+    # Cache template import per halaman per SESI -- template diunduh
+    # SEKALI per halaman, tab-tab berikutnya memakai ulang file yang
+    # sama (waktu tidak lama, folder unduhan tidak menumpuk).
+    _TEMPLATE_IMPORT_CACHE = {}
+
+    def pasang_file_dummy_import(self):
+        """Pasang file dummy (template import resmi yang diunduh dari
+        modal ini) ke input #imgFileImport lalu verifikasi file
+        benar2 terpasang (files == 1). Tombol Import TIDAK diklik --
+        klik tombol = POST ke server (menulis data ke DEV); permintaan
+        user 'upload file dummy dalam keadaan AMAN' (2026-08-31) =
+        widget pilih-file upload dicoba SUNGGUHAN, tapi file TIDAK
+        pernah dikirim ke server."""
+        kunci = getattr(self, "KUNCI", "umum")
+        path = self._TEMPLATE_IMPORT_CACHE.get(kunci)
+        if not path or not os.path.exists(path):
+            path = self.download_template_import()
+            self._TEMPLATE_IMPORT_CACHE[kunci] = path
+        element = self._ambil_js_visible(self.INPUT_FILE_IMPORT)
+        element.send_keys(path)
+        self._wait(config.DEFAULT_TIMEOUT).until(
+            lambda d: d.execute_script(
+                "const i = document.querySelector('#imgFileImport');"
+                "return !!(i && i.files && i.files.length > 0);"
+            ),
+            "File dummy import tidak terpasang di #imgFileImport",
+        )
+        print(f"  [import] file dummy '{os.path.basename(path)}' terpasang"
+              " -- TIDAK dikirim ke server (aman)")
 
     # Kandidat tombol Yes/OK dialog konfirmasi (Submit Changes /
     # Export): bootbox Yes dulu, lalu modal Bootstrap, SweetAlert,
     # dan tombol Yes/OK umum.
     _LOKASI_TOMBOL_OK = (
         (By.CSS_SELECTOR, "button.bootbox-accept"),
-        (
-            By.XPATH,
-            "//div[contains(@class,'modal') and contains(@class,'show')]"
-            "//button[normalize-space(.)='Yes']",
-        ),
-        (
-            By.XPATH,
-            "//div[contains(@class,'modal') and contains(@class,'show')]"
-            "//button[normalize-space(.)='OK']",
-        ),
+        (By.XPATH, XP_MODAL + "//button[normalize-space(.)='Yes']"),
+        (By.XPATH, XP_MODAL + "//button[normalize-space(.)='OK']"),
         (By.XPATH, "//div[contains(@class,'swal2')]//button[normalize-space(.)='OK']"),
         (By.XPATH, "//button[normalize-space(.)='Yes']"),
         (By.XPATH, "//button[normalize-space(.)='OK']"),
@@ -786,17 +972,30 @@ class HssSafetyPage(BasePage):
         """Klik Submit Changes lalu jawab dialog konfirmasi OK supaya
         perubahan benar2 tersimpan di server. Setelah dijawab, tunggu
         bootbox benar2 hilang -- kalau tidak, klik/aksi berikutnya
-        kena intercept oleh modal yang masih menutup (2026-08-24)."""
+        kena intercept oleh modal yang masih menutup (2026-08-24).
+
+        Kalau popup TETAP tampil padahal aksi di belakangnya SUDAH
+        jalan (quirk UI diamati SMK3/SMKP 2026-08-28: submit selesai,
+        grid idle, tapi popup tidak menutup sendiri), popup sisa
+        dianggap ornamen -- pastikan processing selesai dulu, lalu
+        tutup paksa (pola sama dengan _paksa_tutup_modal Statistic).
+        Kalau processing-nya yang macet, yang gagal adalah tunggu
+        processing, bukan popup yang ditutup paksa sembarangan."""
         self.click_js_saat_tampil(self.BTN_SUBMIT)
         self.jawab_konfirmasi()
-        self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
+        try:
+            self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
+        except TimeoutException:
+            self.tunggu_processing_selesai()
+            self._paksa_tutup_modal()
+            self.tunggu_modal_tertutup()
 
-    def klik_tab(self, teks_tab, jeda=1.0):
+    def klik_tab(self, teks_tab, jeda=None):
         """Klik tab internal halaman (hanya yang benar2 tampil menurut
         JS -- beberapa halaman punya panel tab tersembunyi di DOM),
         lalu tunggu tabnya jadi aktif. `jeda` = jeda visual setelah
-        tab aktif supaya hasil aksi sempat terlihat (1 detik default --
-        permintaan user, 2026-08-24)."""
+        tab aktif supaya hasil aksi sempat terlihat (default ikut
+        config ACTION_PACE_SECONDS -- seragam 2 detik, 2026-08-28)."""
         locator = (By.XPATH, self.TAB[1].format(teks_tab=teks_tab))
         element = self._ambil_js_visible(locator)
         self.driver.execute_script(
@@ -821,29 +1020,76 @@ class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     def _ada_modal_tampil(self):
         """True kalau ADA modal .modal.show yang benar2 terlihat.
-        Elemen stale (sedang diganti DOM) dianggap belum tampil."""
-        for el in self.driver.find_elements(*self.MODAL_SHOW):
-            try:
-                if el.is_displayed():
-                    return True
-            except StaleElementReferenceException:
-                continue
-        return False
+        Cek pakai computed style JS (offsetWidth/offsetHeight/
+        getClientRects -- sama seperti _deskripsi_modal): is_displayed()
+        Selenium bisa False negatif saat fade-transition / SPA stuck
+        (diamati full run 2026-08-31: modal Import TERBUKA -- terbaca
+        _deskripsi_modal -- tapi is_displayed() False, tunggu_modal
+        gagal sia-sia). Elemen stale dianggap belum tampil."""
+        try:
+            return bool(self.driver.execute_script(
+                "return [...document.querySelectorAll("
+                "'.modal.show, .modal.in')]"
+                ".some(m => {"
+                "  try { return !!(m.offsetWidth || m.offsetHeight"
+                "    || m.getClientRects().length); }"
+                "  catch (e) { return false; }"
+                "});"
+            ))
+        except Exception:
+            return False
+
+    def _deskripsi_modal(self):
+        """Deskripsi singkat modal yang sedang tampil -- dipakai
+        supaya pesan error timeout TIDAK kosong: kelas modal, teks
+        (dipotong), dan teks tombol-tombolnya. Kembalikan '-- tidak
+        ada modal tampil --' kalau memang tidak ada."""
+        hasil = self.driver.execute_script(
+            "const out = [];"
+            "[...document.querySelectorAll('.modal.show, .modal.in,"
+            " .bootbox, .swal2-container')].forEach(m => {"
+            "  let tampil = false;"
+            "  try { tampil = !!(m.offsetWidth || m.offsetHeight"
+            "    || m.getClientRects().length); } catch (e) {}"
+            "  if (!tampil) return;"
+            "  const teks = (m.innerText || '').replace(/\\s+/g, ' ')"
+            "    .trim().slice(0, 140);"
+            "  const tombol = [...m.querySelectorAll('button')]"
+            "    .map(b => (b.innerText || '').replace(/\\s+/g, ' ')"
+            "      .trim()).filter(t => t).slice(0, 8).join('/');"
+            "  out.push('[' + m.className.toString().slice(0, 60)"
+            "    + '] ' + teks + (tombol ? ' BTN: ' + tombol : ''));"
+            "});"
+            "return out.join(' || ');"
+        )
+        return hasil or "-- tidak ada modal tampil --"
 
     def tunggu_modal_terbuka(self, timeout=None):
         """Tunggu sampai ADA modal .modal.show yang tampil."""
-        self._wait(timeout).until(
-            lambda _: self._ada_modal_tampil(),
-            "Modal tidak kunjung terbuka",
-        )
+        try:
+            self._wait(timeout).until(
+                lambda _: self._ada_modal_tampil(),
+                "Modal tidak kunjung terbuka",
+            )
+        except TimeoutException:
+            raise TimeoutException(
+                "Modal tidak kunjung terbuka -- modal saat ini: "
+                + self._deskripsi_modal()
+            )
 
     def tunggu_modal_tertutup(self, timeout=None):
         """Tunggu sampai TIDAK ADA modal .modal.show yang tampil lagi."""
-        self._wait(timeout).until(
-            lambda _: not self._ada_modal_tampil(),
-            "Modal tidak kunjung tertutup -- kemungkinan ada field wajib"
-            " belum terisi / validasi gagal",
-        )
+        try:
+            self._wait(timeout).until(
+                lambda _: not self._ada_modal_tampil(),
+                "Modal tidak kunjung tertutup -- kemungkinan ada field wajib"
+                " belum terisi / validasi gagal",
+            )
+        except TimeoutException:
+            raise TimeoutException(
+                "Modal tidak kunjung tertutup -- modal saat ini: "
+                + self._deskripsi_modal()
+            )
 
     def _paksa_tutup_modal(self):
         """Tutup PAKSA semua modal yang masih tampil dengan menghapus
@@ -889,7 +1135,7 @@ class HssSafetyPage(BasePage):
         self.driver.get(url)
         self._tunggu_tabel()
         self.tunggu_processing_selesai()
-        self.pace(1.0)
+        self.pace()
         self.click_js_saat_tampil(locator)
         self.tunggu_modal_terbuka()
 
@@ -920,9 +1166,9 @@ class HssSafetyPage(BasePage):
         dulu, baru descendant -- urutan dokumen)."""
         return (
             By.XPATH,
-            "//div[contains(@class,'modal') and contains(@class,'show')]"
-            f"//label[{self._xpath_label(label)}]"
-            "/following-sibling::*"
+            self.XP_MODAL
+            + f"//label[{self._xpath_label(label)}]"
+            + "/following-sibling::*"
             "[descendant-or-self::*[self::input or self::select"
             " or self::textarea]][1]"
             "/descendant-or-self::*[self::input or self::select"
@@ -935,9 +1181,9 @@ class HssSafetyPage(BasePage):
         input (dt-input-lookup-hidden), tombol Search/Clear, dan teks
         pilihan ada di dalam group ini."""
         return (
-            "//div[contains(@class,'modal') and contains(@class,'show')]"
-            f"//label[{self._xpath_label(label)}]"
-            "/ancestor::div[contains(@class,'form-group')][1]"
+            self.XP_MODAL
+            + f"//label[{self._xpath_label(label)}]"
+            + "/ancestor::div[contains(@class,'form-group')][1]"
         )
 
     def isi_field_modal(self, label, nilai):
@@ -1051,7 +1297,7 @@ class HssSafetyPage(BasePage):
 
     # Scan field form create yang sedang terbuka (dipakai isi_form_create_otomatis)
     JS_FIELD_FORM = r"""
-const modal = document.querySelector('.modal.show');
+const modal = document.querySelector('.modal.show, .modal.in');
 const out = [];
 modal.querySelectorAll('.form-group').forEach(g => {
     const l = g.querySelector('label');
@@ -1128,6 +1374,10 @@ return out;
            dikirim ke server baru saat Save lewat multipart form);
         3. verifikasi file benar2 terpasang (files == 1).
 
+        Kalau widget SUDAH berisi file (link 'Remove' tampil), method
+        ini dilewati -- upload ulang akan menambah file ganda yang
+        ikut dikirim saat Save.
+
         Sebelum klik, HTMLInputElement.prototype.click di-patch supaya
         dialog file OS TIDAK muncul (selenium tidak bisa mengendalikan
         dialog native) -- patch menyimpan fungsi asli dan hanya
@@ -1145,6 +1395,22 @@ return out;
             "}"
         )
         grp = self._locator_group(label)
+        for el in self.driver.find_elements(
+            By.XPATH,
+            grp
+            + "//*[contains(@class,'text-danger')]"
+            "[contains(normalize-space(.), 'Remove')]",
+        ):
+            if self._js_visible(self.driver, el):
+                # widget sudah berisi file (link 'Remove' TAMPIL) --
+                # upload ulang akan menambah file GANDA yang ikut
+                # dikirim saat Save. Terjadi kalau scan field diulang
+                # (select cascading, isi_form_create_otomatis sampai 3
+                # putaran). Link Remove TERNYATA selalu ada di DOM
+                # (hidden sebelum file dipilih) -- jadi wajib cek
+                # visibilitas, bukan sekadar keberadaan (2026-08-28).
+                print(f"  [upload] '{label}' sudah berisi file -- dilewati")
+                return
         self.click_js_saat_tampil(
             (By.XPATH, grp + "//a[contains(@class,'dt-input-upload')]")
         )
@@ -1166,6 +1432,38 @@ return out;
             ),
             f"File dummy untuk '{label}' tidak terpasang di input file",
         )
+        # Setiap file dipilih, aplikasi membuka modal PREVIEW "Upload
+        # File/Image" (Upload/Close) di atas form yang TIDAK menutup
+        # sendiri -- popup menumpuk dan mencuri state 'show' dari
+        # modal form (Save jadi tidak ketemu, 2026-08-28). File SUDAH
+        # terpasang saat input berubah (widget tampil Remove), dan
+        # tombol CLOSE menutup preview TANPA membuang file (probe
+        # 2026-08-28) -- tombol Upload malah membuka konfirmasi
+        # "Do you wish to Upload?" yang juga tidak menutup sendiri.
+        # Jadi: klik Close, lalu tunggu preview benar2 hilang.
+        klik = self.driver.execute_script(
+            "const m = [...document.querySelectorAll('.modal.show, .modal.in')]"
+            "  .find(x => /Upload (File|Image)/.test(x.innerText || ''));"
+            "if (!m) return false;"
+            "const b = [...m.querySelectorAll('button')].find(x =>"
+            "  (x.innerText || '').trim() === 'Close');"
+            "if (!b) return false;"
+            "b.click(); return true;"
+        )
+        if klik:
+            self._wait(config.DEFAULT_TIMEOUT).until(
+                lambda _: self.driver.execute_script(
+                    "const m = [...document.querySelectorAll("
+                    "'.modal.show, .modal.in')]"
+                    "  .find(x => /Upload (File|Image)/.test(x.innerText || ''));"
+                    "if (!m) return true;"
+                    "const s = window.getComputedStyle(m);"
+                    "const r = m.getBoundingClientRect();"
+                    "return s.display === 'none' || s.visibility === 'hidden'"
+                    " || r.height === 0;"
+                ),
+                f"Modal preview upload '{label}' tidak kunjung tertutup",
+            )
         print(f"  [upload] '{label}' <- dummy_upload.png (67 byte)")
         self.pace()
 
@@ -1193,6 +1491,13 @@ return out;
         nilai tertentu (menimpa otomatis), mis. Equipment No unik."""
         tambahan = tambahan or {}
         penanda = penanda or "Dummy"
+        # upload HANYA SEKALI per label per sesi isi -- putaran scan
+        # berikutnya (select cascading) TIDAK boleh klik anchor lagi:
+        # upload dobel di putaran 2 berkaitan erat dengan gagal Save
+        # 'modal tertutup sebelum Save' (diamati Incident, 2026-08-28
+        # -- run dengan upload dobel gagal, sekali per label lolos;
+        # mekanisme pastinya tidak terisolasi penuh lewat probe)
+        sudah_upload = set()
         for _putaran in range(3):
             fields = self.driver.execute_script(self.JS_FIELD_FORM) or []
             menunggu_select = False
@@ -1203,8 +1508,12 @@ return out;
                 # jadi juga terdeteksi kosong -- kalau kosong dicek
                 # duluan, upload tidak pernah dijalankan (2026-08-27)
                 if f.get("upload"):
-                    if getattr(self, "KUNCI", "") in self.UPLOAD_HALAMAN:
+                    if (
+                        getattr(self, "KUNCI", "") in self.UPLOAD_HALAMAN
+                        and label not in sudah_upload
+                    ):
                         self.upload_file_dummy(label)
+                        sudah_upload.add(label)
                     continue
                 if f.get("kosong"):
                     continue
@@ -1243,10 +1552,71 @@ return out;
             if not menunggu_select:
                 break
 
+    def _pesan_validasi_modal(self):
+        """Kumpulkan pesan validasi yang sedang tampil di modal yang
+        terbuka (indikator Save ditolak: field wajib belum terisi dsb).
+        Kembalikan teks pesan dipisah ' | ' ('' kalau tidak ada).
+
+        Link 'Remove' di widget upload berkelas text-danger padahal
+        BUKAN pesan validasi -- dikecualikan supaya tidak salah tuduh
+        (2026-08-27)."""
+        return self.driver.execute_script(
+            "const modal = document.querySelector('.modal.show, .modal.in');"
+            "if (!modal) return '';"
+            "const el = [...modal.querySelectorAll("
+            "'.text-danger, .invalid-feedback, .field-validation-error,"
+            " .alert, .swal2-container, .bootbox')];"
+            "return el.map(e => (e.innerText || '')"
+            "  .replace(/\\s+/g, ' ').trim())"
+            "  .filter(t => t && t !== 'Remove').slice(0, 5).join(' | ');"
+        )
+
     def simpan_form(self):
         """Klik Save di modal lalu tunggu modal tertutup (tanda
-        proses simpan selesai)."""
-        self.click_js_saat_tampil(self.BTN_SAVE_MODAL)
+        proses simpan selesai). Kalau modal tidak kunjung tertutup,
+        klik Save DIULANG -- klik pertama bisa tertelan quirk SPA
+        (handler tombol mati padahal tombol tampak; diamati di form
+        Incident 2026-08-27, Save sekali klik tidak memicu apa pun).
+        Kalau ada pesan VALIDASI yang tampil, retry tidak membantu --
+        langsung gagal dengan pesan validasinya supaya ketahuan field
+        yang bermasalah, bukan timeout kosong."""
+        if not self._ada_modal_tampil():
+            raise TimeoutException(
+                "Modal form sudah tertutup SEBELUM Save diklik -- isi "
+                "form bermasalah atau modal tertutup sendiri. Modal saat "
+                "ini: " + self._deskripsi_modal()
+            )
+        if not self.driver.find_elements(*self.BTN_SAVE_MODAL):
+            # ada modal tampil TAPI bukan modal form (mis. lookup modal
+            # tersisa) -- gagal dengan deskripsi supaya ketahuan
+            raise TimeoutException(
+                "Tombol Save tidak ada di modal yang tampil -- modal "
+                "form hilang atau tertimpa modal lain: "
+                + self._deskripsi_modal()
+            )
+        for _ in range(3):
+            try:
+                self.click_js_saat_tampil(self.BTN_SAVE_MODAL)
+            except TimeoutException:
+                # modal form LENYAP tepat sebelum Save (quirk notifikasi/
+                # reload aplikasi yang menutup modal, diamati Incident
+                # 2026-08-28) -- sinyal MODAL_LENYAP supaya pemanggil
+                # bisa buka + isi form ulang (belum ada yang tersimpan)
+                raise TimeoutException(
+                    "MODAL_LENYAP: modal form hilang tepat sebelum Save "
+                    "diklik -- modal saat ini: " + self._deskripsi_modal()
+                )
+            try:
+                self.tunggu_modal_tertutup(timeout=6)
+                return
+            except TimeoutException:
+                pesan = self._pesan_validasi_modal()
+                if pesan:
+                    raise TimeoutException(
+                        "Save gagal -- validasi form menolak: " + pesan
+                    )
+        # 3x klik tetap tidak mempan tanpa pesan validasi -- tunggu
+        # panjang terakhir (pesan standar kalau tetap gagal)
         self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
 
     def batal_form(self):
@@ -1267,8 +1637,7 @@ return out;
             self._klik_jika_ada(self.BTN_CLOSE_MODAL)
             self._klik_jika_ada((
                 By.XPATH,
-                "//div[contains(@class,'modal') and contains(@class,'show')]"
-                "//button[normalize-space(.)='Close']",
+                self.XP_MODAL + "//button[normalize-space(.)='Close']",
             ))
             # bootbox alert (mis. info Reload Data) dijawab OK
             self._klik_jika_ada((By.CSS_SELECTOR, "button.bootbox-accept"))
@@ -1462,7 +1831,7 @@ return out;
             except (StaleElementReferenceException,
                     ElementNotInteractableException):
                 self.tunggu_processing_selesai()
-                self.pace(1.0)
+                self.pace()
         raise StaleElementReferenceException(
             f"Sel grid '{nama_field}' terus-menerus stale saat diisi"
         )
@@ -1483,7 +1852,7 @@ return out;
             except (StaleElementReferenceException,
                     ElementNotInteractableException):
                 self.tunggu_processing_selesai()
-                self.pace(1.0)
+                self.pace()
         raise StaleElementReferenceException(
             f"Sel grid '{nama_field}' (anchor {anchor}) terus-menerus stale"
         )
@@ -1530,8 +1899,8 @@ return out;
         while time.time() < akhir:
             kini = False
             for xpath in (
-                "//div[contains(@class,'modal') and contains(@class,'show')]"
-                "//button[normalize-space(.)='No' or normalize-space(.)='Cancel'"
+                self.XP_MODAL
+                + "//button[normalize-space(.)='No' or normalize-space(.)='Cancel'"
                 " or normalize-space(.)='Batal']",
                 "//button[normalize-space(.)='No']",
                 "//button[normalize-space(.)='Batal']",
@@ -1560,7 +1929,7 @@ return out;
         url_awal = self.driver.current_url
         sebelum = _jumlah_baris()
         self.click_js_saat_tampil(self.BTN_CREATE)
-        self.pace(1.0)
+        self.pace()
         sesudah = _jumlah_baris()
         self.click_js_saat_tampil(self.BTN_CANCEL_GRID)
         self.jawab_konfirmasi()
@@ -1596,7 +1965,7 @@ return out;
             "del.click(); return true;"
         )
         if terhapus:
-            self.pace(1.0)
+            self.pace()
             self.jawab_konfirmasi()
             self.tunggu_processing_selesai()
 
@@ -1624,10 +1993,20 @@ return out;
         lambat, 2026-08-24) sehingga baris tidak pernah ter-commit."""
         url_awal = self.driver.current_url
         penanda = "Dummy " + time.strftime("%H%M%S")
-        self.buka_form_create()
-        self.pace(1.0)
-        self.isi_form_create_otomatis(penanda=penanda)
-        self.simpan_form()
+        for percobaan in (1, 2):
+            self.buka_form_create()
+            self.pace()
+            self.isi_form_create_otomatis(penanda=penanda)
+            try:
+                self.simpan_form()
+                break
+            except TimeoutException as exc:
+                if "MODAL_LENYAP" not in str(exc) or percobaan == 2:
+                    raise
+                # modal form lenyap tepat sebelum Save (quirk notifikasi
+                # aplikasi, 2026-08-28) -- belum ada yang tersimpan
+                # (tidak ada draft yatim), buka + isi form ULANG sekali
+                print("  [create] modal lenyap sebelum Save -- buka form ulang")
         self.submit_changes()
         self.tunggu_processing_selesai()
         if not verifikasi_persistensi:
@@ -1704,20 +2083,54 @@ return out;
         if not _terbuka():
             return
         self.click_js_saat_tampil(self.BTN_COLUMNS)
-        self.pace(0.5)
+        self.pace()
         if not _terbuka():
             return
         self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.ESCAPE)
-        self.pace(0.5)
+        self.pace()
         if not _terbuka():
             return
         self.driver.execute_script("document.body.click();")
-        self.pace(0.5)
+        self.pace()
         self._wait(config.DEFAULT_TIMEOUT).until(
             lambda d: not _terbuka(),
             "Dropdown Columns tidak kunjung tertutup (toggle, ESC, "
             "klik luar semua tidak mempan)",
         )
+
+    def klik_item_columns(self):
+        """Klik item 'Settings' di dropdown Columns lalu tutup modal
+        'Freeze Column' yang terbuka. Isi dropdown Columns = 'Unfreeze'
+        & 'Settings' (probe tools/probe_columns.py, 2026-08-31;
+        permintaan user: dropdown Columns dibuka lalu PILIH SETTINGS).
+        Modal Freeze Column (daftar kolom grid) yang terbuka jadi bukti
+        item benar2 diklik, lalu DITUTUP supaya alur berikutnya bersih.
+        Kalau item belum ter-render (quirk redraw SPA), dropdown
+        dibuka ulang sekali."""
+        lokasi = (
+            By.XPATH,
+            "//div[contains(@class,'dt-button-collection')]"
+            "//a[contains(@class,'dt-button')]"
+            "[normalize-space(.)='Settings']",
+        )
+        for percobaan in (1, 2):
+            try:
+                element = self._ambil_js_visible(lokasi, timeout=5)
+            except TimeoutException:
+                if percobaan == 2:
+                    raise
+                # item belum ter-render -- buka ulang dropdown
+                self.tutup_dropdown_columns()
+                self.buka_dropdown_columns()
+                self.pace()
+                continue
+            self.driver.execute_script("arguments[0].click();", element)
+            self.tunggu_modal_terbuka()
+            self.pace()
+            self.tutup_modal()
+            print("  [columns] item 'Settings' diklik -> modal Freeze"
+                  " Column dibuka & ditutup")
+            return
 
     def export_excel_dan_tunggu_file(self, ekstensi=".xlsx"):
         """Klik tombol Export Excel (halaman Safety Recap) lalu tunggu
@@ -1742,15 +2155,21 @@ return out;
 
     def coba_tombol(self, nama):
         """Jalankan SATU aksi fitur sesuai nama tombol toolbar. Dipakai
-        test 'coba semua tombol' per halaman (permintaan user:
-        setiap tombol fitur dicoba di setiap halaman). Jeda ANTAR
-        aksi cepat (1 detik), tapi hasil tiap aksi ditahan sejenak
-        supaya terlihat saat ditonton (2026-08-24)."""
+        test 'coba semua tombol' per halaman DAN per tab (permintaan
+        user 2026-08-31: setiap tombol fitur dicoba di setiap halaman
+        & setiap tab, KECUALI link Instructions). Aksi khusus:
+        Import -> modal buka + file dummy DIPASANG di input upload
+        (TIDAK dikirim ke server = aman); Columns -> dropdown DIBUKA +
+        item kolom DIKLIK lalu state dikembalikan; Export -> file
+        diunduh & diverifikasi; Create with Form -> form diisi dummy
+        lalu Save+Submit SUNGGUHAN."""
         if nama == "Reload Data":
             self.reload_data()
         elif nama == "Import":
             self.buka_modal_import()
-            self.pace(1.0)
+            self.pace()
+            self.pasang_file_dummy_import()
+            self.pace()
             self.tutup_modal()
         elif nama == "Create with Form":
             self.create_dengan_form_sungguhan(
@@ -1771,16 +2190,18 @@ return out;
             )
         elif nama == "Export Excel":
             self.export_excel_dan_tunggu_file()
-        elif nama == "Instructions":
-            self.buka_instruksi_lalu_tutup()
+        # "Instructions" TIDAK diklik (permintaan user 2026-08-28) --
+        # link membuka konten di luar halaman dan tidak bagian alur
         elif nama == "Select Finding":
             self.click_js_saat_tampil(self.BTN_SELECT_FINDING)
-            self.pace(1.0)
+            self.pace()
             self.tutup_modal()
         elif nama == "Columns":
             try:
                 self.buka_dropdown_columns()
-                self.pace(1.0)
+                self.pace()
+                self.klik_item_columns()
+                self.pace()
                 self.tutup_dropdown_columns()
             except TimeoutException:
                 # dropdown membandel tidak mau tertutup (diamati di
@@ -1793,13 +2214,13 @@ return out;
         elif nama == "FullScreen":
             self.toggle_fullscreen()
             self.tunggu_fullscreen(True)
-            self.pace(1.0)
+            self.pace()
             self.toggle_fullscreen()
             self.tunggu_fullscreen(False)
         elif nama == "Cancel":
             self.click_js_saat_tampil(self.BTN_CANCEL_GRID)
             self.jawab_konfirmasi()
-        self.pace(1.0)
+        self.pace()
 
     def toggle_fullscreen(self):
         """Klik tombol FullScreen pakai mousedown+mouseup ASLI (Actions).

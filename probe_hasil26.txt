@@ -1,5 +1,0 @@
-[OK] login
-[form] state setelah isi: {'file': None, 'modal': True, 'tombolSave': 3, 'validasi': ['Remove', 'Remove']}
-[save] state setelah Save: {'modal': False}
-[save] console error: ['https://dev-opel.antm.tech/js/opel/opel-dailyReport.js?v=oJelGsz6RRr8Fj5_eorVnzaS5dP23ueDN5T20f6K2oE 4726:16 Uncaught ReferenceError: trigge', 'https://dev-opel.antm.tech/js/opel/opel-dailyReport.js?v=oJelGsz6RRr8Fj5_eorVnzaS5dP23ueDN5T20f6K2oE 4726:16 Uncaught ReferenceError: trigge', 'https://dev-opel.antm.tech/js/opel/opel-dailyReport.js?v=oJelGsz6RRr8Fj5_eorVnzaS5dP23ueDN5T20f6K2oE 4726:16 Uncaught ReferenceError: trigge', 'https://dev-opel.antm.tech/js/signalr/dist/signalr.min.js 0:4417 "[2026-08-27T04:42:09.217Z] Error: Connection disconnected with error \'Erro', 'https://dev-opel.antm.tech/js/opel/opel-dailyReport.js?v=oJelGsz6RRr8Fj5_eorVnzaS5dP23ueDN5T20f6K2oE 4210:16 "DataTables: " "DataTables warn', 'https://dev-opel.antm.tech/js/opel/opel-dailyReport.js?v=oJelGsz6RRr8Fj5_eorVnzaS5dP23ueDN5T20f6K2oE 4210:16 "DataTables: " "DataTables warn']
-[SELESAI]

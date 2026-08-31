@@ -45,9 +45,10 @@ LONG_TIMEOUT = int(os.getenv("OPEL_LONG_TIMEOUT", "60"))
 # ------------------- Jeda antar-aksi (detik) -------------------
 # HANYA untuk kebutuhan visual (alur bisa diikuti mata saat browser
 # dibuka), BUKAN untuk menunggu elemen (itu tugas WebDriverWait).
-# Default 0.5 detik: masih terlihat rapi, tidak bikin suite lambat.
-# Naikkan (mis. 2) kalau mau nonton alurnya pelan-pelan.
-ACTION_PACE_SECONDS = float(os.getenv("OPEL_ACTION_PACE", "0.5"))
+# Default 2.0 detik SERAGAM untuk semua aksi (permintaan user
+# 2026-08-28: 2-3 detik antar-aksi, jangan terlalu cepat) --
+# di-override lewat env OPEL_ACTION_PACE kalau perlu.
+ACTION_PACE_SECONDS = float(os.getenv("OPEL_ACTION_PACE", "2.0"))
 
 # ------------------- Lokasi folder laporan & screenshot -------------------
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
