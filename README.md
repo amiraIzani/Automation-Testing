@@ -96,6 +96,30 @@ pytest -m safety_view           # hanya halaman view/reporting
 - Hasil full suite 2026-08-27: **67/68 hijau**; sisa 1 (menu) sudah
   diperbaiki & diverifikasi terpisah.
 
+## Catatan tambahan (2026-08-31)
+
+- **Search DataTables kolom Month/Date**: token pencarian yang diambil
+  dari kolom `Month`/`Date` bisa false-fail di search API server-side --
+  nilai yang DITAMPILKAN dilokalkan (mis. "Januari") sementara backend
+  mencocokkan nilai mentah (mis. "January"). `test_safety_datatables_interaksi`
+  sekarang melewati kolom itu saat memilih token pencarian.
+- **Create with Form (Master Alat) kehilangan baris baru kalau ada draft
+  kosong lain nyangkut di grid** -- Submit Changes membuang SEMUA baris
+  pending (bukan cuma yang gagal validasi). Detail & repro:
+  `reports/bugs/master-alat-submit-drops-new-row.md`. Workaround test:
+  `_hapus_baris_kosong()` dipanggil di awal tiap alur Create with Form.
+- **Delete (Master Alat) sekarang 2 tahap & PERSISTEN ke server** --
+  beda dari temuan 2026-08-26 (tidak tersimpan sama sekali). Sekarang:
+  Delete + Yes cuma menandai pending change lokal (baris belum hilang
+  dari grid), baru setelah Submit Changes baris hilang DAN penghapusan
+  bertahan setelah reload. `test_safety_master_alat_delete` diupdate
+  jadi verifikasi cleanup sungguhan, bukan alarm lagi.
+- Halaman dengan grid berat (banyak kolom per district, mis. Leading
+  Indicator Static Input) bisa bikin modal Import terdeteksi terlambat
+  oleh Selenium walau sudah terbuka di browser (main thread sibuk render
+  ulang) -- percobaan terakhir `_klik_dan_tunggu_modal()` sekarang pakai
+  LONG_TIMEOUT, bukan DEFAULT_TIMEOUT.
+
 ## Langkah selanjutnya
 
 1. Jalankan `pytest -k safety` untuk memvalidasi semua page object.

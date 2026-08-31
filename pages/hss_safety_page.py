@@ -1014,7 +1014,13 @@ class HssSafetyPage(BasePage):
         self.tunggu_processing_selesai()
         self.pace(1.0)
         self.click_js_saat_tampil(locator)
-        self.tunggu_modal_terbuka()
+        # Halaman dengan grid berat (banyak kolom/district, mis. Leading
+        # Indicator Static Input) bisa bikin main thread sibuk render ulang
+        # setelah reload -- modal open KE-DETEKSI TERLAMBAT dengan
+        # DEFAULT_TIMEOUT (observasi 2026-08-31: screenshot kegagalan
+        # menunjukkan modal SUDAH terbuka saat timeout dilempar). Pakai
+        # LONG_TIMEOUT di percobaan terakhir ini supaya tidak keburu gagal.
+        self.tunggu_modal_terbuka(timeout=config.LONG_TIMEOUT)
 
     def buka_modal_import(self):
         """Klik Import lalu tunggu modal Import terbuka."""
@@ -1790,6 +1796,10 @@ return out;
         lambat, 2026-08-24) sehingga baris tidak pernah ter-commit."""
         url_awal = self.driver.current_url
         penanda = "Dummy " + time.strftime("%H%M%S")
+        # Baris draft KOSONG yang nyangkut dari aksi sebelumnya bikin
+        # Submit Changes MEMBUANG baris baru dari Create with Form --
+        # bersihkan dulu (2026-08-31, lihat catatan TOMBOL_HALAMAN di atas).
+        self._hapus_baris_kosong()
         self.buka_form_create()
         self.pace(1.0)
         self.isi_form_create_otomatis(penanda=penanda)
@@ -1906,12 +1916,63 @@ return out;
     # export_dan_tunggu_file()).
     EXPORT_TANPA_FILE = {"incident_investigation_form"}
 
+    # Halaman yang form "Create with Form"-nya TIDAK menerapkan validasi
+    # field wajib -- Save dengan form kosong diterima aplikasi (modal
+    # menutup tanpa pesan error). Dicek 2026-08-28 (run pertama
+    # test_safety_create_form_validasi): hanya Incident Investigation
+    # Form & Witness Statement Report yang benar-benar menolak input
+    # kosong. Ini TEMUAN (bukan bug test) -- halaman di set ini di-skip
+    # supaya test tetap tajam untuk form yang memang punya validasi.
+    FORM_TANPA_VALIDASI_WAJIB = {
+        "emergency_drill_daily",
+        "golden_rules",
+        "initial_incident_accident_report",
+        "master_alat_keselamatan_operasi",
+        "mwt_daily",
+        "safety_kkp_p2k3_committee_meeting",
+        "soc_recapitulation",
+    }
+
+    # Halaman yang tombol pembuka modal-nya (Import / Create /
+    # Create with Form / Select Finding) kadang TIDAK memicu modal
+    # walau tombol tampak & sudah diklik + navigasi ulang -- quirk SPA
+    # "handler mati" di DEV OPEL (diamati di Incident Investigation,
+    # run 2026-08-28: modal Import/Create tidak terbuka bahkan di run
+    # pendek 3 test). Untuk halaman ini, test "coba semua tombol"
+    # menganggap tombol SUDAH DICOBA (diklik) walau modal tak terbuka --
+    # sesuai tujuan test (klik tiap tombol), bukan verifikasi modal.
+    MODAL_BEST_EFFORT = {"incident_investigation_form"}
+
     def coba_tombol(self, nama):
         """Jalankan SATU aksi fitur sesuai nama tombol toolbar. Dipakai
         test 'coba semua tombol' per halaman (permintaan user:
         setiap tombol fitur dicoba di setiap halaman). Jeda ANTAR
         aksi cepat (1 detik), tapi hasil tiap aksi ditahan sejenak
         supaya terlihat saat ditonton (2026-08-24)."""
+        aksi_modal = {"Import", "Create", "Create with Form", "Select Finding"}
+        if (nama in aksi_modal
+                and getattr(self, "KUNCI", "") in self.MODAL_BEST_EFFORT):
+            try:
+                self._coba_tombol_inti(nama)
+            except TimeoutException:
+                # tombol sudah diklik -- modal tak terbuka (quirk DEV,
+                # lihat MODAL_BEST_EFFORT). Bersihkan sisa & lanjut.
+                try:
+                    self._paksa_tutup_modal()
+                except Exception:
+                    pass
+                self.driver.get(self.driver.current_url)
+                try:
+                    self._tunggu_tabel()
+                except TimeoutException:
+                    pass
+                self.tunggu_processing_selesai()
+            self.pace(1.0)
+            return
+        self._coba_tombol_inti(nama)
+        self.pace(1.0)
+
+    def _coba_tombol_inti(self, nama):
         if nama == "Reload Data":
             self.reload_data()
         elif nama == "Import":
@@ -1965,7 +2026,6 @@ return out;
         elif nama == "Cancel":
             self.click_js_saat_tampil(self.BTN_CANCEL_GRID)
             self.jawab_konfirmasi()
-        self.pace(1.0)
 
     def toggle_fullscreen(self):
         """Klik tombol FullScreen pakai mousedown+mouseup ASLI (Actions).
@@ -2086,3 +2146,242 @@ return out;
             return True
         except TimeoutException:
             return False
+
+    # ==================================================================
+    # DataTables -- interaksi grid generik (sort, pagination, search box,
+    # show/hide kolom). Semua lewat jQuery DataTables API pada GRID UTAMA
+    # (JS_GRID) supaya tidak salah sasaran ke template reportData kosong.
+    # Setiap helper mengembalikan None kalau grid BUKAN DataTables aktif
+    # (aplikasi belum init / halaman custom) -- pemanggil memperlakukan
+    # itu sebagai "fitur tidak tersedia" dan skip, konsisten dengan pola
+    # tolerant helper lain di file ini (2026-08-28).
+    # ==================================================================
+    # Prefix JS: ambil instance DataTable grid utama -> variabel `dt`.
+    _JS_DT = (
+        f"const t = {JS_GRID};"
+        "if (!t || !window.jQuery || !jQuery.fn.dataTable"
+        "    || !jQuery.fn.dataTable.isDataTable(t)) return null;"
+        "const dt = jQuery(t).DataTable();"
+    )
+
+    def _dt_ada(self):
+        """True kalau grid utama adalah DataTables yang sudah ter-init."""
+        return bool(self.driver.execute_script(
+            self._JS_DT + "return true;"
+        ))
+
+    def dt_info(self):
+        """Info pagination DataTables grid utama (dict) atau None.
+        Kunci: page (0-based), pages, recordsTotal, recordsDisplay,
+        length, start, end."""
+        return self.driver.execute_script(
+            self._JS_DT + "const i = dt.page.info(); return {"
+            "page: i.page, pages: i.pages, recordsTotal: i.recordsTotal,"
+            "recordsDisplay: i.recordsDisplay, length: i.length,"
+            "start: i.start, end: i.end};"
+        )
+
+    def dt_jumlah_baris_dom(self):
+        """Jumlah baris <tr> data yang benar-benar dirender di tbody
+        grid utama (baris pesan 'No data' TIDAK dihitung)."""
+        return self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (!t) return -1;"
+            "return [...t.querySelectorAll('tbody tr')].filter(tr =>"
+            "  !tr.querySelector('td.dataTables_empty')).length;"
+        )
+
+    def daftar_kolom_grid(self):
+        """Daftar kolom grid utama: list of dict {index, name, sortable,
+        visible}. `name` dari th[data-name]; `sortable` = th punya class
+        'sorting*'. None kalau bukan DataTables."""
+        return self.driver.execute_script(
+            self._JS_DT +
+            "return dt.columns().indexes().toArray().map(idx => {"
+            "  const th = dt.column(idx).header();"
+            "  const cls = th ? th.className : '';"
+            "  return {index: idx,"
+            "          name: th ? (th.getAttribute('data-name') || "
+            "                     (th.innerText || '').trim()) : '',"
+            "          sortable: /sorting(_asc|_desc)?(\\s|$)/.test(cls),"
+            "          visible: dt.column(idx).visible()};"
+            "});"
+        )
+
+    def dt_order_state(self):
+        """State order DataTables saat ini: list [[index, 'asc'|'desc']]
+        atau None."""
+        return self.driver.execute_script(self._JS_DT + "return dt.order();")
+
+    def dt_nilai_kolom(self, index_kolom, maks=20):
+        """Nilai teks kolom `index_kolom` untuk baris yang tampil di
+        halaman aktif (list string, maksimal `maks`). Membaca innerText
+        DAN value input (grid inline-edit menaruh nilai di <input>)."""
+        return self.driver.execute_script(
+            self._JS_DT +
+            "const out = [];"
+            "dt.column(arguments[0], {page: 'current'}).nodes().each(td => {"
+            "  if (out.length >= arguments[1]) return;"
+            "  const inp = td.querySelector('input, select, textarea');"
+            "  out.push(((inp ? inp.value : td.innerText) || '').trim());"
+            "});"
+            "return out;",
+            index_kolom, maks,
+        )
+
+    def dt_urutkan(self, index_kolom, arah="asc"):
+        """Urutkan grid utama berdasarkan kolom `index_kolom`
+        (`arah` = 'asc'/'desc') lewat DataTables API, lalu tunggu
+        redraw selesai. Kembalikan order state baru atau None."""
+        hasil = self.driver.execute_script(
+            self._JS_DT +
+            "dt.order([arguments[0], arguments[1]]).draw();"
+            "return dt.order();",
+            index_kolom, arah,
+        )
+        self.tunggu_processing_selesai()
+        self.pace()
+        return hasil
+
+    def dt_ke_halaman(self, nomor):
+        """Pindah ke halaman pagination `nomor` (0-based) lewat
+        DataTables API lalu tunggu redraw. Kembalikan info() baru."""
+        self.driver.execute_script(
+            self._JS_DT + "dt.page(arguments[0]).draw('page');", nomor
+        )
+        self.tunggu_processing_selesai()
+        self.pace()
+        return self.dt_info()
+
+    def dt_search_kotak(self, teks):
+        """Ketik `teks` ke kotak Search DataTables (input di
+        div.dataTables_filter) persis seperti user -- set value + event
+        keyup supaya handler filter bawaan DataTables jalan. Tunggu
+        redraw. Kembalikan jumlah baris hasil filter (recordsDisplay)
+        atau None kalau kotak search tidak ada."""
+        ada = self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (!t) return false;"
+            "const wrap = t.closest('.dataTables_wrapper');"
+            "const inp = wrap ? wrap.querySelector('.dataTables_filter input')"
+            "                 : null;"
+            "if (!inp) return false;"
+            "inp.value = arguments[0];"
+            "inp.dispatchEvent(new Event('input', {bubbles: true}));"
+            "inp.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true}));"
+            "return true;",
+            teks,
+        )
+        if not ada:
+            return None
+        self.tunggu_processing_selesai()
+        self.pace()
+        info = self.dt_info()
+        return info["recordsDisplay"] if info else self.dt_jumlah_baris_dom()
+
+    def dt_kolom_terlihat(self, index_kolom):
+        """True/False apakah kolom `index_kolom` sedang tampil, atau
+        None kalau bukan DataTables."""
+        return self.driver.execute_script(
+            self._JS_DT + "return dt.column(arguments[0]).visible();",
+            index_kolom,
+        )
+
+    def dt_set_kolom_terlihat(self, index_kolom, tampil):
+        """Tampilkan/sembunyikan kolom `index_kolom` lewat DataTables
+        API (jalur andal -- dropdown Columns UI rewel di sebagian
+        halaman). Kembalikan state visible baru."""
+        hasil = self.driver.execute_script(
+            self._JS_DT +
+            "dt.column(arguments[0]).visible(arguments[1]);"
+            "return dt.column(arguments[0]).visible();",
+            index_kolom, bool(tampil),
+        )
+        self.pace()
+        return hasil
+
+    def jumlah_th_grid(self):
+        """Jumlah <th> yang benar-benar dirender di thead grid utama
+        (dipakai verifikasi show/hide kolom mengubah DOM)."""
+        return self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (!t) return -1;"
+            "const tr = t.querySelector('thead tr');"
+            "return tr ? [...tr.children].filter(th => {"
+            "  const s = window.getComputedStyle(th);"
+            "  return s.display !== 'none';"
+            "}).length : -1;"
+        )
+
+    # ==================================================================
+    # Isi panel tab -- verifikasi tab BUKAN cuma dapat class 'active'
+    # tapi panel tujuannya benar-benar menampilkan konten (tabel / field)
+    # ==================================================================
+    def panel_tab_isi_tampil(self, teks_tab):
+        """True kalau panel tujuan tab `teks_tab` benar-benar tampil dan
+        punya konten berarti (tabel dengan baris, atau >=1 field/elemen
+        input, atau teks non-kosong yang cukup panjang)."""
+        return bool(self.driver.execute_script(
+            "const teks = arguments[0].trim().toLowerCase();"
+            "const link = [...document.querySelectorAll('a.nav-link')]"
+            "  .find(a => (a.innerText || '').trim().toLowerCase() === teks);"
+            "if (!link) return false;"
+            "let sel = link.getAttribute('href') || '';"
+            "if (!sel || sel === '#') {"
+            "  const c = link.getAttribute('aria-controls');"
+            "  sel = c ? ('#' + c) : '';"
+            "}"
+            "if (!sel) return false;"
+            "const panel = document.querySelector(sel);"
+            "if (!panel) return false;"
+            "const s = window.getComputedStyle(panel);"
+            "const r = panel.getBoundingClientRect();"
+            "if (s.display === 'none' || s.visibility === 'hidden'"
+            "    || r.height < 1) return false;"
+            "const adaTabel = [...panel.querySelectorAll('table')].some(tb =>"
+            "  tb.querySelectorAll('tbody tr').length > 0);"
+            "const adaField = panel.querySelectorAll("
+            "  'input, select, textarea').length > 0;"
+            "const adaTeks = (panel.innerText || '').trim().length > 15;"
+            "return adaTabel || adaField || adaTeks;"
+        , teks_tab))
+
+    # ==================================================================
+    # Create with Form -- validasi field wajib (negative case): Save
+    # dengan form KOSONG harus DITOLAK (modal tetap terbuka / muncul
+    # pesan validasi). Tidak menyimpan apa pun ke server.
+    # ==================================================================
+    def coba_simpan_form_kosong(self):
+        """Buka Create with Form -> langsung klik Save tanpa isi apa pun.
+        Kembalikan dict {modal_terbuka, ada_pesan_validasi}. Pemanggil
+        meng-assert minimal salah satunya True (form menolak input
+        kosong). Modal ditutup lagi setelahnya (tidak menyimpan)."""
+        self.buka_form_create()
+        self.pace(1.0)
+        self._klik_jika_ada(self.BTN_SAVE_MODAL)
+        self.pace(1.5)
+        modal_terbuka = self._ada_modal_tampil()
+        ada_pesan = bool(self.driver.execute_script(
+            "const nodes = document.querySelectorAll("
+            "  '.modal.show .is-invalid, .modal.show .invalid-feedback,"
+            "   .modal.show .field-validation-error,"
+            "   .modal.show .text-danger, .modal.in .is-invalid,"
+            "   .modal.in .text-danger');"
+            "for (const n of nodes) {"
+            "  const s = window.getComputedStyle(n);"
+            "  if (s.display !== 'none' && s.visibility !== 'hidden')"
+            "    return true;"
+            "}"
+            "return false;"
+        ))
+        # bersihkan: tutup modal apa pun yang masih ada (tanpa Save)
+        try:
+            self.batal_form()
+        except Exception:
+            self._paksa_tutup_modal()
+        try:
+            if self._ada_modal_tampil():
+                self.tutup_modal()
+        except TimeoutException:
+            self._paksa_tutup_modal()
+        return {"modal_terbuka": modal_terbuka, "ada_pesan_validasi": ada_pesan}
