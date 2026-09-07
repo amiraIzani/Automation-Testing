@@ -1,6 +1,22 @@
 # Bug: Submit Changes membuang baris baru (Create with Form) kalau ada draft kosong lain di grid
 
+> ## STATUS: TIDAK LAGI TERJADI (diverifikasi manual 2026-09-07)
+>
+> Langkah reproduksi di bawah dijalankan ulang secara manual di
+> lingkungan DEV pada 2026-09-07: baris hasil **Create with Form**
+> **MUNCUL dan bertahan** setelah Submit Changes + reload, walau ada
+> baris draft kosong di grid. Jadi perilaku yang dilaporkan di sini
+> sudah tidak terjadi lagi.
+>
+> Laporan ini DIPERTAHANKAN sebagai riwayat, bukan sebagai bug aktif.
+> Jangan dikirim ke tim dev sebagai temuan terbuka.
+>
+> Yang perlu diputuskan menyusul: workaround `_hapus_baris_kosong()` di
+> sisi test masih dipertahankan karena membersihkan draft kosong tetap
+> berguna (mencegah sampah menumpuk di DEV), bukan lagi karena bug ini.
+
 - **Tanggal ditemukan**: 2026-08-31
+- **Tanggal ditutup**: 2026-09-07 (tidak reproducible lagi)
 - **Ditemukan lewat**: `tests/test_safety.py::TestSafetyHss::test_safety_master_alat_create`
 - **Halaman**: Safety > Transaction > Leading Indicator > Master Alat Keselamatan Operasi
   (`https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321`)

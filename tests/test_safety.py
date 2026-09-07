@@ -1053,73 +1053,42 @@ class TestSafetyHss:
                     "setelah revert"
                 )
 
-        # 1b) Cancel: buat perubahan pending -> klik Cancel -> perubahan
-        #     TIDAK tersimpan (data tetap nilai awal)
-        nilai_sebelum_cancel = page.baca_sel_grid_anchor(field_edit, anchor)
+        # 1b) Draft lokal: buat perubahan pending -> klik RELOAD DATA ->
+        #     perubahan DIBUANG (data kembali ke nilai server).
+        #
+        # KOREKSI 2026-09-07: blok ini dulu menguji tombol CANCEL dan
+        # menuntut Cancel membuang perubahan. Itu ASUMSI YANG SALAH soal
+        # desain aplikasi, dan sempat melahirkan laporan bug palsu
+        # (reports/bugs/lagging-cancel-does-not-discard-edit.md, kini
+        # ditutup sebagai BUKAN BUG). Kontrak OPEL yang sebenarnya:
+        #   Submit Changes          -> simpan ke server
+        #   Reload Data             -> BUANG draft lokal, ambil ulang
+        #                              data dari server
+        #   Cancel / reload browser -> draft lokal SENGAJA dipertahankan,
+        #                              supaya kerja user tidak hilang
+        #                              kalau halaman ter-reload tanpa
+        #                              sengaja atau koneksi putus
+        #                              (fitur perlindungan, bukan cacat)
+        # Jadi yang layak di-assert adalah Reload Data, bukan Cancel.
+        nilai_sebelum_draft = page.baca_sel_grid_anchor(field_edit, anchor)
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
-        page.click_js_saat_tampil(page.BTN_CANCEL_GRID)
-        page.jawab_konfirmasi()
-        page.tunggu_processing_selesai()
-        page.buka_halaman(kunci)
+        page.reload_data()
         _tunggu_anchor()
-        setelah_cancel = page.baca_sel_grid_anchor(field_edit, anchor)
-        cancel_bug_dikenal = kunci in HssSafetyPage.CANCEL_TIDAK_MEMBUANG_PENDING
-        if setelah_cancel != nilai_sebelum_cancel:
-            # BUG APLIKASI (2026-09-04, ketemu di 'smk3'): Cancel TIDAK
-            # membuang perubahan pending -- nilai_uji ikut tersimpan
-            # setelah reload walau tombol yang diklik Cancel, bukan
-            # Submit Changes (tombolnya sendiri sudah dipastikan yang
-            # BENAR-BENAR tampil lewat click_js_saat_tampil/
-            # _ambil_js_visible, jadi bukan salah sasaran elemen).
-            # Perbaiki dulu data DEV di sini supaya nilai_uji tidak
-            # nyangkut permanen, BARU gagalkan test lewat assert di
-            # bawah -- regresi tetap terdeteksi tanpa ninggalin data
-            # rusak.
-            page.isi_sel_grid_anchor(field_edit, nilai_sebelum_cancel, anchor)
+        setelah_reload = page.baca_sel_grid_anchor(field_edit, anchor)
+        if setelah_reload != nilai_sebelum_draft:
+            # Reload Data tidak membuang draft -- kembalikan data DEV
+            # dulu supaya nilai uji tidak nyangkut permanen, BARU
+            # gagalkan lewat assert di bawah.
+            page.isi_sel_grid_anchor(field_edit, nilai_sebelum_draft, anchor)
             page.submit_changes()
             page.buka_halaman(kunci)
             _tunggu_anchor()
-
-        if cancel_bug_dikenal:
-            # Bug aplikasi yang SUDAH dilaporkan -- jangan bikin suite
-            # merah permanen (kegagalan yang selalu ada bikin orang
-            # berhenti membaca hasil, dan regresi BARU ikut tenggelam).
-            # Data DEV sudah dikembalikan di blok atas, jadi aman lanjut.
-            #
-            # Kondisi awal halaman ikut dicetak: run 2026-09-07
-            # memperlihatkan pola Cancal GAGAL saat halaman dibuka sudah
-            # membawa perubahan pending, dan BERHASIL saat dibuka bersih.
-            # Kalau pola itu bertahan, repro bug-nya bukan "Cancel selalu
-            # gagal" melainkan "Cancel gagal kalau ada pending sebelumnya".
-            kondisi = (
-                "ADA pending saat halaman dibuka"
-                if getattr(page, "pending_saat_dibuka", False)
-                else "halaman dibuka BERSIH (tanpa pending)"
-            )
-            if setelah_cancel != nilai_sebelum_cancel:
-                print(
-                    f"\n[BUG DIKENAL] '{kunci}': Cancel tidak membuang "
-                    f"perubahan pending ('{nilai_sebelum_cancel}' -> "
-                    f"'{setelah_cancel}'). Kondisi awal: {kondisi}. "
-                    "Sudah dilaporkan di reports/bugs/"
-                    "lagging-cancel-does-not-discard-edit.md -- data DEV "
-                    "sudah dikembalikan otomatis, test lanjut."
-                )
-            else:
-                print(
-                    f"\n[BUG SUDAH DIPERBAIKI?] '{kunci}': Cancel kali ini "
-                    f"MEMBUANG perubahan pending dengan benar. Kondisi awal: "
-                    f"{kondisi}. Kalau ini konsisten di beberapa run DAN "
-                    f"halaman dibuka dalam kondisi berbeda-beda, keluarkan "
-                    f"'{kunci}' dari "
-                    "HssSafetyPage.CANCEL_TIDAK_MEMBUANG_PENDING supaya "
-                    "pemeriksaannya kembali tajam."
-                )
-        else:
-            assert setelah_cancel == nilai_sebelum_cancel, (
-                f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
-                "sudah diklik (data DEV sudah diperbaiki otomatis di atas)"
-            )
+        assert setelah_reload == nilai_sebelum_draft, (
+            f"Reload Data di '{kunci}' tidak membuang draft lokal: "
+            f"'{field_edit}' masih '{setelah_reload}', seharusnya kembali "
+            f"ke nilai server '{nilai_sebelum_draft}' (data DEV sudah "
+            "dikembalikan otomatis di atas)"
+        )
 
         # 2) Filter tanggal -> value berubah, tabel tetap tampil, DAN
         #    (kalau periodenya memang beda) isi grid ikut berubah ->

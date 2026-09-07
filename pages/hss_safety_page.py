@@ -2510,21 +2510,17 @@ return out;
     # sesuai tujuan test (klik tiap tombol), bukan verifikasi modal.
     MODAL_BEST_EFFORT = {"incident_investigation_form"}
 
-    # Halaman yang tombol Cancel-nya TIDAK membuang perubahan pending:
-    # nilai uji tetap tersimpan setelah reload walau yang diklik Cancel,
-    # bukan Submit Changes (ditemukan 2026-09-04, terulang 2026-09-07 --
-    # rincian & repro di reports/bugs/lagging-cancel-does-not-discard-
-    # edit.md). Ini BUG APLIKASI yang sudah dilaporkan, bukan bug test.
+    # CATATAN 2026-09-07 -- registry CANCEL_TIDAK_MEMBUANG_PENDING DIHAPUS.
     #
-    # Kenapa didaftar di sini, bukan dipasangi @pytest.mark.xfail:
-    # xfail berlaku ke SELURUH kasus parametrize, jadi regresi baru di
-    # langkah lain pada halaman yang sama (edit+submit, filter tanggal,
-    # export, import) ikut tertelan diam-diam. Dengan registry, yang
-    # dilonggarkan HANYA pemeriksaan Cancel; langkah lain tetap tajam.
-    #
-    # Kalau OPEL sudah memperbaikinya, test mencetak peringatan supaya
-    # halaman ini DIKELUARKAN dari set -- lihat test_safety_lagging_deep.
-    CANCEL_TIDAK_MEMBUANG_PENDING = {"smk3"}
+    # Set itu dulu berisi {"smk3"} untuk melonggarkan assertion "Cancel
+    # harus membuang perubahan pending". Ternyata assertion-nya sendiri
+    # yang salah: draft lokal MEMANG sengaja dipertahankan OPEL (fitur
+    # perlindungan kalau halaman ter-reload / koneksi putus), dan yang
+    # membuangnya adalah tombol Reload Data. Jadi tidak ada bug yang
+    # perlu dilonggarkan -- test_safety_lagging_deep sekarang menguji
+    # Reload Data, sesuai kontrak aplikasi yang sebenarnya.
+    # Lihat reports/bugs/lagging-cancel-does-not-discard-edit.md
+    # (ditutup sebagai BUKAN BUG).
 
     def coba_tombol(self, nama):
         """Jalankan SATU aksi fitur sesuai nama tombol toolbar. Dipakai

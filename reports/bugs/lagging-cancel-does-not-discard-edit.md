@@ -1,9 +1,40 @@
-# Bug: Tombol Cancel di grid Lagging Indicator tidak membuang perubahan pending
+# BUKAN BUG — perilaku "stored locally" adalah fitur, bukan cacat
+
+> ## STATUS: DITUTUP, BUKAN BUG (dikonfirmasi pemilik produk 2026-09-07)
+>
+> Laporan ini semula berjudul *"Tombol Cancel tidak membuang perubahan
+> pending"*. **Klaim itu salah, dan test yang melahirkannya memakai
+> asumsi yang keliru soal desain aplikasi.**
+>
+> Perilaku sebenarnya, dikonfirmasi 2026-09-07: perubahan grid yang
+> belum di-Submit memang **sengaja disimpan secara lokal** dan
+> dipulihkan kembali saat halaman dimuat ulang. Itu **fitur
+> perlindungan** — supaya pekerjaan user tidak hilang kalau halaman
+> ter-reload tanpa sengaja, koneksi internet putus, dan sejenisnya.
+>
+> Cara membuang perubahan itu adalah tombol **Reload Data** (muncul di
+> banner "The data has been stored locally..."), BUKAN tombol Cancel
+> dan bukan reload browser. Jadi:
+>
+> | Aksi | Yang benar terjadi |
+> |---|---|
+> | **Submit Changes** | perubahan dikirim & disimpan di server |
+> | **Reload Data** | perubahan lokal DIBUANG, data diambil ulang dari server |
+> | **Cancel** / reload browser | perubahan lokal TETAP ADA — memang disengaja |
+>
+> Yang salah adalah assertion di
+> `tests/test_safety.py::test_safety_lagging_deep` yang menuntut Cancel
+> membuang perubahan. Assertion itu sudah diganti: sekarang yang diuji
+> adalah **Reload Data benar-benar membuang draft lokal**, sesuai
+> kontrak aplikasi yang sebenarnya.
+>
+> Laporan ini DIPERTAHANKAN sebagai catatan supaya kekeliruan yang sama
+> tidak terulang. **Jangan dikirim ke tim dev OPEL.**
 
 - **Tanggal ditemukan**: 2026-09-04
 - **Ditemukan lewat**: `tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smk3]`
 - **Halaman**: Safety > Transaction > Lagging Indicator > SMK3
-  (`Reporting/Timesheet/YearlyReport/Edit?Id=1308`) — kemungkinan
+  (`https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1308`) — kemungkinan
   berlaku juga di SMKP dan halaman lagging lain dengan tombol Cancel
   serupa (belum diverifikasi satu-satu).
 - **Severity**: Tinggi — user yang sengaja membatalkan (Cancel) editan
@@ -52,6 +83,42 @@ menunjukkan nilai `9` setelah alur Cancel + reload selesai.
 Sudah dipastikan BUKAN salah klik tombol (locator `BTN_CANCEL_GRID`
 diklik lewat `click_js_saat_tampil()` yang sudah memvalidasi elemen
 BENAR-BENAR tampil, bukan sekadar match pertama di DOM).
+
+## Cakupan: halaman mana saja yang berpotensi kena
+
+BELUM diverifikasi satu per satu. Tapi mekanismenya generik, bukan khas
+SMK3: state pending disimpan di `localStorage` dengan pola key
+`dr_<DataTemplateId>_*` (lihat `HssSafetyPage._bersihkan_draft_lokal()`),
+dan pola itu dipakai per halaman, bukan per modul. Jadi **semua halaman
+Transaction yang punya grid inline-edit + tombol Submit Changes**
+kandidat terkena.
+
+Daftar lengkap 14 halaman tersebut:
+
+| Halaman | Link |
+|---|---|
+| Incident Investigation Form | `https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334` |
+| Initial Incident/Accident Report | `https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1335` |
+| Witness Statement Report | `https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1336` |
+| EMERGENCY DRILL Daily | `https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1319` |
+| Master Alat Keselamatan Operasi | `https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321` |
+| SOC RECAPITULATION | `https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1310` |
+| GOLDEN RULES | `https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1316` |
+| Data Rekap Statistik K3 | `https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1315` |
+| SAFETY/KKP/P2K3 Committee Meeting | `https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1313` |
+| MWT DAILY | `https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1312` |
+| Leading Indicator | `https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1309` |
+| Statistic Safety Recapitulation | `https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1317` |
+| SMK3 | `https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1308` |
+| SMKP | `https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1307` |
+
+Halaman **Reporting** (View, read-only) tidak punya grid inline-edit
+maupun Submit Changes, jadi tidak terkena.
+
+Untuk memastikan cakupan sebenarnya, cukup uji 3–4 halaman dari
+template yang BERBEDA (DailyReport / MonthlyReport / YearlyReport /
+StaticReport). Kalau keempat template kena, aman disimpulkan berlaku
+untuk semuanya.
 
 ## Pengamatan tambahan 2026-09-07 (mengubah dugaan akar masalah)
 
