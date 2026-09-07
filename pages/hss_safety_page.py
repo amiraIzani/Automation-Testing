@@ -585,10 +585,22 @@ class HssSafetyPage(BasePage):
                     ActionChains(self.driver).move_to_element(
                         element
                     ).click().perform()
-                except MoveTargetOutOfBoundsException:
-                    # Masih di luar jangkauan pointer -- klik lewat JS.
-                    # Untuk membuka submenu, klik JS sudah cukup (yang
-                    # butuh mousedown+mouseup asli cuma keluar-fullscreen).
+                except (MoveTargetOutOfBoundsException,
+                        ElementNotInteractableException):
+                    # Klik lewat pointer gagal -- jatuh ke klik JS.
+                    # Untuk MEMBUKA submenu, klik JS sudah cukup (yang
+                    # benar-benar butuh mousedown+mouseup asli cuma alur
+                    # keluar-fullscreen, lihat toggle_fullscreen()).
+                    #
+                    # Dua sebab yang sudah terbukti di run penuh:
+                    #  - MoveTargetOutOfBounds: item menu di luar
+                    #    viewport (2026-09-07, 'Initial Incident/Accident')
+                    #  - ElementNotInteractable "has no size and
+                    #    location": elemen SEMPAT dinilai tampil oleh
+                    #    _ambil_js_visible(), lalu ukurannya jadi nol
+                    #    sebelum ActionChains sempat jalan -- sidebar
+                    #    accordion masih beranimasi buka/tutup
+                    #    (2026-09-07, 'MWT Recapitulation')
                     self.driver.execute_script("arguments[0].click();", element)
                 self.pace()
         self._wait(timeout).until(
@@ -2488,8 +2500,17 @@ return out;
     # menutup tanpa pesan error). Dicek 2026-08-28 (run pertama
     # test_safety_create_form_validasi): hanya Incident Investigation
     # Form & Witness Statement Report yang benar-benar menolak input
-    # kosong. Ini TEMUAN (bukan bug test) -- halaman di set ini di-skip
-    # supaya test tetap tajam untuk form yang memang punya validasi.
+    # kosong.
+    #
+    # STATUS 2026-09-07: dikonfirmasi pemilik produk bahwa menyimpan
+    # baris kosong di halaman-halaman ini MEMANG DIBOLEHKAN -- jadi ini
+    # perilaku yang disengaja, BUKAN bug dan BUKAN temuan yang belum
+    # ditindaklanjuti. Tidak perlu dibuatkan laporan bug.
+    #
+    # Halaman di set ini di-skip supaya test tetap tajam untuk dua form
+    # yang memang punya validasi wajib. Kalau suatu saat aturan bisnisnya
+    # berubah dan salah satu halaman ini mulai mewajibkan field, keluarkan
+    # dari set ini supaya validasinya ikut diuji.
     FORM_TANPA_VALIDASI_WAJIB = {
         "emergency_drill_daily",
         "golden_rules",

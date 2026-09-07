@@ -151,7 +151,7 @@ dan `tests/test_safety.py`, dikelompokkan per modul:
 | Halaman Lengkap (19 halaman) | `test_safety_halaman_lengkap` | Alur lengkap satu halaman dalam satu kunjungan (lihat rincian di bawah) |
 | Interaksi DataTables | `test_safety_datatables_interaksi` | Sort kolom asc/desc, pagination, Search (DOM + API), show/hide kolom — per halaman ber-grid |
 | Isi File Export | `test_safety_export_isi_file` | Export → workbook `.xlsx` bisa dibuka, punya ≥1 baris terisi, **dan nilai selnya cocok dengan data yang tampil di grid** |
-| Validasi Form Wajib | `test_safety_create_form_validasi` | Create with Form disimpan KOSONG → form harus menolak (modal tetap terbuka / pesan validasi) |
+| Validasi Form Wajib | `test_safety_create_form_validasi` | Create with Form disimpan KOSONG → form harus menolak (modal tetap terbuka / pesan validasi). Hanya berlaku di **2 dari 9** halaman — 7 sisanya memang dibolehkan menyimpan baris kosong (lihat `FORM_TANPA_VALIDASI_WAJIB`), jadi di-skip |
 | Ganti Filter Unit | `test_safety_filter_unit_ganti` | Filter unit benar-benar DIGANTI ke opsi lain, **isi grid harus ikut berubah**, tabel tetap tampil, lalu dikembalikan |
 | Leading (Alur Menengah) | `test_safety_leading_deep` | View → filter tanggal (kalau ada, **isi grid harus ikut berubah**) → filter unit (elemen+opsi) → Export (file) → Import (modal + template terunduh) |
 
