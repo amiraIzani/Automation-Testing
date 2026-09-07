@@ -1,0 +1,578 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Amira\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.10', 'Platform': 'Windows-11-10.0.26200-SP0', 'Packages': {'pytest': '8.4.2', 'pluggy': '1.6.0'}, 'Plugins': {'html': '4.2.0', 'metadata': '3.1.1'}, 'JAVA_HOME': 'C:\\Program Files\\Java\\jdk-23'}
+rootdir: C:\Users\Amira\OneDrive\Documents\a\Automation-Testing
+configfile: pytest.ini
+testpaths: tests
+plugins: html-4.2.0, metadata-3.1.1
+collecting ... collected 108 items / 1 deselected / 107 selected
+
+tests/test_safety.py::TestSafetyHss::test_safety_menu_dan_landing 
+V [Safety - Navigasi Menu] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_indicator_view 
+V [Safety - Lagging Indicator (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_golden_rules_recap_view 
+V [Safety - Golden Rules Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_emergency_drill_recap_view 
+V [Safety - Emergency Drill Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_mwt_recapitulation_view 
+V [Safety - MWT Recapitulation (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_recap_view 
+V [Safety - Safety Recap (View)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_incident_investigation_view 
+V [Safety - Incident Investigation Form] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_incident_investigation_tab 
+V [Safety - Incident Investigation (Tab)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_initial_incident_view 
+V [Safety - Initial Incident/Accident Report] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_witness_statement_view 
+V [Safety - Witness Statement Report] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_emergency_drill_daily_view 
+V [Safety - Emergency Drill Daily] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_view 
+V [Safety - Master Alat Keselamatan Operasi] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_create 
+V [Safety - Master Alat (Create with Form)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_master_alat_delete 
+V [Safety - Master Alat (Delete)] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_soc_recapitulation_view 
+V [Safety - SOC Recapitulation] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_golden_rules_view 
+V [Safety - Golden Rules] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_data_rekap_k3_view 
+V [Safety - Data Rekap Statistik K3] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_kkp_p2k3_view 
+V [Safety - SAFETY/KKP/P2K3 Committee Meeting] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_mwt_daily_view 
+V [Safety - MWT Daily] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_indicator_view 
+V [Safety - Leading Indicator] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_statistic_safety_view 
+V [Safety - Statistic Safety Recapitulation] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_smk3_view 
+V [Safety - SMK3] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_smkp_view 
+V [Safety - SMKP] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[statistic_safety_recapitulation] 
+- [Safety - Lagging (Semua Fitur) [statistic_safety_recapitulation]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_lagging_deep[statistic_safety_recapitulation]_20260907_162822.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1317
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smk3] 
+V [Safety - Lagging (Semua Fitur) [smk3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_lagging_deep[smkp] 
+V [Safety - Lagging (Semua Fitur) [smkp]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Lagging Indicator] 
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Golden Rules Recap] 
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Emergency Drill Recap] 
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[MWT Recapitulation] 
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Safety Recap] 
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Incident Investigation]   [import] file dummy 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) - Data Korban 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [import] file dummy 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) - Data Korban 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [import] file dummy 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) - Data Korban 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [import] file dummy 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) - Data Korban 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [import] file dummy 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) - Data Korban 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [import] file dummy 'Supersafe - Safety(Leading Indicator - Incident Investigation Form) - Data Korban 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [upload] 'Lampiran Biaya' <- dummy_upload.png (67 byte)
+  [upload] 'Lampiran Sketsa/Gambar' <- dummy_upload.png (67 byte)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Initial Incident/Accident]   [import] file dummy 'Supersafe - Safety(Leading Indicator - Initial IncidentAccident Report) - Laporan Awal Insiden 00010101 (11).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Witness Statement]   [import] file dummy 'Supersafe - Safety(Leading Indicator - Witness Statement Report) - Pertanyaan Wawancara 00010101 (5).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+  [import] file dummy 'Supersafe - Safety(Leading Indicator - Witness Statement Report) - Pertanyaan Wawancara 00010101 (5).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [columns] item 'Settings' diklik -> modal Freeze Column dibuka & ditutup
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Emergency Drill Daily]   [import] file dummy 'Supersafe - Safety(Leading Indicator -  EMERGENCY DRILL Daily) - Emergency Drill Daily 00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Master Alat Keselamatan]   [import] file dummy 'Supersafe - Safety(Leading Indicator - Master Alat keselamatan Operasi) - Master Alat 00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[SOC Recapitulation]   [import] file dummy 'Supersafe - Safety(Leading Indicator -  SOC RECAPITULATION) - SOC Recapitulation 00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Golden Rules]   [import] file dummy 'Supersafe - Safety(Leading Indicator -  GOLDEN RULES) - Golden Rules Daily 00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Data Rekap Statistik K3]   [import] file dummy 'Supersafe - Safety(Lagging Indicator - Data Rekap Statistik K3) - Severity Rate 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [import] file dummy 'Supersafe - Safety(Lagging Indicator - Data Rekap Statistik K3) - Severity Rate 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [import] file dummy 'Supersafe - Safety(Lagging Indicator - Data Rekap Statistik K3) - Severity Rate 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+  [import] file dummy 'Supersafe - Safety(Lagging Indicator - Data Rekap Statistik K3) - Severity Rate 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[KKP/P2K3 Committee Meeting]   [import] file dummy 'Supersafe - Safety(Leading Indicator -  SAFETYKKPP2K3 COMMITTEE MEETING ) - SAFETYKKPP2K3 COMMITTEE MEETING  00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[MWT Daily]   [import] file dummy 'Supersafe - Safety(Leading Indicator -  MWT DAILY) - TMWT Daily 00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Leading Indicator]   [import] file dummy 'Supersafe - Safety(Leading Indicator) - Leading Indicator 00010101 (12).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[Statistic Safety Recap]   [import] file dummy 'Supersafe - Safety(Lagging Indicator - Statistic Safety Recapitulation) - Recapitulation Statistic 00010101 (6).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[SMK3]   [import] file dummy 'Supersafe - Safety(Lagging Indicator - SMK3) - SMK3 00010101 (14).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[SMKP]   [import] file dummy 'Supersafe - Safety(Lagging Indicator - SMKP) - SMKP 00010101 (14).xlsx' terpasang -- TIDAK dikirim ke server (aman)
+
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Data Rekap Statistik K3] 
+[CAKUPAN DataTables] 'data_rekap_statistik_k3': diuji = sort, show/hide kolom | dilewati = pagination (data cuma 1 halaman); search (tidak ada nilai >=3 karakter untuk jadi token)
+
+V [Safety - Interaksi DataTables [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Emergency Drill Daily] 
+[CAKUPAN DataTables] 'emergency_drill_daily': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Emergency Drill Recap] 
+[CAKUPAN DataTables] 'emergency_drill_recap': diuji = search, show/hide kolom | dilewati = sort (butuh kolom sortable + >=2 baris data); pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Golden Rules] 
+[CAKUPAN DataTables] 'golden_rules': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Golden Rules Recap] 
+[CAKUPAN DataTables] 'golden_rules_recap': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Incident Investigation] 
+[CAKUPAN DataTables] 'incident_investigation_form': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Initial Incident/Accident] 
+[CAKUPAN DataTables] 'initial_incident_accident_report': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Lagging Indicator] 
+[CAKUPAN DataTables] 'lagging_indicator': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Leading Indicator] 
+[CAKUPAN DataTables] 'leading_indicator': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Master Alat Keselamatan] 
+[CAKUPAN DataTables] 'master_alat_keselamatan_operasi': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[MWT Daily] 
+[CAKUPAN DataTables] 'mwt_daily': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[MWT Recapitulation] 
+[CAKUPAN DataTables] 'mwt_recapitulation': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[KKP/P2K3 Committee Meeting] 
+[CAKUPAN DataTables] 'safety_kkp_p2k3_committee_meeting': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[SMK3] 
+[CAKUPAN DataTables] 'smk3': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[SMKP] 
+[CAKUPAN DataTables] 'smkp': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[SOC Recapitulation] 
+[CAKUPAN DataTables] 'soc_recapitulation': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Statistic Safety Recap] 
+[CAKUPAN DataTables] 'statistic_safety_recapitulation': diuji = sort, search, show/hide kolom | dilewati = pagination (data cuma 1 halaman)
+
+V [Safety - Interaksi DataTables [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_datatables_interaksi[Witness Statement] 
+[CAKUPAN DataTables] 'witness_statement_report': diuji = show/hide kolom | dilewati = sort (butuh kolom sortable + >=2 baris data); pagination (data cuma 1 halaman); search (grid tidak punya baris data)
+
+V [Safety - Interaksi DataTables [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Data Rekap Statistik K3] 
+V [Safety - Verifikasi Isi Export [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Emergency Drill Daily] 
+V [Safety - Verifikasi Isi Export [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Emergency Drill Recap] 
+V [Safety - Verifikasi Isi Export [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Golden Rules] 
+V [Safety - Verifikasi Isi Export [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Golden Rules Recap] 
+V [Safety - Verifikasi Isi Export [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Initial Incident/Accident] 
+V [Safety - Verifikasi Isi Export [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Lagging Indicator] 
+V [Safety - Verifikasi Isi Export [Lagging Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Leading Indicator] 
+V [Safety - Verifikasi Isi Export [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Master Alat Keselamatan] 
+V [Safety - Verifikasi Isi Export [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[MWT Daily] 
+V [Safety - Verifikasi Isi Export [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[MWT Recapitulation] 
+V [Safety - Verifikasi Isi Export [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[KKP/P2K3 Committee Meeting] 
+V [Safety - Verifikasi Isi Export [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[SMK3] 
+[STATE PENDING] 'smk3' dibuka dalam keadaan SUDAH punya perubahan pending (banner 'stored locally'), padahal test ini belum mengedit apa pun.
+  Key penyimpanan browser saat ini (18): local:dr_1316_AT10_20260901 (5644 char), local:yr_list_izni4567@gmail.com (16 char), local:dr_list_izni4567@gmail.com (16 char), local:dr_1315_AT10_20260101 (22383 char), local:dr_1313_AT10_20260101 (7035 char), local:dr_1319_AT10_20260901 (4479 char), local:dr_1317_AT10_20260901 (21302 char), local:sr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20260907 (7485 char), local:dr_1336_AT10_20260907 (96 char), local:dr_1312_AT10_20260901 (4937 char), local:dr_1309_AT10_20000101 (10598 char), local:dr_1308_AT10_20260101 (18824 char), local:dr_1307_AT10_20260101 (9500 char), local:dr_1321_AT10_20000101 (4412 char), local:dr_1310_AT10_20260101 (12752 char), local:dr_1334_AT10_20260907 (10185 char), local:mr_list_izni4567@gmail.com (16 char)
+
+V [Safety - Verifikasi Isi Export [SMK3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[SMKP] 
+V [Safety - Verifikasi Isi Export [SMKP]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[SOC Recapitulation] 
+V [Safety - Verifikasi Isi Export [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Statistic Safety Recap] 
+V [Safety - Verifikasi Isi Export [Statistic Safety Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_export_isi_file[Witness Statement] 
+- [Safety - Verifikasi Isi Export [Witness Statement]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_export_isi_file[Witness Statement]_20260907_165256.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1336
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Incident Investigation] 
+V [Safety - Leading (Alur Menengah) [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Initial Incident/Accident] 
+V [Safety - Leading (Alur Menengah) [Initial Incident/Accident]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Witness Statement] 
+[STATE PENDING] 'witness_statement_report' dibuka dalam keadaan SUDAH punya perubahan pending (banner 'stored locally'), padahal test ini belum mengedit apa pun.
+  Key penyimpanan browser saat ini (19): local:dr_1316_AT10_20260901 (5644 char), local:yr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20250907 (86 char), local:dr_1334_AT10_20250907 (136 char), local:dr_list_izni4567@gmail.com (16 char), local:dr_1315_AT10_20260101 (22383 char), local:dr_1313_AT10_20260101 (7035 char), local:dr_1319_AT10_20260901 (4479 char), local:dr_1317_AT10_20260901 (21302 char), local:sr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20260907 (7485 char), local:dr_1336_AT10_20260907 (96 char), local:dr_1312_AT10_20260901 (4937 char), local:dr_1309_AT10_20000101 (10598 char), local:dr_1308_AT10_20260101 (18824 char), local:dr_1307_AT10_20260101 (9500 char), local:dr_1321_AT10_20000101 (4412 char), local:dr_1310_AT10_20260101 (12752 char), local:mr_list_izni4567@gmail.com (16 char)
+
+V [Safety - Leading (Alur Menengah) [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Emergency Drill Daily] 
+V [Safety - Leading (Alur Menengah) [Emergency Drill Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[SOC Recapitulation] 
+V [Safety - Leading (Alur Menengah) [SOC Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Golden Rules] 
+V [Safety - Leading (Alur Menengah) [Golden Rules]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Data Rekap Statistik K3] 
+V [Safety - Leading (Alur Menengah) [Data Rekap Statistik K3]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[KKP/P2K3 Committee Meeting] 
+V [Safety - Leading (Alur Menengah) [KKP/P2K3 Committee Meeting]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[MWT Daily] 
+V [Safety - Leading (Alur Menengah) [MWT Daily]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Leading Indicator] 
+V [Safety - Leading (Alur Menengah) [Leading Indicator]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_leading_deep[Master Alat Keselamatan] 
+[STATE PENDING] 'master_alat_keselamatan_operasi' dibuka dalam keadaan SUDAH punya perubahan pending (banner 'stored locally'), padahal test ini belum mengedit apa pun.
+  Key penyimpanan browser saat ini (23): local:dr_1316_AT10_20260901 (5644 char), local:yr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20250907 (86 char), local:dr_1334_AT10_20250907 (136 char), local:dr_1336_AT10_20250907 (96 char), local:dr_list_izni4567@gmail.com (16 char), local:dr_1316_AT10_20250901 (86 char), local:dr_1315_AT10_20260101 (22383 char), local:dr_1313_AT10_20260101 (7035 char), local:dr_1319_AT10_20260901 (4479 char), local:dr_1317_AT10_20260901 (21302 char), local:sr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20260907 (7485 char), local:dr_1336_AT10_20260907 (96 char), local:dr_1312_AT10_20260901 (4937 char), local:dr_1309_AT10_20000101 (10598 char), local:dr_1308_AT10_20260101 (18824 char), local:dr_1307_AT10_20260101 (9500 char), local:dr_1321_AT10_20000101 (4412 char), local:dr_1310_AT10_20260101 (12752 char), local:dr_1315_AT10_20250101 (22383 char), local:dr_1310_AT10_20250101 (86 char), local:mr_list_izni4567@gmail.com (16 char)
+
+V [Safety - Leading (Alur Menengah) [Master Alat Keselamatan]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[Emergency Drill Daily] 
+- [Safety - Validasi Form Wajib [Emergency Drill Daily]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[Emergency Drill Daily]_20260907_165520.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[Golden Rules] 
+- [Safety - Validasi Form Wajib [Golden Rules]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[Golden Rules]_20260907_165520.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/StaticReport/Edit?Id=1321
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[Incident Investigation] 
+V [Safety - Validasi Form Wajib [Incident Investigation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[Initial Incident/Accident] 
+- [Safety - Validasi Form Wajib [Initial Incident/Accident]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[Initial Incident_Accident]_20260907_165529.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[Master Alat Keselamatan] 
+- [Safety - Validasi Form Wajib [Master Alat Keselamatan]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[Master Alat Keselamatan]_20260907_165530.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[MWT Daily] 
+- [Safety - Validasi Form Wajib [MWT Daily]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[MWT Daily]_20260907_165530.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[KKP/P2K3 Committee Meeting] 
+- [Safety - Validasi Form Wajib [KKP/P2K3 Committee Meeting]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[KKP_P2K3 Committee Meeting]_20260907_165531.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[SOC Recapitulation] 
+- [Safety - Validasi Form Wajib [SOC Recapitulation]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_create_form_validasi[SOC Recapitulation]_20260907_165531.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/DailyReport/Edit?Id=1334
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_create_form_validasi[Witness Statement] 
+V [Safety - Validasi Form Wajib [Witness Statement]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[Lagging Indicator] 
+- [Safety - Ganti Filter Unit [Lagging Indicator]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_filter_unit_ganti[Lagging Indicator]_20260907_165538.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/View?Id=1306
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[Golden Rules Recap] 
+V [Safety - Ganti Filter Unit [Golden Rules Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[Emergency Drill Recap] 
+V [Safety - Ganti Filter Unit [Emergency Drill Recap]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[MWT Recapitulation] 
+V [Safety - Ganti Filter Unit [MWT Recapitulation]] berhasil
+PASSED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[SMK3] 
+[STATE PENDING] 'smk3' dibuka dalam keadaan SUDAH punya perubahan pending (banner 'stored locally'), padahal test ini belum mengedit apa pun.
+  Key penyimpanan browser saat ini (22): local:dr_1316_AT10_20260901 (5644 char), local:yr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20250907 (86 char), local:dr_list_izni4567@gmail.com (16 char), local:dr_1316_AT10_20250901 (86 char), local:dr_1315_AT10_20260101 (22383 char), local:dr_1313_AT10_20260101 (7035 char), local:dr_1319_AT10_20260901 (4479 char), local:dr_1317_AT10_20260901 (21302 char), local:sr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20260907 (7485 char), local:dr_1336_AT10_20260907 (96 char), local:dr_1312_AT10_20260901 (4937 char), local:dr_1309_AT10_20000101 (10598 char), local:dr_1308_AT10_20260101 (18824 char), local:dr_1307_AT10_20260101 (9500 char), local:dr_1321_AT10_20000101 (4412 char), local:dr_1310_AT10_20260101 (12752 char), local:dr_1334_AT10_20260907 (10185 char), local:dr_1315_AT10_20250101 (22383 char), local:dr_1310_AT10_20250101 (86 char), local:mr_list_izni4567@gmail.com (16 char)
+
+- [Safety - Ganti Filter Unit [SMK3]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_filter_unit_ganti[SMK3]_20260907_165553.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1308
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[SMKP] 
+- [Safety - Ganti Filter Unit [SMKP]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_filter_unit_ganti[SMKP]_20260907_165556.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/YearlyReport/Edit?Id=1307
+SKIPPED
+tests/test_safety.py::TestSafetyHss::test_safety_filter_unit_ganti[Statistic Safety Recap] 
+[STATE PENDING] 'statistic_safety_recapitulation' dibuka dalam keadaan SUDAH punya perubahan pending (banner 'stored locally'), padahal test ini belum mengedit apa pun.
+  Key penyimpanan browser saat ini (22): local:dr_1316_AT10_20260901 (5644 char), local:yr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20250907 (86 char), local:dr_list_izni4567@gmail.com (16 char), local:dr_1316_AT10_20250901 (86 char), local:dr_1315_AT10_20260101 (22383 char), local:dr_1313_AT10_20260101 (7035 char), local:dr_1319_AT10_20260901 (4479 char), local:dr_1317_AT10_20260901 (21302 char), local:sr_list_izni4567@gmail.com (16 char), local:dr_1335_AT10_20260907 (7485 char), local:dr_1336_AT10_20260907 (96 char), local:dr_1312_AT10_20260901 (4937 char), local:dr_1309_AT10_20000101 (10598 char), local:dr_1308_AT10_20260101 (18824 char), local:dr_1307_AT10_20260101 (9500 char), local:dr_1321_AT10_20000101 (4412 char), local:dr_1310_AT10_20260101 (12752 char), local:dr_1334_AT10_20260907 (10185 char), local:dr_1315_AT10_20250101 (22383 char), local:dr_1310_AT10_20250101 (86 char), local:mr_list_izni4567@gmail.com (16 char)
+
+- [Safety - Ganti Filter Unit [Statistic Safety Recap]] DILEWATI
+
+[SCREENSHOT SAAT GAGAL] C:\Users\Amira\OneDrive\Documents\a\Automation-Testing\reports\screenshots\test_safety_filter_unit_ganti[Statistic Safety Recap]_20260907_165600.png
+[URL SAAT GAGAL] https://dev-opel.antm.tech/Reporting/Timesheet/MonthlyReport/Edit?Id=1317
+SKIPPED
+========================================
+       AUTOMATION TESTING RESULT
+========================================
+
+V [Safety - Navigasi Menu] berhasil
+V [Safety - Lagging Indicator (View)] berhasil
+V [Safety - Golden Rules Recap (View)] berhasil
+V [Safety - Emergency Drill Recap (View)] berhasil
+V [Safety - MWT Recapitulation (View)] berhasil
+V [Safety - Safety Recap (View)] berhasil
+V [Safety - Incident Investigation Form] berhasil
+V [Safety - Incident Investigation (Tab)] berhasil
+V [Safety - Initial Incident/Accident Report] berhasil
+V [Safety - Witness Statement Report] berhasil
+V [Safety - Emergency Drill Daily] berhasil
+V [Safety - Master Alat Keselamatan Operasi] berhasil
+V [Safety - Master Alat (Create with Form)] berhasil
+V [Safety - Master Alat (Delete)] berhasil
+V [Safety - SOC Recapitulation] berhasil
+V [Safety - Golden Rules] berhasil
+V [Safety - Data Rekap Statistik K3] berhasil
+V [Safety - SAFETY/KKP/P2K3 Committee Meeting] berhasil
+V [Safety - MWT Daily] berhasil
+V [Safety - Leading Indicator] berhasil
+V [Safety - Statistic Safety Recapitulation] berhasil
+V [Safety - SMK3] berhasil
+V [Safety - SMKP] berhasil
+- [Safety - Lagging (Semua Fitur) [statistic_safety_recapitulation]] DILEWATI
+V [Safety - Lagging (Semua Fitur) [smk3]] berhasil
+V [Safety - Lagging (Semua Fitur) [smkp]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Lagging Indicator]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Golden Rules Recap]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Emergency Drill Recap]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [MWT Recapitulation]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Safety Recap]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Incident Investigation]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Initial Incident/Accident]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Witness Statement]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Emergency Drill Daily]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Master Alat Keselamatan]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [SOC Recapitulation]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Golden Rules]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Data Rekap Statistik K3]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [MWT Daily]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Leading Indicator]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [Statistic Safety Recap]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [SMK3]] berhasil
+V [Safety - Halaman Lengkap (Tabel+Tab+Tombol) [SMKP]] berhasil
+V [Safety - Interaksi DataTables [Data Rekap Statistik K3]] berhasil
+V [Safety - Interaksi DataTables [Emergency Drill Daily]] berhasil
+V [Safety - Interaksi DataTables [Emergency Drill Recap]] berhasil
+V [Safety - Interaksi DataTables [Golden Rules]] berhasil
+V [Safety - Interaksi DataTables [Golden Rules Recap]] berhasil
+V [Safety - Interaksi DataTables [Incident Investigation]] berhasil
+V [Safety - Interaksi DataTables [Initial Incident/Accident]] berhasil
+V [Safety - Interaksi DataTables [Lagging Indicator]] berhasil
+V [Safety - Interaksi DataTables [Leading Indicator]] berhasil
+V [Safety - Interaksi DataTables [Master Alat Keselamatan]] berhasil
+V [Safety - Interaksi DataTables [MWT Daily]] berhasil
+V [Safety - Interaksi DataTables [MWT Recapitulation]] berhasil
+V [Safety - Interaksi DataTables [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Interaksi DataTables [SMK3]] berhasil
+V [Safety - Interaksi DataTables [SMKP]] berhasil
+V [Safety - Interaksi DataTables [SOC Recapitulation]] berhasil
+V [Safety - Interaksi DataTables [Statistic Safety Recap]] berhasil
+V [Safety - Interaksi DataTables [Witness Statement]] berhasil
+V [Safety - Verifikasi Isi Export [Data Rekap Statistik K3]] berhasil
+V [Safety - Verifikasi Isi Export [Emergency Drill Daily]] berhasil
+V [Safety - Verifikasi Isi Export [Emergency Drill Recap]] berhasil
+V [Safety - Verifikasi Isi Export [Golden Rules]] berhasil
+V [Safety - Verifikasi Isi Export [Golden Rules Recap]] berhasil
+V [Safety - Verifikasi Isi Export [Initial Incident/Accident]] berhasil
+V [Safety - Verifikasi Isi Export [Lagging Indicator]] berhasil
+V [Safety - Verifikasi Isi Export [Leading Indicator]] berhasil
+V [Safety - Verifikasi Isi Export [Master Alat Keselamatan]] berhasil
+V [Safety - Verifikasi Isi Export [MWT Daily]] berhasil
+V [Safety - Verifikasi Isi Export [MWT Recapitulation]] berhasil
+V [Safety - Verifikasi Isi Export [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Verifikasi Isi Export [SMK3]] berhasil
+V [Safety - Verifikasi Isi Export [SMKP]] berhasil
+V [Safety - Verifikasi Isi Export [SOC Recapitulation]] berhasil
+V [Safety - Verifikasi Isi Export [Statistic Safety Recap]] berhasil
+- [Safety - Verifikasi Isi Export [Witness Statement]] DILEWATI
+V [Safety - Leading (Alur Menengah) [Incident Investigation]] berhasil
+V [Safety - Leading (Alur Menengah) [Initial Incident/Accident]] berhasil
+V [Safety - Leading (Alur Menengah) [Witness Statement]] berhasil
+V [Safety - Leading (Alur Menengah) [Emergency Drill Daily]] berhasil
+V [Safety - Leading (Alur Menengah) [SOC Recapitulation]] berhasil
+V [Safety - Leading (Alur Menengah) [Golden Rules]] berhasil
+V [Safety - Leading (Alur Menengah) [Data Rekap Statistik K3]] berhasil
+V [Safety - Leading (Alur Menengah) [KKP/P2K3 Committee Meeting]] berhasil
+V [Safety - Leading (Alur Menengah) [MWT Daily]] berhasil
+V [Safety - Leading (Alur Menengah) [Leading Indicator]] berhasil
+V [Safety - Leading (Alur Menengah) [Master Alat Keselamatan]] berhasil
+- [Safety - Validasi Form Wajib [Emergency Drill Daily]] DILEWATI
+- [Safety - Validasi Form Wajib [Golden Rules]] DILEWATI
+V [Safety - Validasi Form Wajib [Incident Investigation]] berhasil
+- [Safety - Validasi Form Wajib [Initial Incident/Accident]] DILEWATI
+- [Safety - Validasi Form Wajib [Master Alat Keselamatan]] DILEWATI
+- [Safety - Validasi Form Wajib [MWT Daily]] DILEWATI
+- [Safety - Validasi Form Wajib [KKP/P2K3 Committee Meeting]] DILEWATI
+- [Safety - Validasi Form Wajib [SOC Recapitulation]] DILEWATI
+V [Safety - Validasi Form Wajib [Witness Statement]] berhasil
+- [Safety - Ganti Filter Unit [Lagging Indicator]] DILEWATI
+V [Safety - Ganti Filter Unit [Golden Rules Recap]] berhasil
+V [Safety - Ganti Filter Unit [Emergency Drill Recap]] berhasil
+V [Safety - Ganti Filter Unit [MWT Recapitulation]] berhasil
+- [Safety - Ganti Filter Unit [SMK3]] DILEWATI
+- [Safety - Ganti Filter Unit [SMKP]] DILEWATI
+- [Safety - Ganti Filter Unit [Statistic Safety Recap]] DILEWATI
+
+========================================
+TOTAL TEST : 107
+PASSED     : 94
+SKIPPED    : 13
+FAILED     : 0
+STATUS     : PASSED
+========================================
+
+
+- Generated html report: file:///C:/Users/Amira/OneDrive/Documents/a/Automation-Testing/reports/run_20260907_1626.html -
+========== 94 passed, 13 skipped, 1 deselected in 1765.44s (0:29:25) ==========
