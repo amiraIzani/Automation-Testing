@@ -13,3 +13,16 @@ venv/
 # nyangkut ke commit berikutnya.
 reports/downloads/
 reports/screenshots/
+
+# Laporan pytest-html DEFAULT (dituju --html di pytest.ini) ditimpa
+# SETIAP kali pytest jalan, termasuk run 1 test -- jadi isinya belum
+# tentu run yang penting, dan bikin `git status` selalu kotor walau
+# tidak ada kode yang diubah. Di-untrack 2026-09-07.
+#
+# Arsip run yang PENTING tetap boleh masuk git: simpan dengan nama
+# bertanggal supaya tidak saling menimpa, mis.
+#   $stamp = Get-Date -Format "yyyyMMdd_HHmm"
+#   pytest -m safety --html="reports/run_$stamp.html" 2>&1 |
+#       Tee-Object "reports/run_$stamp.txt"
+# Pola reports/run_* SENGAJA tidak di-ignore.
+reports/report.html
