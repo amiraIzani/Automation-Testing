@@ -71,6 +71,7 @@ STEP_LABELS = [
     ("test_safety_export_isi_file", "Safety - Verifikasi Isi Export"),
     ("test_safety_create_form_validasi", "Safety - Validasi Form Wajib"),
     ("test_safety_filter_unit_ganti", "Safety - Ganti Filter Unit"),
+    ("test_safety_leading_deep", "Safety - Leading (Alur Menengah)"),
 ]
 
 # Hasil kumulatif: label -> bool (semua step modul lulus); urutan dict = urutan eksekusi.
@@ -86,7 +87,13 @@ def _label_for_step(item_name):
         if item_name.startswith(prefix + "["):
             param = item_name[len(prefix) + 1:-1]
             return f"{label} [{param}]"
-    return None
+    # Test TANPA entri STEP_LABELS dulu dikembalikan None dan hilang
+    # diam-diam dari kotak ringkasan: run 2026-09-07 menjalankan 29 test
+    # (23 passed, 6 skipped) tapi kotaknya cuma menghitung 18 -- 11
+    # test_safety_leading_deep raib karena belum punya label. Sekarang
+    # jatuh ke nama mentahnya supaya jumlah di kotak selalu sama dengan
+    # jumlah yang benar-benar dijalankan pytest.
+    return item_name
 
 
 # -------------------- Fixture: driver (session-scoped -> 1 browser) --------------------
@@ -166,10 +173,17 @@ def pytest_runtest_makereport(item, call):
     if report.when == "call":
         label = _label_for_step(item.name)
         if label:
-            ok = bool(report.passed)
-            _step_results[label] = ok
-            mark = "V" if ok else "X"
-            ket = "berhasil" if ok else "GAGAL"
+            # PENTING: skip (pytest.skip()) juga punya report.passed ==
+            # False -- kalau cuma dicek bool(report.passed), skip ikut
+            # dicap "GAGAL" di kotak ringkasan (ketemu 2026-09-04: box
+            # bilang GAGAL padahal pytest sendiri bilang "1 skipped",
+            # bukan failed). Bedakan 3 keadaan biar akurat.
+            state = ("skipped" if report.skipped
+                     else "passed" if report.passed else "failed")
+            _step_results[label] = state
+            mark = {"passed": "V", "skipped": "-", "failed": "X"}[state]
+            ket = {"passed": "berhasil", "skipped": "DILEWATI",
+                   "failed": "GAGAL"}[state]
             print(f"\n{mark} [{label}] {ket}")
 
     if report.when == "call" and (report.failed or report.skipped):
@@ -209,16 +223,18 @@ def pytest_sessionfinish(session, exitstatus):
         return
 
     total = len(_step_results)
-    passed = sum(1 for ok in _step_results.values() if ok)
-    failed = total - passed
+    passed = sum(1 for s in _step_results.values() if s == "passed")
+    skipped = sum(1 for s in _step_results.values() if s == "skipped")
+    failed = sum(1 for s in _step_results.values() if s == "failed")
     status = "PASSED" if failed == 0 else "FAILED"
 
+    mark_map = {"passed": "V", "skipped": "-", "failed": "X"}
+    ket_map = {"passed": "berhasil", "skipped": "DILEWATI", "failed": "GAGAL"}
     sep = "=" * 40
     lines = [sep, "       AUTOMATION TESTING RESULT", sep, ""]
-    for label, ok in _step_results.items():
-        mark = "V" if ok else "X"
-        ket = "berhasil" if ok else "GAGAL"
-        lines.append(f"{mark} [{label}] {ket}")
+    for label, state in _step_results.items():
+        lines.append(f"{mark_map[state]} [{label}] {ket_map[state]}")
     lines += ["", sep, f"TOTAL TEST : {total}", f"PASSED     : {passed}",
-              f"FAILED     : {failed}", f"STATUS     : {status}", sep]
+              f"SKIPPED    : {skipped}", f"FAILED     : {failed}",
+              f"STATUS     : {status}", sep]
     print("\n" + "\n".join(lines))

@@ -5,3 +5,11 @@ __pycache__/
 venv/
 .venv/
 .claude/settings.local.json
+
+# Artifact yang di-generate ULANG tiap run test -- bukan sumber, cuma
+# numpuk terus kalau di-commit (2026-09-04, "growing debt" -- lihat
+# README). File yang SUDAH ke-track sebelumnya TIDAK kena ignore ini
+# (git tidak retroaktif un-track); ini cuma mencegah file BARU
+# nyangkut ke commit berikutnya.
+reports/downloads/
+reports/screenshots/

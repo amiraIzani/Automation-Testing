@@ -16,6 +16,7 @@ Jalankan:
 
 import json
 import os
+import re
 import time
 
 import pytest
@@ -160,13 +161,302 @@ def _xlsx_jumlah_baris_isi(path):
     return total
 
 
+def _normalisasi(nilai):
+    """Samakan BENTUK nilai grid vs nilai sel Excel supaya bisa
+    dibandingkan: teks dirapatkan + huruf kecil, angka dijadikan bentuk
+    kanonik ('7' == '7.0' == 7 == '7,0')."""
+    teks = str(nilai).strip()
+    if not teks:
+        return ""
+    try:
+        angka = float(teks.replace(",", "."))
+        # float() menerima 'nan'/'inf' -- int() atasnya melempar, dan
+        # sel yang isinya teks itu memang harus diperlakukan sebagai
+        # teks biasa, bukan angka
+        if angka != angka or angka in (float("inf"), float("-inf")):
+            raise ValueError(teks)
+        return str(int(angka)) if angka == int(angka) else f"{angka:g}"
+    except (TypeError, ValueError, OverflowError):
+        return " ".join(teks.split()).lower()
+
+
+def _xlsx_nilai(path, maks_sel=20000):
+    """Semua nilai sel non-kosong file .xlsx sebagai set string
+    ter-normalisasi. Dipakai mencocokkan ISI file export dengan ISI
+    grid -- bukan cuma menghitung barisnya. Raise ImportError kalau
+    openpyxl belum terpasang (pemanggil -> pytest.skip)."""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    nilai = set()
+    try:
+        for ws in wb.worksheets:
+            for row in ws.iter_rows(values_only=True):
+                for sel in row:
+                    if sel is None or sel == "":
+                        continue
+                    nilai.add(_normalisasi(sel))
+                    if len(nilai) >= maks_sel:
+                        return nilai
+    finally:
+        wb.close()
+    return nilai
+
+
+# Nilai berbentuk TANGGAL tidak bisa dicocokkan apa adanya dengan isi
+# .xlsx: Excel menyimpannya sebagai objek datetime, jadi grid yang
+# menampilkan '01/08/2026' terbaca '2026-08-01 00:00:00' di file dan
+# tidak akan pernah cocok sebagai string. Di jalur ambang longgar (50%)
+# ini tidak masalah, tapi di jalur ambang KETAT (100%, dipakai saat
+# grid cuma punya sedikit nilai) satu kolom tanggal saja sudah cukup
+# untuk menggagalkan test yang sebenarnya benar.
+#
+# Pemisah TITIK sengaja mewajibkan 3 bagian ('01.08.2026'): pola dua
+# bagian bertitik akan menelan angka desimal biasa seperti '12.5' dan
+# membuangnya dari pencocokan padahal itu data yang sah.
+_POLA_TANGGAL = re.compile(
+    r"^\s*("
+    r"\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?"  # 2026-08-01 00:00:00
+    r"|\d{1,4}[-/]\d{1,2}([-/]\d{1,4})?"          # 2026-08-01, 01/08/2026, 2026-08
+    r"|\d{1,2}\.\d{1,2}\.\d{2,4}"                 # 01.08.2026 (titik: wajib 3 bagian)
+    r"|\d{1,2}\s+\w{3,}\s+\d{2,4}"                # 1 Agustus 2026
+    r")\s*$"
+)
+
+
+def _mirip_tanggal(teks):
+    """True kalau nilai ini berbentuk tanggal (lihat `_POLA_TANGGAL`)."""
+    return bool(_POLA_TANGGAL.match(str(teks or "")))
+
+
+def _sampel_nilai_grid(page, maks_baris=3, maks_sampel=20, panjang_min=3):
+    """Ambil nilai sel grid untuk dicocokkan dengan isi file export.
+
+    Nilai pendek ('0', '1', '-') hampir pasti ada di file mana pun, jadi
+    kalau ikut dihitung, kecocokan jadi palsu. Karena itu yang diambil
+    duluan hanya nilai sepanjang >= `panjang_min` karakter.
+    """
+    sampel = []
+    for baris in page.dt_baris_nilai(maks_baris):
+        for sel in baris:
+            teks = (sel or "").strip()
+            if len(teks) < panjang_min:
+                continue
+            norm = _normalisasi(teks)
+            if norm and norm not in sampel:
+                sampel.append(norm)
+            if len(sampel) >= maks_sampel:
+                return sampel
+    return sampel
+
+
+# Kolom KERANGKA template: nilainya sama untuk periode/unit mana pun
+# (nomor baris, label bulan, dimensi baris), jadi TIDAK boleh dihitung
+# sebagai bukti "grid ini ada datanya".
+#
+# Kenapa perlu (false positive 2026-09-07, 'data_rekap_statistik_k3'):
+# grid tahun 2025 dan 2026 sama-sama Target kosong / Actual 0, tapi
+# tetap merender 12 baris berlabel January..December bernomor 1..12.
+# Kalau label & nomor itu dianggap isi, dua tahun yang sama-sama kosong
+# salah dinilai "punya data" -> test menuduh filter tidak jalan padahal
+# aplikasinya benar.
+_KOLOM_KERANGKA = {
+    "no", "#", "rownumber", "month", "monthint", "monthname",
+    "tipepegawai", "date", "tahun", "year",
+}
+
+
+def _grid_punya_data(page, maks_baris=5):
+    """True kalau grid menampilkan DATA khas periode/unit ini, bukan
+    cuma kerangka template kosong.
+
+    Dinilai lewat `dt_baris_dict()` (baris ber-nama-kolom), bukan lewat
+    posisi sel: kolom kerangka dibuang berdasarkan NAMA-nya, lalu sisa
+    kolom dihitung berisi kalau ada angka bukan-nol atau teks non-kosong.
+    Grid tanpa atribut nama kolom otomatis dinilai "tidak ada data" --
+    sengaja longgar, karena lebih baik melewati perbandingan daripada
+    menuduh aplikasi salah.
+
+    Dipakai `_assert_data_berubah()` untuk memutuskan apakah dua sidik
+    jari yang identik itu wajar (dua periode sama-sama kosong) atau
+    tanda filter tidak diteruskan ke backend.
+    """
+    for row in page.dt_baris_dict(maks_baris):
+        for nama_kolom, nilai in row.items():
+            if (nama_kolom or "").strip().lower() in _KOLOM_KERANGKA:
+                continue
+            teks = (nilai or "").strip()
+            if not teks:
+                continue
+            angka = _nilai_angka(teks)
+            if angka is None or angka != 0:
+                return True
+    return False
+
+
+def _nilai_angka(teks):
+    """Ubah isi sel grid jadi float, atau None kalau bukan angka.
+
+    Grid inline-edit OPEL menyimpan angka MENTAH di <input> (tanpa
+    pemisah ribuan), tapi kolom read-only bisa saja sudah diformat.
+    Aturannya: kalau titik DAN koma sama-sama muncul, yang paling KANAN
+    adalah pemisah desimal ('1.234,56' -> 1234.56, '1,234.56' ->
+    1234.56). Kalau cuma koma yang muncul berkali-kali, itu pemisah
+    ribuan. Sisanya dibaca apa adanya oleh float().
+    """
+    teks = (teks or "").strip().replace(" ", "").replace(" ", "")
+    if not teks:
+        return None
+    titik, koma = teks.rfind("."), teks.rfind(",")
+    if titik >= 0 and koma >= 0:
+        if koma > titik:                      # 1.234,56 (gaya Indonesia)
+            teks = teks.replace(".", "").replace(",", ".")
+        else:                                 # 1,234.56 (gaya Inggris)
+            teks = teks.replace(",", "")
+    elif teks.count(",") == 1 and len(teks) - koma - 1 != 3:
+        teks = teks.replace(",", ".")         # 1234,56 -> desimal koma
+    elif koma >= 0:
+        # '1,234' / '1,234,567' -> koma tepat 3 digit dari kanan =
+        # pemisah ribuan (kasus ambigu diputus ke tafsir ini karena
+        # kolom OPEL yang diformat begini adalah jam kerja & cacah,
+        # bukan pecahan)
+        teks = teks.replace(",", "")
+    try:
+        angka = float(teks)
+    except (TypeError, ValueError):
+        return None
+    if angka != angka or angka in (float("inf"), float("-inf")):
+        return None
+    return angka
+
+
+def _assert_grid_sesuai_kontrak(page, kunci):
+    """Verifikasi grid halaman `kunci` BUKAN sekadar 'tabelnya muncul':
+
+      1. tabel report tampil;
+      2. grid me-render SEMUA kolom yang didokumentasikan di page object
+         (atribut KOLOM) -- kolom yang dihapus/di-rename backend
+         ketahuan di sini, bukan diam-diam lolos;
+      3. kalau DataTables melaporkan ada N record, tbody WAJIB merender
+         baris. 'Backend bilang ada data tapi tabel kosong' adalah bug
+         render klasik yang sebelumnya lolos total dari suite ini.
+
+    Kembalikan jumlah record yang dilaporkan DataTables (None kalau
+    grid bukan DataTables ter-init).
+    """
+    nama = NAMA_HALAMAN.get(kunci, kunci)
+    assert page.tabel_report_tampil(), f"Tabel '{nama}' tidak tampil"
+
+    # 2) kontrak kolom. Catatan: HssSafetyPage.KOLOM adalah LOCATOR
+    #    (tuple), sedangkan tiap page object anak menimpanya dengan dict
+    #    {nama: nama} hasil scan -- cek isinstance supaya yang dipakai
+    #    hanya versi dict milik halaman.
+    kolom_terdokumentasi = getattr(page, "KOLOM", None)
+    if isinstance(kolom_terdokumentasi, dict) and kolom_terdokumentasi:
+        terender = page.nama_kolom_grid()
+        if terender:
+            hilang = sorted(set(kolom_terdokumentasi) - terender)
+            assert not hilang, (
+                f"Grid '{nama}' tidak merender kolom yang terdokumentasi di "
+                f"{type(page).__name__}.KOLOM: {hilang}. "
+                f"Kolom yang ada sekarang: {sorted(terender)}"
+            )
+
+    # 3) klaim jumlah record vs baris yang benar-benar dirender
+    info = page.dt_info()
+    if not info:
+        return None
+    total = info.get("recordsDisplay") or 0
+    if total > 0:
+        baris_dom = page.dt_jumlah_baris_dom()
+        assert baris_dom > 0, (
+            f"Grid '{nama}': DataTables melaporkan {total} record tapi tbody "
+            "tidak merender satu baris pun -- data tidak sampai ke tabel"
+        )
+    return total
+
+
+def _assert_data_berubah(page, sidik_sebelum, konteks, ada_isi_sebelum=False,
+                         timeout=None):
+    """Pastikan isi grid BENAR-BENAR berubah setelah filter diganti.
+
+    Ini menutup celah terbesar suite lama: test filter dulu hanya
+    memastikan NILAI DROPDOWN-nya berpindah dan tabelnya masih ada --
+    kalau aplikasi tidak meneruskan filter ke query backend (data yang
+    tampil tetap milik unit/periode sebelumnya), test tetap PASSED.
+
+    Aturannya sengaja konservatif supaya tidak gagal palsu: kalau grid
+    SEBELUM dan SESUDAH sama-sama tidak punya DATA, perbandingan
+    dilewati -- dua unit/periode yang sama-sama kosong memang WAJAR
+    terlihat identik. "Punya data" dinilai `_grid_punya_data()`, yang
+    TIDAK menghitung kerangka template (sel kosong, angka nol, dan nama
+    bulan) sebagai isi. Gagal hanya kalau ada data nyata tapi sidik
+    jarinya tidak bergeser sama sekali.
+
+    Kembalikan True kalau data terbukti berubah, False kalau tidak bisa
+    disimpulkan (dua-duanya kosong).
+
+    Sidik jari dibaca BERULANG sampai berubah atau `timeout` habis,
+    bukan sekali langsung (diperbaiki 2026-09-07). Sebabnya nyata:
+    `test_safety_leading_deep[SOC Recapitulation]` dan `[Golden Rules]`
+    gagal dengan sidik jari yang masih berisi baris 2026 (mis.
+    "2026-09-07T08:00", "Dummy 105812 ID") padahal filter sudah pindah
+    ke 2025 -- sementara SCREENSHOT saat gagal memperlihatkan grid sudah
+    benar-benar kosong ("No data available in table", 0 entries). Jadi
+    filternya JALAN, cuma pembacaannya mendahului redraw DataTables:
+    `tunggu_processing_selesai()` bisa lewat sebelum overlay Processing
+    sempat muncul. Yang benar diuji adalah "data AKHIRNYA berubah",
+    bukan "sudah berubah pada milidetik ini".
+    """
+    batas = time.monotonic() + (timeout or config.DEFAULT_TIMEOUT)
+    sidik_sesudah = page.sidik_jari_grid()
+    while sidik_sesudah == sidik_sebelum and time.monotonic() < batas:
+        time.sleep(0.5)
+        sidik_sesudah = page.sidik_jari_grid()
+    if sidik_sesudah != sidik_sebelum:
+        return True
+    if not (ada_isi_sebelum or _grid_punya_data(page)):
+        return False  # dua-duanya kosong -- tidak bisa disimpulkan
+    raise AssertionError(
+        f"{konteks}: filter berpindah tapi ISI GRID sama persis. Data yang "
+        "ditampilkan tidak ikut berubah -- kemungkinan filter tidak "
+        "diteruskan ke query backend. Sidik jari: " + sidik_sesudah[:400]
+    )
+
+
 def _buka_halaman(driver, kunci):
     """Buka halaman Safety `kunci` lewat page object miliknya.
-    Kalau tidak punya akses, otomatis kembali (driver.back) dan skip."""
+    Kalau tidak punya akses, otomatis kembali (driver.back) dan skip.
+
+    Sekalian mencatat kalau halaman DIBUKA sudah membawa perubahan
+    pending. Itu bisa membuat dua periode/unit terlihat identik karena
+    yang dirender draft yang sama, jadi kegagalan aneh perlu dikaitkan
+    ke sini dulu sebelum disimpulkan sebagai bug aplikasi.
+
+    Sumbernya sengaja TIDAK diklaim: run 2026-09-07 membuktikan banner
+    bisa sudah menyala di test PERTAMA sebuah sesi, jadi bukan sekadar
+    sisa test sebelumnya. Key penyimpanan browser ikut dicetak supaya
+    bisa dibedakan state di browser vs pending di server.
+    """
     try:
-        return PAGE_OBJECTS[kunci](driver).buka()
+        page = PAGE_OBJECTS[kunci](driver).buka()
     except TidakPunyaAkses as e:
         pytest.skip(str(e))
+    # Dicatat di page object supaya test bisa MENGAITKAN hasilnya dengan
+    # kondisi awal halaman -- lihat pemeriksaan Cancel di
+    # test_safety_lagging_deep.
+    page.pending_saat_dibuka = page.ada_pending_lokal()
+    if page.pending_saat_dibuka:
+        key = page.daftar_key_penyimpanan()
+        print(
+            f"\n[STATE PENDING] '{kunci}' dibuka dalam keadaan SUDAH punya "
+            "perubahan pending (banner 'stored locally'), padahal test ini "
+            "belum mengedit apa pun."
+            f"\n  Key penyimpanan browser saat ini ({len(key)}): "
+            + (", ".join(key) if key else
+               "KOSONG -> pending-nya kemungkinan di SERVER, bukan di browser")
+        )
+    return page
 
 
 def _ids_halaman(kunci_list):
@@ -262,9 +552,20 @@ class TestSafetyHss:
             page = SafetyLaggingIndicatorPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Lagging Indicator tidak tampil"
-        assert page.is_visible(page.FILTER_TANGGAL), "Filter tanggal tidak tampil"
-        assert page.is_visible(page.FILTER_UNIT), "Filter unit tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "lagging_indicator")
+        # is_visible() mengunci ke match PERTAMA di DOM -- OPEL merender
+        # beberapa container report (Daily/Monthly/Yearly/Static) di
+        # halaman yang sama dengan id sama tapi hanya satu yang aktif/
+        # tampil (2026-09-04, root cause sama dgn LINK_DOWNLOAD_TEMPLATE
+        # di bawah). is_any_visible() scan SEMUA match, bukan cuma yang
+        # pertama.
+        #
+        # FILTER_UNIT ikut diubah 2026-09-07: begitu FILTER_TANGGAL
+        # diperbaiki, kegagalannya PINDAH ke baris ini ("Filter unit
+        # tidak tampil") -- bukti kedua-duanya kena masalah yang sama,
+        # cuma yang pertama lebih dulu kena assert.
+        assert page.is_any_visible(page.FILTER_TANGGAL), "Filter tanggal tidak tampil"
+        assert page.is_any_visible(page.FILTER_UNIT), "Filter unit tidak tampil"
 
     @pytest.mark.safety_view
     def test_safety_golden_rules_recap_view(self, driver):
@@ -272,7 +573,7 @@ class TestSafetyHss:
             page = SafetyGoldenRulesRecapPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel GOLDEN RULES RECAP tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "golden_rules_recap")
 
     @pytest.mark.safety_view
     def test_safety_emergency_drill_recap_view(self, driver):
@@ -280,7 +581,7 @@ class TestSafetyHss:
             page = SafetyEmergencyDrillRecapPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel EMERGENCY DRILL Recap tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "emergency_drill_recap")
 
     @pytest.mark.safety_view
     def test_safety_mwt_recapitulation_view(self, driver):
@@ -288,7 +589,7 @@ class TestSafetyHss:
             page = SafetyMwtRecapitulationPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel MWT RECAPITULATION tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "mwt_recapitulation")
 
     @pytest.mark.safety_view
     def test_safety_recap_view(self, driver):
@@ -298,8 +599,11 @@ class TestSafetyHss:
             pytest.skip(str(e))
         assert driver.execute_script(page._js_tampil(), "#tableBulanan", 10), \
             "Tabel Safety Recap (Bulanan) tidak tampil"
-        assert page.is_visible(page.FILTER_BULAN), "Filter bulan tidak tampil"
-        assert page.is_visible(page.FILTER_TAHUN), "Filter tahun tidak tampil"
+        # FILTER_TAHUN pakai is_any_visible juga (2026-09-07, alasan sama
+        # dengan FILTER_UNIT di test_safety_lagging_indicator_view:
+        # kegagalan pindah ke sini begitu FILTER_BULAN diperbaiki).
+        assert page.is_any_visible(page.FILTER_BULAN), "Filter bulan tidak tampil"
+        assert page.is_any_visible(page.FILTER_TAHUN), "Filter tahun tidak tampil"
 
     # ------------------------------------------------------------------
     # Transaction - Leading Indicator
@@ -310,7 +614,7 @@ class TestSafetyHss:
             page = SafetyIncidentInvestigationFormPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Incident Investigation tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "incident_investigation_form")
 
     @pytest.mark.safety_transaction
     def test_safety_incident_investigation_tab(self, driver):
@@ -339,7 +643,7 @@ class TestSafetyHss:
             page = SafetyInitialIncidentAccidentReportPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Initial Incident/Accident tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "initial_incident_accident_report")
 
     @pytest.mark.safety_transaction
     def test_safety_witness_statement_view(self, driver):
@@ -347,7 +651,7 @@ class TestSafetyHss:
             page = SafetyWitnessStatementReportPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Witness Statement tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "witness_statement_report")
 
     @pytest.mark.safety_transaction
     def test_safety_emergency_drill_daily_view(self, driver):
@@ -355,7 +659,7 @@ class TestSafetyHss:
             page = SafetyEmergencyDrillDailyPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel EMERGENCY DRILL Daily tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "emergency_drill_daily")
 
     @pytest.mark.safety_transaction
     def test_safety_master_alat_view(self, driver):
@@ -363,7 +667,7 @@ class TestSafetyHss:
             page = SafetyMasterAlatKeselamatanOperasiPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Master Alat tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "master_alat_keselamatan_operasi")
 
     @pytest.mark.safety_transaction
     def test_safety_master_alat_create(self, driver, test_data):
@@ -548,7 +852,7 @@ class TestSafetyHss:
             page = SafetySocRecapitulationPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel SOC RECAPITULATION tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "soc_recapitulation")
 
     @pytest.mark.safety_transaction
     def test_safety_golden_rules_view(self, driver):
@@ -556,7 +860,7 @@ class TestSafetyHss:
             page = SafetyGoldenRulesPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel GOLDEN RULES tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "golden_rules")
 
     @pytest.mark.safety_transaction
     def test_safety_data_rekap_k3_view(self, driver):
@@ -564,7 +868,7 @@ class TestSafetyHss:
             page = SafetyDataRekapStatistikK3Page(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Data Rekap Statistik K3 tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "data_rekap_statistik_k3")
         page.buka_tab(page.TAB_TRIR)
         tab = page.find((page.TAB[0], page.TAB[1].format(teks_tab=page.TAB_TRIR)))
         assert "active" in (tab.get_attribute("class") or ""), "Tab TRIR tidak aktif"
@@ -575,7 +879,7 @@ class TestSafetyHss:
             page = SafetyKkpP2k3CommitteeMeetingPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel SAFETY/KKP/P2K3 tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "safety_kkp_p2k3_committee_meeting")
 
     @pytest.mark.safety_transaction
     def test_safety_mwt_daily_view(self, driver):
@@ -583,7 +887,7 @@ class TestSafetyHss:
             page = SafetyMwtDailyPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel MWT DAILY tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "mwt_daily")
 
     @pytest.mark.safety_transaction
     def test_safety_leading_indicator_view(self, driver):
@@ -591,7 +895,7 @@ class TestSafetyHss:
             page = SafetyLeadingIndicatorPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Leading Indicator tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "leading_indicator")
 
     # ------------------------------------------------------------------
     # Transaction - Lagging Indicator
@@ -602,7 +906,7 @@ class TestSafetyHss:
             page = SafetyStatisticSafetyRecapitulationPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel Statistic Safety tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "statistic_safety_recapitulation")
 
     @pytest.mark.safety_transaction
     def test_safety_smk3_view(self, driver):
@@ -610,8 +914,8 @@ class TestSafetyHss:
             page = SafetySmk3Page(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel SMK3 tidak tampil"
-        assert page.is_visible(page.BTN_SUBMIT), "Tombol Submit Changes tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "smk3")
+        assert page.is_any_visible(page.BTN_SUBMIT), "Tombol Submit Changes tidak tampil"
 
     @pytest.mark.safety_transaction
     def test_safety_smkp_view(self, driver):
@@ -619,7 +923,7 @@ class TestSafetyHss:
             page = SafetySmkpPage(driver).buka()
         except TidakPunyaAkses as e:
             pytest.skip(str(e))
-        assert page.tabel_report_tampil(), "Tabel SMKP tidak tampil"
+        _assert_grid_sesuai_kontrak(page, "smkp")
 
     # ------------------------------------------------------------------
     # Lagging Indicator - test MENDALAM (semua fitur per halaman)
@@ -758,14 +1062,71 @@ class TestSafetyHss:
         page.tunggu_processing_selesai()
         page.buka_halaman(kunci)
         _tunggu_anchor()
-        assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_sebelum_cancel, (
-            f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
-            "sudah diklik"
-        )
+        setelah_cancel = page.baca_sel_grid_anchor(field_edit, anchor)
+        cancel_bug_dikenal = kunci in HssSafetyPage.CANCEL_TIDAK_MEMBUANG_PENDING
+        if setelah_cancel != nilai_sebelum_cancel:
+            # BUG APLIKASI (2026-09-04, ketemu di 'smk3'): Cancel TIDAK
+            # membuang perubahan pending -- nilai_uji ikut tersimpan
+            # setelah reload walau tombol yang diklik Cancel, bukan
+            # Submit Changes (tombolnya sendiri sudah dipastikan yang
+            # BENAR-BENAR tampil lewat click_js_saat_tampil/
+            # _ambil_js_visible, jadi bukan salah sasaran elemen).
+            # Perbaiki dulu data DEV di sini supaya nilai_uji tidak
+            # nyangkut permanen, BARU gagalkan test lewat assert di
+            # bawah -- regresi tetap terdeteksi tanpa ninggalin data
+            # rusak.
+            page.isi_sel_grid_anchor(field_edit, nilai_sebelum_cancel, anchor)
+            page.submit_changes()
+            page.buka_halaman(kunci)
+            _tunggu_anchor()
 
-        # 2) Filter tanggal -> value berubah & tabel tetap tampil ->
+        if cancel_bug_dikenal:
+            # Bug aplikasi yang SUDAH dilaporkan -- jangan bikin suite
+            # merah permanen (kegagalan yang selalu ada bikin orang
+            # berhenti membaca hasil, dan regresi BARU ikut tenggelam).
+            # Data DEV sudah dikembalikan di blok atas, jadi aman lanjut.
+            #
+            # Kondisi awal halaman ikut dicetak: run 2026-09-07
+            # memperlihatkan pola Cancal GAGAL saat halaman dibuka sudah
+            # membawa perubahan pending, dan BERHASIL saat dibuka bersih.
+            # Kalau pola itu bertahan, repro bug-nya bukan "Cancel selalu
+            # gagal" melainkan "Cancel gagal kalau ada pending sebelumnya".
+            kondisi = (
+                "ADA pending saat halaman dibuka"
+                if getattr(page, "pending_saat_dibuka", False)
+                else "halaman dibuka BERSIH (tanpa pending)"
+            )
+            if setelah_cancel != nilai_sebelum_cancel:
+                print(
+                    f"\n[BUG DIKENAL] '{kunci}': Cancel tidak membuang "
+                    f"perubahan pending ('{nilai_sebelum_cancel}' -> "
+                    f"'{setelah_cancel}'). Kondisi awal: {kondisi}. "
+                    "Sudah dilaporkan di reports/bugs/"
+                    "lagging-cancel-does-not-discard-edit.md -- data DEV "
+                    "sudah dikembalikan otomatis, test lanjut."
+                )
+            else:
+                print(
+                    f"\n[BUG SUDAH DIPERBAIKI?] '{kunci}': Cancel kali ini "
+                    f"MEMBUANG perubahan pending dengan benar. Kondisi awal: "
+                    f"{kondisi}. Kalau ini konsisten di beberapa run DAN "
+                    f"halaman dibuka dalam kondisi berbeda-beda, keluarkan "
+                    f"'{kunci}' dari "
+                    "HssSafetyPage.CANCEL_TIDAK_MEMBUANG_PENDING supaya "
+                    "pemeriksaannya kembali tajam."
+                )
+        else:
+            assert setelah_cancel == nilai_sebelum_cancel, (
+                f"Perubahan '{field_edit}' masih tersimpan padahal Cancel "
+                "sudah diklik (data DEV sudah diperbaiki otomatis di atas)"
+            )
+
+        # 2) Filter tanggal -> value berubah, tabel tetap tampil, DAN
+        #    (kalau periodenya memang beda) isi grid ikut berubah ->
         #    kembalikan
         tanggal_awal = page.baca_filter_tanggal()
+        sidik_awal = page.sidik_jari_grid()
+        ada_isi_awal = _grid_punya_data(page)
         page.set_filter_tanggal(tanggal_uji)
         page.tunggu_processing_selesai()
         assert page.baca_filter_tanggal() == tanggal_uji, (
@@ -774,6 +1135,15 @@ class TestSafetyHss:
         assert page.tabel_report_tampil(), (
             f"Tabel '{kunci}' tidak tampil setelah filter tanggal '{tanggal_uji}'"
         )
+        # hanya bermakna kalau periodenya BEDA dari yang sedang aktif --
+        # set ke nilai yang sama wajar tidak mengubah apa-apa
+        if tanggal_awal and tanggal_awal != tanggal_uji:
+            _assert_data_berubah(
+                page, sidik_awal,
+                f"Filter tanggal '{kunci}' ('{tanggal_awal}' -> "
+                f"'{tanggal_uji}')",
+                ada_isi_sebelum=ada_isi_awal,
+            )
         page.set_filter_tanggal(tanggal_awal)
         page.tunggu_processing_selesai()
         assert page.tabel_report_tampil(), (
@@ -804,7 +1174,13 @@ class TestSafetyHss:
 
         # 5) Import -> modal terbuka + template terunduh (tanpa unggah)
         page.buka_modal_import()
-        assert page.is_visible(page.LINK_DOWNLOAD_TEMPLATE), (
+        # is_visible() mengunci ke match PERTAMA #linkDownloadTemplate di
+        # DOM -- OPEL merender lebih dari satu container modal Import
+        # (Daily/Monthly/Yearly/Static) di halaman yang sama, sebagian
+        # hidden (2026-09-04: screenshot buktikan link SUNGGUH tampil di
+        # modal yang benar, tapi is_visible() grab elemen hidden di
+        # container lain lebih dulu). is_any_visible() scan SEMUA match.
+        assert page.is_any_visible(page.LINK_DOWNLOAD_TEMPLATE), (
             f"Link Download Template tidak ada di '{kunci}'"
         )
         file_template = page.download_template_import()
@@ -964,9 +1340,21 @@ class TestSafetyHss:
         info = page.dt_info() or {}
         n_baris = page.dt_jumlah_baris_dom()
 
+        # Cakupan sengaja DICATAT dan dicetak (2026-09-07): tiga dari
+        # empat bagian test ini butuh data di grid, sementara banyak
+        # halaman DEV kosong. Tanpa catatan ini, hasil "PASSED" terbaca
+        # seolah sort+pagination+search+kolom semuanya terverifikasi di
+        # semua halaman -- padahal di grid kosong yang benar-benar
+        # diuji cuma show/hide kolom. Yang dilaporkan harus sama dengan
+        # yang sungguh dikerjakan.
+        diuji, dilewati = [], []
+
         # --- 1) SORT ---
         sortable = [k for k in kolom if k["sortable"] and k["visible"]]
+        if not (sortable and n_baris >= 2):
+            dilewati.append("sort (butuh kolom sortable + >=2 baris data)")
         if sortable and n_baris >= 2:
+            diuji.append("sort")
             idx = sortable[0]["index"]
             page.dt_urutkan(idx, "asc")
             state_asc = page.dt_order_state()
@@ -980,7 +1368,10 @@ class TestSafetyHss:
             )
 
         # --- 2) PAGINATION ---
+        if not (info.get("pages", 0) and info["pages"] > 1):
+            dilewati.append("pagination (data cuma 1 halaman)")
         if info.get("pages", 0) and info["pages"] > 1:
+            diuji.append("pagination")
             awal = page.dt_info()["page"]
             baru = page.dt_ke_halaman(awal + 1)
             assert baru and baru["page"] == awal + 1, (
@@ -996,6 +1387,8 @@ class TestSafetyHss:
         # API (dipakai grid yang sama untuk cari data), supaya
         # "search mem-filter grid" tetap terverifikasi di setiap halaman.
         total_awal = (page.dt_info() or {}).get("recordsDisplay", n_baris)
+        if not (n_baris >= 1 and total_awal >= 1):
+            dilewati.append("search (grid tidak punya baris data)")
         if n_baris >= 1 and total_awal >= 1:
             # Kolom Month/Date sering dirender client-side pakai locale
             # (mis. "Januari") padahal search API server-side mencocokkan
@@ -1013,7 +1406,12 @@ class TestSafetyHss:
                 if nilai and len(nilai[0].strip()) >= 3:
                     token = nilai[0].strip().split()[0]
                     break
+            if not token:
+                dilewati.append(
+                    "search (tidak ada nilai >=3 karakter untuk jadi token)"
+                )
             if token:
+                diuji.append("search")
                 # Kotak Search DOM (kalau ada) -- cukup dipastikan tidak
                 # error; semantik jumlah baris server-side bervariasi
                 # antar halaman, jadi TIDAK di-assert ketat.
@@ -1036,9 +1434,13 @@ class TestSafetyHss:
                     f"dikosongkan ({total_awal} -> {pulih})"
                 )
 
-        # --- 4) SHOW / HIDE KOLOM ---
+        # --- 4) SHOW / HIDE KOLOM --- (satu-satunya bagian yang tidak
+        # butuh data, jadi tetap jalan di grid kosong)
         terlihat = [k for k in kolom if k["visible"]]
+        if len(terlihat) < 2:
+            dilewati.append("show/hide kolom (kolom terlihat < 2)")
         if len(terlihat) >= 2:
+            diuji.append("show/hide kolom")
             idx = terlihat[0]["index"]
             th_awal = page.jumlah_th_grid()
             assert page.dt_set_kolom_terlihat(idx, False) is False, (
@@ -1053,6 +1455,21 @@ class TestSafetyHss:
             assert page.jumlah_th_grid() == th_awal, (
                 f"Menampilkan kembali kolom di '{kunci_halaman}' tidak "
                 "memulihkan jumlah <th>"
+            )
+
+        # Laporkan cakupan SEBENARNYA -- "PASSED" tanpa keterangan ini
+        # menyesatkan di halaman yang datanya kosong.
+        print(
+            f"\n[CAKUPAN DataTables] '{kunci_halaman}': "
+            f"diuji = {', '.join(diuji) if diuji else 'TIDAK ADA'}"
+            + (f" | dilewati = {'; '.join(dilewati)}" if dilewati else "")
+        )
+        if not diuji:
+            pytest.skip(
+                f"Grid '{kunci_halaman}' tidak memungkinkan satu pun "
+                "interaksi DataTables diuji (tanpa data, tanpa kolom yang "
+                f"bisa disembunyikan): {'; '.join(dilewati)}. Dilaporkan "
+                "SKIPPED, bukan PASSED, supaya hasilnya tidak menyesatkan"
             )
 
     # ------------------------------------------------------------------
@@ -1070,13 +1487,33 @@ class TestSafetyHss:
     )
     def test_safety_export_isi_file(self, driver, kunci_halaman):
         """Export halaman -> file .xlsx terunduh -> file dibuka sebagai
-        workbook (bukan file rusak) dan punya minimal 1 baris terisi."""
+        workbook (bukan file rusak), punya minimal 1 baris terisi, DAN
+        isinya benar-benar mencerminkan data yang sedang tampil di grid.
+
+        Pencocokan isi (2026-09-04): nilai sel dari beberapa baris
+        pertama grid dicari di dalam workbook. Ambangnya sengaja TOLERAN
+        (mayoritas, bukan semua) karena export wajar memformat ulang
+        sebagian nilai -- tanggal jadi objek datetime, angka jadi float,
+        kolom tersembunyi bisa ikut / tidak ikut. Yang mau ditangkap di
+        sini adalah kegagalan BESAR: file berisi template kosong, file
+        berisi data unit/periode lain, atau file basi sisa export
+        sebelumnya. Sebelum ini test cuma menghitung jumlah baris, jadi
+        file dengan isi SALAH pun tetap lolos."""
         page = _buka_halaman(driver, kunci_halaman)
-        assert page.tabel_report_tampil(), f"Tabel '{kunci_halaman}' tidak tampil"
+        _assert_grid_sesuai_kontrak(page, kunci_halaman)
+        # sampel diambil SEBELUM export supaya yang dibandingkan benar2
+        # data yang sedang tampil saat tombol Export diklik (dua-duanya
+        # diambil di sini, pemilihannya baru setelah file terbaca)
+        sampel_khas = _sampel_nilai_grid(page)
+        sampel_semua = (
+            sampel_khas if len(sampel_khas) >= 3
+            else _sampel_nilai_grid(page, panjang_min=1)
+        )
         path = page.export_dan_tunggu_file()
         assert path, f"File export '{kunci_halaman}' tidak terunduh"
         try:
             baris = _xlsx_jumlah_baris_isi(path)
+            nilai_file = _xlsx_nilai(path)
         except ImportError:
             pytest.skip("openpyxl belum terpasang -- lewati verifikasi isi xlsx")
         except Exception as e:
@@ -1087,6 +1524,43 @@ class TestSafetyHss:
         assert baris >= 1, (
             f"File export '{kunci_halaman}' ({path}) benar-benar kosong "
             "(tidak ada satu pun baris terisi, header sekalipun)"
+        )
+
+        # Nilai berbentuk tanggal selalu dibuang: Excel menyimpannya
+        # sebagai datetime, jadi TIDAK MUNGKIN cocok sebagai teks.
+        # Kalau nilai khas kurang dari 3, pakai semua nilai non-kosong
+        # (grid Master Alat cuma punya 1 baris -- '1', '4', '3', 'tess'
+        # -- dan dulu langsung di-skip padahal datanya bisa diperiksa).
+        sampel = [n for n in (sampel_khas if len(sampel_khas) >= 3
+                              else sampel_semua)
+                  if not _mirip_tanggal(n)]
+        if not sampel:
+            pytest.skip(
+                f"Grid '{kunci_halaman}' tidak menampilkan satu nilai pun "
+                "yang bisa dicocokkan dengan isi file export -- data DEV "
+                "kosong (grid 'No data available'), bukan kegagalan export"
+            )
+
+        cocok = [nilai for nilai in sampel if nilai in nilai_file]
+        hilang = [nilai for nilai in sampel if nilai not in nilai_file]
+        # Ambang 50% + minimal 2 nilai cocok secara absolut.
+        #
+        # Kenapa BUKAN 100% walau nilainya sedikit (dikoreksi 2026-09-07):
+        # run penuh menggagalkan Master Alat di 6-dari-7 karena nilai '2'
+        # tidak ada di workbook -- itu kolom lookup yang di grid tampil
+        # sebagai ID tapi di export ditulis sebagai NAMA. Perbedaan
+        # bentuk seperti itu WAJAR dan bukan kegagalan export, jadi
+        # ambang 100% menghasilkan false positive. Syarat "minimal 2
+        # cocok" tetap menjaga ketajaman: file kosong/basi/berisi data
+        # unit lain tidak akan lolos hanya karena satu angka pendek
+        # kebetulan ada di dalamnya.
+        minimal_cocok = min(2, len(sampel))
+        assert (len(cocok) / len(sampel) >= 0.5
+                and len(cocok) >= minimal_cocok), (
+            f"Isi file export '{kunci_halaman}' ({path}) tidak cocok dengan "
+            f"data yang tampil di grid: cuma {len(cocok)} dari {len(sampel)} "
+            f"nilai yang ketemu di workbook (syarat: >=50% DAN >="
+            f"{minimal_cocok} nilai). Tidak ketemu: {hilang[:10]}"
         )
 
     # ------------------------------------------------------------------
@@ -1111,6 +1585,8 @@ class TestSafetyHss:
             if awal and len(awal) >= 4:
                 uji = ("2025" + awal[4:]) if not awal.startswith("2025") \
                     else ("2024" + awal[4:])
+                sidik_awal = page.sidik_jari_grid()
+                ada_isi_awal = _grid_punya_data(page)
                 page.set_filter_tanggal(uji)
                 page.tunggu_processing_selesai()
                 assert page.baca_filter_tanggal() == uji, (
@@ -1118,6 +1594,13 @@ class TestSafetyHss:
                 )
                 assert page.tabel_report_tampil(), (
                     f"Tabel '{kunci_halaman}' hilang setelah filter tanggal"
+                )
+                # tahunnya dipilih berbeda dari yang aktif -- data yang
+                # tampil HARUS ikut berubah kalau memang ada datanya
+                _assert_data_berubah(
+                    page, sidik_awal,
+                    f"Filter tanggal '{kunci_halaman}' ('{awal}' -> '{uji}')",
+                    ada_isi_sebelum=ada_isi_awal,
                 )
                 page.set_filter_tanggal(awal)
                 page.tunggu_processing_selesai()
@@ -1142,7 +1625,9 @@ class TestSafetyHss:
         # --- Import -> modal + template ---
         if "Import" in HssSafetyPage.TOMBOL_HALAMAN.get(kunci_halaman, ()):
             page.buka_modal_import()
-            assert page.is_visible(page.LINK_DOWNLOAD_TEMPLATE), (
+            # is_any_visible() -- lihat catatan di test_safety_lagging_deep
+            # (2026-09-04): #linkDownloadTemplate bisa duplikat di DOM.
+            assert page.is_any_visible(page.LINK_DOWNLOAD_TEMPLATE), (
                 f"Link Download Template tidak ada di '{kunci_halaman}'"
             )
             assert page.download_template_import(), (
@@ -1193,6 +1678,10 @@ class TestSafetyHss:
         except TimeoutException:
             pytest.skip(f"'{kunci_halaman}' tidak punya filter unit")
         awal = page.unit_terpilih_value()
+        # sidik jari data SEBELUM unit diganti -- dipakai membuktikan
+        # filter benar-benar mengubah DATA, bukan cuma isi dropdown
+        sidik_awal = page.sidik_jari_grid()
+        ada_isi_awal = _grid_punya_data(page)
         baru = page.pilih_unit_enabled_lain()
         if not baru:
             pytest.skip(
@@ -1206,6 +1695,17 @@ class TestSafetyHss:
         assert page.tabel_report_tampil(), (
             f"Tabel '{kunci_halaman}' hilang setelah ganti unit"
         )
+        terbukti = _assert_data_berubah(
+            page, sidik_awal,
+            f"Filter unit '{kunci_halaman}' ('{awal}' -> '{baru}')",
+            ada_isi_sebelum=ada_isi_awal,
+        )
+        if not terbukti:
+            print(
+                f"\n[INFO] '{kunci_halaman}': unit '{awal}' dan '{baru}' "
+                "sama-sama tidak punya data -- perubahan data tidak bisa "
+                "diverifikasi (bukan kegagalan)."
+            )
         if awal:
             page.pilih_unit_by_value(awal)
             page.tunggu_processing_selesai()

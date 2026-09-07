@@ -39,6 +39,7 @@ STABIL data-name -> locator kolom: th[data-name='...'].
 """
 
 import base64
+import json
 import os
 import time
 
@@ -49,6 +50,7 @@ from selenium.common.exceptions import (
     TimeoutException,
     StaleElementReferenceException,
     ElementNotInteractableException,
+    MoveTargetOutOfBoundsException,
 )
 
 from config import config
@@ -122,14 +124,66 @@ class HssSafetyPage(BasePage):
     # Ekspresi JS pemilih GRID UTAMA. Beberapa halaman (mis. Master
     # Alat) me-render grid asli ber-id tableData_XXX BERSAMA template
     # table.reportData kosong -- querySelector biasa salah sasaran ke
-    # template. Prioritas: tabel yang PUNYA baris -> yang ber-id
-    # tableData_* -> yang pertama.
+    # template.
+    #
+    # BUG (dibuktikan 2026-09-04 lewat tools/cek_grid_semua_halaman.py):
+    # halaman BERTAB me-render SATU GRID PER TAB, semuanya sekaligus di
+    # DOM. Hasil sweep:
+    #   incident_investigation_form : 6 DataTables (tableData_1937..1942)
+    #   data_rekap_statistik_k3     : 4 DataTables (tableData_1872..1875)
+    #   witness_statement_report    : 2 DataTables (tableData_1944..1945)
+    # Pemilihan yang cuma berdasar "punya baris"/"baris terbanyak"
+    # SELALU jatuh ke grid TAB PERTAMA (di Incident: 3 baris vs 0; di
+    # Data Rekap K3: seri 12-12-12-12, reduce menyimpan yang pertama).
+    # Akibatnya begitu test pindah tab, SELURUH helper grid (dt_info,
+    # baca/isi sel, cari_di_grid) tetap membaca grid tab 1 -- grid tab
+    # lain tidak pernah tersentuh, dan assertion-nya jadi lulus palsu.
+    #
+    # Perbaikan: dahulukan grid yang BENAR-BENAR TAMPIL. Panel tab yang
+    # tidak aktif ber-display:none, jadi offsetParent-nya null -- itu
+    # pembeda yang andal antara grid tab aktif dan grid tab lain.
+    #
+    # Prioritas (paling spesifik -> paling longgar), diterapkan dulu ke
+    # tabel yang TAMPIL, baru ke semua tabel sebagai cadangan:
+    #   1. DataTables ter-init DAN ber-id tableData_* -> grid asli
+    #   2. DataTables ter-init dengan recordsTotal terbanyak
+    #   3. tabel dengan baris DATA terbanyak (baris 'No data available'
+    #      / td.dataTables_empty TIDAK dihitung)
+    #   4. ber-id tableData_* -> tabel pertama
     JS_GRID = (
         "(() => {"
         "  const ts = [...document.querySelectorAll('table.reportData')];"
-        "  const ada = ts.find(t => t.querySelectorAll('tbody tr').length > 0);"
-        "  return ada || ts.find(t => t.id && t.id.indexOf('tableData_') === 0)"
-        "      || ts[0] || null;"
+        "  if (!ts.length) return null;"
+        "  const punyaId = t => t.id && t.id.indexOf('tableData_') === 0;"
+        "  const tampil = t => {"
+        "    if (t.offsetParent !== null) return true;"
+        "    const r = t.getBoundingClientRect();"
+        "    return r.width > 0 || r.height > 0;"
+        "  };"
+        "  const barisData = t => [...t.querySelectorAll('tbody tr')]"
+        "      .filter(tr => !tr.querySelector('td.dataTables_empty')).length;"
+        "  const total = t => {"
+        "    try {"
+        "      if (window.jQuery && jQuery.fn.dataTable"
+        "          && jQuery.fn.dataTable.isDataTable(t))"
+        "        return jQuery(t).DataTable().page.info().recordsTotal;"
+        "    } catch (e) {}"
+        "    return -1;"
+        "  };"
+        "  const pilih = arr => {"
+        "    if (!arr.length) return null;"
+        "    const dt = arr.filter(t => total(t) >= 0);"
+        "    const dtBerId = dt.filter(punyaId);"
+        "    if (dtBerId.length)"
+        "      return dtBerId.reduce((a, b) => total(b) > total(a) ? b : a);"
+        "    if (dt.length)"
+        "      return dt.reduce((a, b) => total(b) > total(a) ? b : a);"
+        "    const isi = arr.filter(t => barisData(t) > 0);"
+        "    if (isi.length)"
+        "      return isi.reduce((a, b) => barisData(b) > barisData(a) ? b : a);"
+        "    return arr.find(punyaId) || arr[0] || null;"
+        "  };"
+        "  return pilih(ts.filter(tampil)) || pilih(ts);"
         "})()"
     )
 
@@ -513,9 +567,29 @@ class HssSafetyPage(BasePage):
                     break
                 try:
                     element = self._ambil_js_visible(lokasi, timeout=timeout)
-                    ActionChains(self.driver).move_to_element(element).click().perform()
                 except TimeoutException:
                     continue
+                # Gulir dulu ke elemennya: sidebar OPEL bisa lebih tinggi
+                # dari viewport, dan move_to_element ke item di luar
+                # viewport melempar MoveTargetOutOfBoundsException
+                # (run penuh 2026-09-07, 'Initial Incident/Accident').
+                try:
+                    self.driver.execute_script(
+                        "arguments[0].scrollIntoView({block: 'center'});",
+                        element,
+                    )
+                    self.pace(0.3)
+                except Exception:
+                    pass
+                try:
+                    ActionChains(self.driver).move_to_element(
+                        element
+                    ).click().perform()
+                except MoveTargetOutOfBoundsException:
+                    # Masih di luar jangkauan pointer -- klik lewat JS.
+                    # Untuk membuka submenu, klik JS sudah cukup (yang
+                    # butuh mousedown+mouseup asli cuma keluar-fullscreen).
+                    self.driver.execute_script("arguments[0].click();", element)
                 self.pace()
         self._wait(timeout).until(
             _terbuka,
@@ -550,13 +624,28 @@ class HssSafetyPage(BasePage):
                 f"Kunci halaman '{kunci}' tidak dikenal. Pilihan: "
                 f"{', '.join(sorted(self.HALAMAN))}"
             )
+        # 0) pulihkan viewport dulu -- sidebar OPEL auto-collapse kalau
+        #    jendela sempit, dan navigasi lewat menu jadi mustahil.
+        self.pulihkan_viewport()
         # 1) pastikan sidebar ada -- kalau belum, mulai dari dashboard
         if not self.is_any_visible(self.MENU_HSS, timeout=3):
             self.driver.get(config.BASE_URL)
-            self._wait(config.LONG_TIMEOUT).until(
-                lambda d: self.is_any_visible(self.MENU_HSS),
-                "Sidebar (menu HSS) tidak muncul setelah buka dashboard",
-            )
+            try:
+                self._wait(config.LONG_TIMEOUT).until(
+                    lambda d: self.is_any_visible(self.MENU_HSS),
+                    "Sidebar (menu HSS) tidak muncul setelah buka dashboard",
+                )
+            except TimeoutException:
+                # Percobaan terakhir: paksa pulihkan viewport lalu muat
+                # ulang. Menutup kasus jendela yang menyempit di tengah
+                # sesi panjang (run 2026-09-07).
+                self.pulihkan_viewport(paksa=True)
+                self.driver.get(config.BASE_URL)
+                self._wait(config.LONG_TIMEOUT).until(
+                    lambda d: self.is_any_visible(self.MENU_HSS),
+                    "Sidebar (menu HSS) tidak muncul walau viewport sudah "
+                    "dipulihkan (keluar fullscreen + maximize)",
+                )
         # 2) buka rantai submenu: HSS -> Safety -> grup -> subgrup.
         #    Cek keadaan pakai `rantai` (walk berjenjang) supaya tidak
         #    salah sasaran ke menu LAIN yang teksnya sama ('Transaction'
@@ -762,6 +851,57 @@ class HssSafetyPage(BasePage):
             "}"
             "return n;"
         )
+
+    # Banner OPEL "The data has been stored locally. Please click the
+    # submit button to save it on the server" -- artinya masih ada
+    # perubahan PENDING yang belum dikirim ke server.
+    #
+    # Kenapa perlu dideteksi (2026-09-07): banner ini terlihat di
+    # screenshot test_safety_leading_deep[Data Rekap Statistik K3]
+    # padahal test itu tidak mengedit apa pun.
+    #
+    # Dugaan awal "bocor dari test sebelumnya di sesi yang sama"
+    # TERBANTAH pada run 2026-09-07 10:06: banner sudah menyala di test
+    # PERTAMA sesi itu (statistic_safety_recapitulation), jadi sumbernya
+    # BUKAN test sebelumnya -- state-nya bertahan LINTAS SESI. Kandidat
+    # yang tersisa: (a) localStorage di profil Chrome yang memang
+    # dipakai ulang tiap run, tapi dengan pola key SELAIN 'dr_<Id>_*'
+    # sehingga lolos dari _bersihkan_draft_lokal(); atau (b) perubahan
+    # pending yang benar-benar tersimpan di server untuk user ini.
+    # `daftar_key_penyimpanan()` dipakai membedakan keduanya.
+    _TEKS_PENDING = ("stored locally", "please click the submit")
+
+    def ada_pending_lokal(self):
+        """True kalau halaman menampilkan banner perubahan pending
+        ('stored locally ... please click the submit button')."""
+        return bool(self.driver.execute_script(
+            "const teks = (document.body.innerText || '').toLowerCase();"
+            "return arguments[0].some(t => teks.indexOf(t) >= 0);",
+            list(self._TEKS_PENDING),
+        ))
+
+    def daftar_key_penyimpanan(self, maks=40):
+        """Daftar key localStorage + sessionStorage yang ada sekarang,
+        beserta panjang nilainya. Dipakai melacak DI MANA state pending
+        disimpan waktu banner 'stored locally' menyala: kalau daftarnya
+        kosong padahal banner menyala, berarti pending-nya di SERVER,
+        bukan di browser."""
+        return self.driver.execute_script(
+            "const out = [];"
+            "for (const [nama, gudang] of ["
+            "     ['local', window.localStorage],"
+            "     ['session', window.sessionStorage]]) {"
+            "  try {"
+            "    for (const k of Object.keys(gudang)) {"
+            "      if (out.length >= arguments[0]) return out;"
+            "      out.push(nama + ':' + k + ' (' +"
+            "               (gudang.getItem(k) || '').length + ' char)');"
+            "    }"
+            "  } catch (e) { out.push(nama + ': TIDAK BISA DIBACA'); }"
+            "}"
+            "return out;",
+            int(maks),
+        ) or []
 
     def _tunggu_tabel(self, url=None):
         """Tunggu tabel reportData benar-benar TAMPIL (JS check)."""
@@ -2113,25 +2253,47 @@ return out;
         return sebelum, sesudah, akhir
 
     def _hapus_baris_kosong(self):
-        """Hapus baris DRAFT (semua input kosong) pertama di grid utama
+        """Hapus baris DRAFT (semua input kosong) PERTAMA yang ketemu --
+        di SELURUH HALAMAN grid utama, bukan cuma yang sedang tampil --
         lewat tombol Delete barisnya + konfirmasi Yes. Dipakai untuk
-        membersihkan draft yang nyangkut setelah Create+Cancel."""
-        terhapus = self.driver.execute_script(
-            f"const t = {self.JS_GRID};"
-            "if (!t) return false;"
-            "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
-            "  const ins = [...r.querySelectorAll('input')];"
-            "  return ins.length > 0 && ins.every(i => i.value === '');"
-            "});"
-            "if (!tr) return false;"
-            "const del = tr.querySelector('a.btn-delete');"
-            "if (!del) return false;"
-            "del.click(); return true;"
-        )
-        if terhapus:
-            self.pace()
-            self.jawab_konfirmasi()
-            self.tunggu_processing_selesai()
+        membersihkan draft yang nyangkut setelah Create+Cancel.
+
+        Grid ber-pagination (mis. Master Alat yang sudah menumpuk banyak
+        baris) hanya me-render baris HALAMAN AKTIF ke DOM -- scan yang
+        cuma lihat DOM saat ini bisa MELEWATKAN draft kosong yang duduk
+        di halaman lain, dan draft yang lolos itu tetap bikin Submit
+        Changes berikutnya membuang baris baru (2026-09-04: akar masalah
+        kenapa test_safety_master_alat_create masih sesekali gagal walau
+        sudah dipanggil di awal alur). Kalau grid bukan DataTables ber-
+        pagination, `dt_info()` None -- fallback ke scan halaman aktif
+        saja (perilaku lama, dipakai grid non-DataTables juga)."""
+        info = self.dt_info()
+        halaman_awal = info["page"] if info else 0
+        total_halaman = info["pages"] if info else 1
+        for h in range(max(total_halaman, 1)):
+            if info:
+                self.dt_ke_halaman(h)
+            terhapus = self.driver.execute_script(
+                f"const t = {self.JS_GRID};"
+                "if (!t) return false;"
+                "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
+                "  const ins = [...r.querySelectorAll('input')];"
+                "  return ins.length > 0 && ins.every(i => i.value === '');"
+                "});"
+                "if (!tr) return false;"
+                "const del = tr.querySelector('a.btn-delete');"
+                "if (!del) return false;"
+                "del.click(); return true;"
+            )
+            if terhapus:
+                self.pace()
+                self.jawab_konfirmasi()
+                self.tunggu_processing_selesai()
+                if info:
+                    self.dt_ke_halaman(halaman_awal)
+                return
+        if info:
+            self.dt_ke_halaman(halaman_awal)
 
     def create_dengan_form_sungguhan(self, verifikasi_persistensi=True):
         """Create with Form SUNGGUHAN: buka modal form -> isi SEMUA
@@ -2348,6 +2510,22 @@ return out;
     # sesuai tujuan test (klik tiap tombol), bukan verifikasi modal.
     MODAL_BEST_EFFORT = {"incident_investigation_form"}
 
+    # Halaman yang tombol Cancel-nya TIDAK membuang perubahan pending:
+    # nilai uji tetap tersimpan setelah reload walau yang diklik Cancel,
+    # bukan Submit Changes (ditemukan 2026-09-04, terulang 2026-09-07 --
+    # rincian & repro di reports/bugs/lagging-cancel-does-not-discard-
+    # edit.md). Ini BUG APLIKASI yang sudah dilaporkan, bukan bug test.
+    #
+    # Kenapa didaftar di sini, bukan dipasangi @pytest.mark.xfail:
+    # xfail berlaku ke SELURUH kasus parametrize, jadi regresi baru di
+    # langkah lain pada halaman yang sama (edit+submit, filter tanggal,
+    # export, import) ikut tertelan diam-diam. Dengan registry, yang
+    # dilonggarkan HANYA pemeriksaan Cancel; langkah lain tetap tajam.
+    #
+    # Kalau OPEL sudah memperbaikinya, test mencetak peringatan supaya
+    # halaman ini DIKELUARKAN dari set -- lihat test_safety_lagging_deep.
+    CANCEL_TIDAK_MEMBUANG_PENDING = {"smk3"}
+
     def coba_tombol(self, nama):
         """Jalankan SATU aksi fitur sesuai nama tombol toolbar. Dipakai
         test 'coba semua tombol' per halaman DAN per tab (permintaan
@@ -2445,6 +2623,46 @@ return out;
         elif nama == "Cancel":
             self.click_js_saat_tampil(self.BTN_CANCEL_GRID)
             self.jawab_konfirmasi()
+
+    # Lebar viewport minimum supaya sidebar OPEL tetap terbentang.
+    # Di bawah ini template SmartAdmin meng-collapse sidebar jadi
+    # hamburger, dan navigasi lewat menu tidak bisa dilakukan.
+    LEBAR_MIN_SIDEBAR = 1100
+
+    def pulihkan_viewport(self, paksa=False):
+        """Pastikan jendela cukup lebar dan tidak sedang fullscreen.
+
+        Tombol FullScreen di toolbar OPEL memakai Fullscreen API asli
+        browser, jadi kalau alur keluar-fullscreen gagal, jendela bisa
+        tertinggal dalam ukuran yang JAUH lebih sempit. Dampaknya baru
+        terasa di test BERIKUTNYA: sidebar collapse, lalu
+        `move_to_element` ke item menu melempar
+        MoveTargetOutOfBoundsException dan sidebar tidak pernah muncul
+        (run penuh 2026-09-07: 'Initial Incident/Accident' dan 'Witness
+        Statement' gagal begitu, screenshot menunjukkan jendela 1436px
+        padahal test lain 2880px).
+
+        Kembalikan True kalau sesuatu benar-benar dipulihkan.
+        """
+        dipulihkan = False
+        try:
+            if self.driver.execute_script("return !!document.fullscreenElement;"):
+                self.driver.execute_script(
+                    "if (document.exitFullscreen) document.exitFullscreen();"
+                )
+                self.pace(0.5)
+                dipulihkan = True
+        except Exception:
+            pass  # bukan bagian inti test -- jangan menggagalkan karenanya
+        try:
+            lebar = self.driver.execute_script("return window.innerWidth;") or 0
+            if paksa or lebar < self.LEBAR_MIN_SIDEBAR:
+                self.driver.maximize_window()
+                self.pace(0.5)
+                dipulihkan = True
+        except Exception:
+            pass
+        return dipulihkan
 
     def toggle_fullscreen(self):
         """Klik tombol FullScreen pakai mousedown+mouseup ASLI (Actions).
@@ -2804,3 +3022,127 @@ return out;
         except TimeoutException:
             self._paksa_tutup_modal()
         return {"modal_terbuka": modal_terbuka, "ada_pesan_validasi": ada_pesan}
+
+    # ==================================================================
+    # ISI grid -- dipakai test yang memverifikasi DATA-nya, bukan cuma
+    # elemennya (2026-09-04, "naik level"): assertion lama hanya
+    # membuktikan halaman TAMPIL, bukan halaman BENAR. Tiga kebutuhan:
+    #   1. bandingkan data SEBELUM vs SESUDAH filter diganti
+    #      -> sidik_jari_grid() + dt_baris_nilai()
+    #   2. nilai apakah grid berisi DATA atau cuma kerangka template --
+    #      butuh baris ber-NAMA-kolom supaya kolom kerangka (No, Month,
+    #      TipePegawai) bisa dibuang -> dt_baris_dict()
+    #   3. cocokkan isi file export dengan isi grid -> dt_baris_nilai()
+    # ==================================================================
+    JS_BARIS_NILAI = (
+        f"const t = {JS_GRID};"
+        "if (!t) return [];"
+        "const maks = arguments[0];"
+        "const out = [];"
+        "for (const tr of t.querySelectorAll('tbody tr')) {"
+        "  if (out.length >= maks) break;"
+        "  if (tr.querySelector('td.dataTables_empty')) continue;"
+        "  const baris = [];"
+        "  for (const td of tr.children) {"
+        "    if (window.getComputedStyle(td).display === 'none') continue;"
+        "    const inp = td.querySelector('input, select, textarea');"
+        "    baris.push(((inp ? inp.value : td.innerText) || '').trim());"
+        "  }"
+        "  out.push(baris);"
+        "}"
+        "return out;"
+    )
+
+    # Baris sebagai dict {data-fieldname: nilai}. Grid inline-edit OPEL
+    # menaruh nilai di <input data-fieldname='...'>; kolom read-only
+    # cuma punya <td data-name='...'> -- keduanya dibaca, input menang
+    # kalau sebuah kolom punya dua-duanya.
+    JS_BARIS_DICT = (
+        f"const t = {JS_GRID};"
+        "if (!t) return [];"
+        "const maks = arguments[0];"
+        "const out = [];"
+        "for (const tr of t.querySelectorAll('tbody tr')) {"
+        "  if (out.length >= maks) break;"
+        "  if (tr.querySelector('td.dataTables_empty')) continue;"
+        "  const baris = {};"
+        "  for (const td of tr.querySelectorAll('td[data-name]')) {"
+        "    baris[td.getAttribute('data-name')] ="
+        "      ((td.innerText) || '').trim();"
+        "  }"
+        "  for (const el of tr.querySelectorAll('[data-fieldname]')) {"
+        "    baris[el.getAttribute('data-fieldname')] ="
+        "      ((el.value != null ? el.value : el.innerText) || '').trim();"
+        "  }"
+        "  out.push(baris);"
+        "}"
+        "return out;"
+    )
+
+    def dt_baris_nilai(self, maks_baris=5):
+        """Isi grid utama sebagai list-of-list string: satu list per
+        baris yang TAMPIL di halaman aktif, berisi nilai tiap sel yang
+        terlihat (value <input>/<select>/<textarea> kalau ada, kalau
+        tidak innerText <td>). Baris 'No data available' dilewati."""
+        return self.driver.execute_script(
+            self.JS_BARIS_NILAI, int(maks_baris)
+        ) or []
+
+    def dt_baris_dict(self, maks_baris=5):
+        """Isi grid utama sebagai list of dict {nama_kolom: nilai}.
+        Dipakai test yang perlu mengambil beberapa kolom DARI BARIS YANG
+        SAMA (mis. hitung ulang Frequency Rate dari jam kerja + jumlah
+        kecelakaan di baris bulan yang sama)."""
+        return self.driver.execute_script(
+            self.JS_BARIS_DICT, int(maks_baris)
+        ) or []
+
+    JS_KOLOM_HEADER = (
+        f"const t = {JS_GRID};"
+        "if (!t) return [];"
+        "const trs = [...t.querySelectorAll('thead tr')];"
+        "if (!trs.length) return [];"
+        "const tr = trs.reduce((a, b) =>"
+        "  b.children.length > a.children.length ? b : a);"
+        "return [...tr.children]"
+        "  .filter(th => window.getComputedStyle(th).display !== 'none')"
+        "  .map(th => (th.getAttribute('data-name')"
+        "              || th.innerText || '').trim())"
+        "  .filter(Boolean);"
+    )
+
+    def nama_kolom_header(self):
+        """Set nama kolom yang ter-render di thead grid utama (dari
+        th[data-name], fallback teks th). Jalan juga untuk tabel yang
+        BUKAN DataTables. Header berjenjang (colspan): dipakai baris
+        <tr> yang jumlah selnya paling banyak."""
+        return set(self.driver.execute_script(self.JS_KOLOM_HEADER) or [])
+
+    def nama_kolom_grid(self):
+        """Semua nama kolom grid utama. Lewat DataTables API kalau grid
+        ter-init (IKUT menghitung kolom yang sedang disembunyikan --
+        penting supaya cek kontrak kolom tidak gagal palsu hanya karena
+        sebuah kolom default-nya hidden), kalau tidak dari <th>."""
+        kolom = self.daftar_kolom_grid() if self._dt_ada() else None
+        if kolom:
+            nama = {(k.get("name") or "").strip() for k in kolom}
+            nama.discard("")
+            if nama:
+                return nama
+        return self.nama_kolom_header()
+
+    def sidik_jari_grid(self, maks_baris=5):
+        """Ringkasan isi grid sebagai string, untuk membandingkan data
+        SEBELUM vs SESUDAH filter diganti. Menggabungkan jumlah record
+        yang dilaporkan DataTables + nilai sel `maks_baris` baris
+        pertama, jadi perubahan jumlah baris MAUPUN perubahan isi
+        sama-sama terdeteksi."""
+        info = self.dt_info() or {}
+        return json.dumps(
+            {
+                "total": info.get("recordsDisplay"),
+                "baris": self.dt_baris_nilai(maks_baris),
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )

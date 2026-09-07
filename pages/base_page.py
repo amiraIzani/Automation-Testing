@@ -254,13 +254,31 @@ class BasePage:
         return self._wait(timeout).until(lambda d: text not in d.current_url)
 
     def is_any_visible(self, locator, timeout=None):
-        """True kalau ADA elemen yang benar2 tampil untuk locator."""
+        """True kalau ADA elemen yang benar2 tampil untuk locator.
+
+        Memakai `_js_visible()` (computed style + bounding rect), BUKAN
+        `WebElement.is_displayed()`. Alasannya sama dengan yang sudah
+        didokumentasikan di `_js_visible()`: is_displayed() bisa false
+        negatif di SPA OPEL. Terbukti lagi pada run penuh 2026-09-07 --
+        `test_safety_lagging_indicator_view` dan `test_safety_recap_view`
+        gagal dengan "filter tidak tampil" padahal screenshot saat gagal
+        memperlihatkan filternya JELAS ADA di layar (Month "September
+        2026" dan dropdown bulan). Keduanya lulus di run pendek dan
+        hanya gagal di sesi panjang, jadi bukan soal elemennya melainkan
+        soal cara mengeceknya.
+        """
+
+        def _ada_tampil(d):
+            for el in d.find_elements(*locator):
+                try:
+                    if self._js_visible(d, el):
+                        return True
+                except StaleElementReferenceException:
+                    continue
+            return False
+
         try:
-            self._wait(timeout).until(
-                lambda _: any(
-                    el.is_displayed() for el in self.driver.find_elements(*locator)
-                )
-            )
+            self._wait(timeout).until(_ada_tampil)
             return True
         except TimeoutException:
             return False

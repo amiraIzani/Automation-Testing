@@ -121,17 +121,29 @@ dan `tests/test_safety.py`, dikelompokkan per modul:
 |---|---|---|
 | Login | `test_login` | Buka OPEL → sesi aktif (DEV auto-auth) → halaman utama tampil |
 | Navigasi Menu | `test_safety_menu_dan_landing` | Dashboard → klik HSS → Safety → buka sub **Reporting** dan **Transaction** → link halaman muncul di sidebar |
-| View (Reporting, 5 halaman) | `test_safety_*_view` | Buka halaman → tabel DataTables tampil → filter tanggal/unit tampil |
-| View (Transaction, 14 halaman) | `test_safety_*_view` | Buka halaman → tabel tampil; halaman bertab → tab internal aktif |
+| View (Reporting, 5 halaman) | `test_safety_*_view` | Buka halaman → **kontrak grid** diperiksa (lihat di bawah) → filter tanggal/unit tampil |
+| View (Transaction, 14 halaman) | `test_safety_*_view` | Buka halaman → **kontrak grid** diperiksa; halaman bertab → tab internal aktif |
 | Master Alat | `test_safety_master_alat_create` | Create with Form → isi dummy otomatis (Equipment No unik) → Save → Submit → penanda muncul di grid |
 | Master Alat | `test_safety_master_alat_delete` | Delete baris dummy → konfirmasi Yes → baris hilang dari grid |
 | Lagging Mendalam (3 halaman) | `test_safety_lagging_deep` | Edit grid inline + Submit → verifikasi → **revert**; Cancel; filter tanggal; filter unit; Export (file terunduh); Import (modal + template terunduh) |
 | Halaman Lengkap (19 halaman) | `test_safety_halaman_lengkap` | Alur lengkap satu halaman dalam satu kunjungan (lihat rincian di bawah) |
 | Interaksi DataTables | `test_safety_datatables_interaksi` | Sort kolom asc/desc, pagination, Search (DOM + API), show/hide kolom — per halaman ber-grid |
-| Isi File Export | `test_safety_export_isi_file` | Export → file benar-benar bisa dibuka sebagai workbook `.xlsx` dan punya ≥1 baris terisi |
+| Isi File Export | `test_safety_export_isi_file` | Export → workbook `.xlsx` bisa dibuka, punya ≥1 baris terisi, **dan nilai selnya cocok dengan data yang tampil di grid** |
 | Validasi Form Wajib | `test_safety_create_form_validasi` | Create with Form disimpan KOSONG → form harus menolak (modal tetap terbuka / pesan validasi) |
-| Ganti Filter Unit | `test_safety_filter_unit_ganti` | Filter unit benar-benar DIGANTI ke opsi lain (bukan cuma cek elemen ada), tabel tetap tampil, lalu dikembalikan |
-| Leading (Alur Menengah) | `test_safety_leading_deep` | View → filter tanggal (kalau ada) → filter unit (elemen+opsi) → Export (file) → Import (modal + template terunduh) |
+| Ganti Filter Unit | `test_safety_filter_unit_ganti` | Filter unit benar-benar DIGANTI ke opsi lain, **isi grid harus ikut berubah**, tabel tetap tampil, lalu dikembalikan |
+| Leading (Alur Menengah) | `test_safety_leading_deep` | View → filter tanggal (kalau ada, **isi grid harus ikut berubah**) → filter unit (elemen+opsi) → Export (file) → Import (modal + template terunduh) |
+
+**Kontrak grid** (`_assert_grid_sesuai_kontrak`, dipakai seluruh test
+`*_view` dan test Export) memeriksa tiga hal, bukan sekadar "tabelnya
+muncul":
+
+1. tabel report tampil;
+2. grid me-render **semua kolom** yang terdokumentasi di atribut `KOLOM`
+   milik page object — kolom yang dihapus/di-rename backend langsung
+   ketahuan;
+3. kalau DataTables melaporkan ada *N* record, `tbody` **wajib** merender
+   baris — kasus "backend bilang ada data tapi tabel kosong" sebelumnya
+   lolos total dari suite ini.
 
 Rincian alur `test_safety_halaman_lengkap` untuk setiap halaman:
 
@@ -455,6 +467,16 @@ hasil, dan temuan.
 | Create with Form (Master Alat) kehilangan baris baru | Kalau ada draft kosong lain nyangkut di grid, Submit Changes membuang SEMUA baris pending (bukan cuma yang gagal validasi) — bug aplikasi, detail & repro di `reports/bugs/master-alat-submit-drops-new-row.md`. Workaround test: `_hapus_baris_kosong()` dipanggil di awal tiap alur Create with Form |
 | Modal Import di halaman grid berat | Halaman dengan grid berat (banyak kolom per district, mis. Leading Indicator Static Input) bisa bikin modal terdeteksi terlambat oleh Selenium walau sudah terbuka di browser (main thread sibuk render ulang) — percobaan terakhir `_klik_dan_tunggu_modal()` memakai `LONG_TIMEOUT`, bukan `DEFAULT_TIMEOUT` |
 | Test berdiri sendiri di luar Halaman Lengkap | `test_safety_datatables_interaksi`, `test_safety_export_isi_file`, `test_safety_create_form_validasi`, `test_safety_filter_unit_ganti` dipertahankan terpisah (2026-08-31, digabung saat merge branch) karena mencakup hal yang tidak diuji `test_safety_halaman_lengkap`: interaksi DataTables, isi file export, validasi form wajib, dan penggantian filter unit sungguhan |
+| Kedalaman assertion (2026-09-04) | Sebelumnya 28 dari 80 assertion suite ini adalah `tabel_report_tampil()` — artinya suite membuktikan halaman **tampil**, bukan halaman **benar**. Empat penambahan menutup celah itu: kontrak kolom grid, filter wajib mengubah data, isi file export dicocokkan dengan grid, dan verifikasi perhitungan rasio K3 |
+| Filter wajib mengubah data | `_assert_data_berubah()` membandingkan *sidik jari* grid (jumlah record + nilai sel beberapa baris pertama) sebelum vs sesudah filter diganti. Kalau dropdown berpindah tapi isi grid identik, itu tanda filter tidak diteruskan ke query backend. Sengaja **tidak** gagal kalau kedua sisi sama-sama kosong — dua unit/periode tanpa data memang wajar terlihat sama |
+| Kerangka template ≠ data | **(2026-09-07, false positive nyata)** `test_safety_leading_deep[Data Rekap Statistik K3]` sempat gagal: tahun 2025 dan 2026 sama-sama Target kosong / Actual `0`, tapi grid tetap merender 12 baris berlabel January–December bernomor 1–12. Label & nomor itu semula terhitung sebagai "isi", sehingga dua tahun kosong salah dinilai punya data dan test menuduh filter tidak jalan. `_grid_punya_data()` sekarang menilai lewat **nama kolom** (`dt_baris_dict()`), membuang kolom kerangka lewat `_KOLOM_KERANGKA`, lalu menghitung sisa kolom berisi kalau ada angka bukan-nol atau teks non-kosong |
+| Ambang cocok isi export menyesuaikan data | **(2026-09-07, false skip nyata)** Master Alat cuma punya 1 baris berisi `1`, `4`, `3`, `tess` — nilai khas (≥3 karakter) cuma satu, jadi test langsung skip padahal datanya ADA dan bisa diperiksa. Sekarang ambangnya adaptif: ≥3 nilai khas → toleran 50%; kurang dari itu → pakai **semua** nilai non-kosong dan wajib ketemu 100%. Skip hanya kalau grid benar-benar tidak menampilkan satu nilai pun |
+| Bug aplikasi yang sudah dilaporkan tidak bikin suite merah permanen | **(2026-09-07)** `test_safety_lagging_deep[smk3]` selalu gagal karena bug Cancel yang sudah didokumentasikan. Kegagalan yang selalu ada membuat orang berhenti membaca hasil, sehingga regresi **baru** ikut tenggelam. Halaman yang terkena didaftar di `HssSafetyPage.CANCEL_TIDAK_MEMBUANG_PENDING` — pemeriksaan Cancel dilonggarkan jadi peringatan, langkah lain tetap di-assert. Sengaja **bukan** `@pytest.mark.xfail`: xfail berlaku ke seluruh kasus parametrize, jadi regresi di langkah lain (edit+submit, filter, export, import) ikut tertelan. Kalau OPEL memperbaikinya, test mencetak `[BUG SUDAH DIPERBAIKI?]` supaya halaman itu dikeluarkan dari set |
+| Nilai tanggal dikecualikan dari pencocokan export | Excel menyimpan tanggal sebagai objek `datetime`, jadi grid yang menampilkan `01/08/2026` terbaca `2026-08-01 00:00:00` di file dan tidak akan pernah cocok sebagai teks. Di ambang longgar (50%) ini tidak masalah, tapi di ambang **ketat** (100%, dipakai saat grid cuma punya sedikit nilai) satu kolom tanggal saja sudah menggagalkan test yang sebenarnya benar. `_POLA_TANGGAL` membuangnya lebih dulu — pemisah titik sengaja mewajibkan 3 bagian (`01.08.2026`) supaya angka desimal seperti `12.5` tidak ikut terbuang |
+| State pending bertahan LINTAS SESI | Banner *"The data has been stored locally"* muncul di halaman yang test-nya belum mengedit apa pun. Dugaan awal "sisa test sebelumnya di sesi yang sama" **terbantah** pada run 2026-09-07 10:06 — banner sudah menyala di test **pertama** sesi itu. Jadi state-nya bertahan antar-run. `_bersihkan_draft_lokal()` (dipanggil di `buka_halaman()` dan `buka_via_menu()`) hanya menghapus `localStorage` berpola `dr_<Id>_*`, dan terbukti tidak menjangkau ini. Dua kandidat tersisa: key penyimpanan browser dengan pola lain, atau perubahan pending yang benar-benar tersimpan di server untuk user tsb. `ada_pending_lokal()` + `daftar_key_penyimpanan()` mencetak `[STATE PENDING]` berikut daftar key browser saat banner menyala — daftar kosong berarti sumbernya server |
+| Kotak ringkasan sempat menghitung kurang | **(2026-09-07)** Run 29 test (23 passed, 6 skipped) tapi kotak "AUTOMATION TESTING RESULT" cuma mencatat 18 — 11 `test_safety_leading_deep` raib karena belum punya entri di `STEP_LABELS`, dan `_label_for_step()` mengembalikan `None` sehingga test tanpa label dibuang diam-diam. Sekarang label yang tidak ketemu jatuh ke nama test mentahnya, jadi jumlah di kotak selalu sama dengan jumlah yang benar-benar dijalankan pytest |
+| Rasio K3 tidak diuji rumusnya | **(2026-09-07, keputusan akhir)** Sempat dibuat test yang menghitung ulang Frequency/Severity/Fatality Rate di Statistic Safety Recapitulation (Id=1317). Test itu **dihapus** setelah terbukti dari DOM bahwa ketiga kolom rasio adalah `<input>` aktif — nilainya **diketik operator**, bukan dihitung aplikasi. Kebenaran rumusnya soal mutu data, bukan tanggung jawab aplikasi, jadi tidak layak jadi assertion regresi. Sebagai catatan: audit sekali jalan atas periode 2026-08 (AT10 KANTOR PUSAT) menunjukkan datanya konsisten pada pengali **≈1.000.000** (ILO/Permenaker) di 7 baris, tanpa satu pun baris janggal |
+| Pencocokan isi export | Ambangnya toleran (mayoritas nilai contoh, bukan semua) karena export wajar memformat ulang nilai: tanggal jadi objek `datetime`, angka jadi `float`, kolom tersembunyi bisa ikut atau tidak. Yang disasar adalah kegagalan besar — file template kosong, data unit/periode lain, atau file basi sisa export sebelumnya |
 
 ## Kesimpulan
 
