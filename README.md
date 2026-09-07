@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/Python-3.13.2-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.13.2">
   <img src="https://img.shields.io/badge/Selenium-4.45.0-43B02A?style=flat-square&logo=selenium&logoColor=white" alt="Selenium 4.45.0">
   <img src="https://img.shields.io/badge/Pytest-9.1.1-0A9EDC?style=flat-square&logo=pytest&logoColor=white" alt="Pytest 9.1.1">
-  <img src="https://img.shields.io/badge/Status-45%20passed%20%C2%B7%200%20failed-2EA043?style=flat-square" alt="Status: 45 passed, 0 failed">
+  <img src="https://img.shields.io/badge/Status-94%20passed%20%C2%B7%2013%20skipped%20%C2%B7%200%20failed-2EA043?style=flat-square" alt="Status: 94 passed, 13 skipped, 0 failed">
 </p>
 
 ## Gambaran Umum
@@ -17,7 +17,7 @@ menerapkan pendekatan **Page Object Model (POM)** dan **data-driven
 testing**. Seluruh alur pengujian dijalankan dalam **satu sesi browser**
 tanpa perlu me-refresh halaman.
 
-Pengujian mencakup **45 langkah** yang dikelompokkan ke dalam modul:
+Pengujian mencakup **108 test** yang dikelompokkan ke dalam modul:
 Login, Navigasi Menu, View per Halaman, Tab, Create/Delete, Lagging
 Mendalam, dan Halaman Lengkap — untuk **19 halaman** di menu
 **HSS > Safety** (5 halaman Reporting + 14 halaman Transaction).
@@ -37,7 +37,34 @@ lingkungan DEV menggunakan penanda unik agar mudah diidentifikasi.
 
 ## Status Pengujian
 
-Hasil full suite (`pytest -k safety`) tanggal 31 Agustus 2026:
+Hasil full suite (`pytest -m safety`) tanggal **7 September 2026**:
+
+```
+========================================
+       AUTOMATION TESTING RESULT
+========================================
+TOTAL TEST : 107
+PASSED     : 94
+SKIPPED    : 13
+FAILED     : 0
+STATUS     : PASSED
+========================================
+94 passed, 13 skipped, 1 deselected in 1881.01s (0:31:21)
+```
+
+Tentang **13 SKIPPED**: semuanya diverifikasi lewat screenshot dan
+memang sah — grid `No data available in table` di lingkungan DEV,
+periode yang datanya belum diisi, atau fitur yang tidak berlaku di
+halaman tersebut. Bukan test yang menghindar dari kegagalan.
+
+Catatan jujur soal cakupan: karena banyak halaman DEV kosong, angka
+PASSED tidak berarti setiap fitur terverifikasi penuh. `pytest -m
+safety_datatables` mencetak baris `[CAKUPAN DataTables]` yang menyebut
+bagian mana yang benar-benar diuji per halaman dan bagian mana yang
+dilewati karena tidak ada datanya.
+
+<details>
+<summary>Riwayat: hasil run 31 Agustus 2026 (45 test, sebelum merge)</summary>
 
 ```
 ========================================
@@ -103,14 +130,9 @@ Tindak lanjut dari 1 kegagalan di atas:
 | Incident Investigation — modal Import tidak terdeteksi terbuka | Deteksi modal memakai `is_displayed()` yang bernilai negatif palsu saat sesi panjang (modal sebenarnya terbuka) | Deteksi modal diganti menjadi pemeriksaan computed style JS (`_ada_modal_tampil()`), lalu test dijalankan ulang dan **lulus** (log `run_cek_incident.txt`) |
 | Master Alat (Create with Form) — gagal 1 kali pada run parsial sesi panjang (flaky) | Quirk SPA pada sesi yang sangat panjang | Dijalankan ulang dan **lulus** (log `run_cek_master_alat.txt`) |
 
-Dengan demikian seluruh **45 test telah terverifikasi lulus**.
+Dengan demikian seluruh **45 test saat itu terverifikasi lulus**.
 
-> **Catatan (2026-08-31, pasca-merge):** log run di atas direkam
-> SEBELUM branch ini digabung dengan `automation-safety` (fixes bug
-> search-token, empty-draft-blocks-submit, delete dua tahap, dan 4 test
-> berdiri sendiri di tabel "Alur Pengujian" di bawah). Angka **45**
-> belum termasuk 4 test tambahan itu — jalankan ulang `pytest -k safety`
-> untuk angka yang mencerminkan kondisi terkini.
+</details>
 
 ## Alur Pengujian
 
@@ -400,7 +422,7 @@ profil yang sesi-nya sudah aktif:
 # Seluruh alur (Login + seluruh modul Safety, 1 browser session)
 pytest
 
-# Hanya modul Safety (45 test)
+# Hanya modul Safety (107 test)
 pytest -k safety
 
 # Hanya halaman View/Reporting
@@ -487,7 +509,7 @@ Safety. Ringkasan poin-poin utamanya adalah sebagai berikut:
 | Aspek | Penerapan |
 |---|---|
 | **Pola desain** | Page Object Model (POM) — setiap halaman memiliki kelas halaman sendiri |
-| **Cakupan** | 19 halaman HSS > Safety (5 Reporting + 14 Transaction), 45 langkah pengujian |
+| **Cakupan** | 19 halaman HSS > Safety (5 Reporting + 14 Transaction), 108 test |
 | **Kedalaman pengujian** | Seluruh tab dan seluruh tombol fitur dicoba pada setiap halaman (bukan sekadar membuka halaman) |
 | **Navigasi** | Melalui menu sidebar (dashboard → HSS → Safety → sub Reporting/Transaction), bukan URL langsung |
 | **Data uji** | Terpusat di `data/test_data.json` — data dapat diganti tanpa mengubah kode |
