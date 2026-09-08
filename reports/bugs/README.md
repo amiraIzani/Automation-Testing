@@ -9,6 +9,7 @@ Terakhir diperbarui: **2026-09-08**
 | Laporan | Status | Kirim ke dev? |
 |---|---|---|
 | [submit-changes-redirect-tanpa-menyimpan](submit-changes-redirect-tanpa-menyimpan.md) | **TERBUKA** | **YA** |
+| [witness-statement-submit-membuang-semua-baris-pending](witness-statement-submit-membuang-semua-baris-pending.md) | **TERBUKA** | **YA** |
 | [statistic-safety-recap-inline-edit-tidak-tersimpan](statistic-safety-recap-inline-edit-tidak-tersimpan.md) | Gejala dari laporan di atas | Tidak — sudah tercakup |
 | [master-alat-submit-drops-new-row](master-alat-submit-drops-new-row.md) | Sudah diperbaiki aplikasi | Tidak |
 | [lagging-cancel-does-not-discard-edit](lagging-cancel-does-not-discard-edit.md) | BUKAN BUG (salah asumsi test) | Tidak |
@@ -34,26 +35,37 @@ Satu-satunya bug aplikasi yang masih terbuka.
   permanen. Pemeriksaan penyimpanan dilonggarkan jadi peringatan
   `[BUG DIKENAL]`; langkah lain tetap di-assert ketat.
 
-## 2. Witness Statement — laporan DITARIK, BUKAN BUG
+## 2. Witness Statement — Submit membuang SEMUA baris pending — **TERBUKA**
 
-Sempat dibuat laporan `witness-statement-submit-membuang-baris-baru.md`
-pada 2026-09-08 (ter-push di commit `880eca0`), lalu **ditarik di hari
-yang sama**.
+- **Halaman**: Witness Statement Report, `DailyReport/Edit?Id=1336`
+- **Gejala**: user mengisi field wajib yang diminta validasi, klik
+  Submit, jawab konfirmasi — lalu **semua input hilang**, baik yang
+  diketik manual maupun sisa baris automation.
+- **Kenapa serius**: kehilangan terjadi SETELAH user memenuhi validasi
+  dan mengonfirmasi. Dari sudut pandang user, ia sudah melakukan semua
+  yang diminta aplikasi.
+- **Dugaan**: sama dengan pola batch di
+  `master-alat-submit-drops-new-row.md` — satu baris pending tidak
+  valid membuat SELURUH batch dibuang, termasuk baris yang sudah valid.
+  Di Master Alat pola itu sudah diperbaiki; di sini belum.
 
-Klaimnya: baris baru hilang setelah Submit Changes. Kenyataannya
-aplikasi **berperilaku benar** — barisnya ditolak **validasi field
-wajib**, karena test hanya mengisi input teks/angka/tanggal dan
-melewati kolom **lookup/select** yang di halaman itu wajib.
+**Catatan proses:** laporan pertama soal halaman ini
+(`witness-statement-submit-membuang-baris-baru.md`) ditarik pada hari
+yang sama karena dikira sekadar penolakan validasi biasa. Penarikan itu
+**keliru** — urutan lengkapnya baru terungkap sesudahnya. Yang benar:
+gejala pertama (baris test hilang) memang penolakan validasi, tapi ada
+bug TERPISAH yang muncul setelah validasi dipenuhi.
 
-Korelasinya 9/9 dan tidak bisa dibantah:
+Perlu dibedakan:
 
-| Menerapkan validasi wajib? | Hasil `create_inline` |
+| Kejadian | Status |
 |---|---|
-| YA (2 halaman) | gagal / skip |
-| TIDAK (7 halaman) | lulus semua |
+| Baris test automation ditolak karena lookup wajib kosong | **Bukan bug** — aplikasi benar |
+| Semua input hilang setelah field wajib dipenuhi + konfirmasi | **BUG** — laporan ini |
 
-`test_safety_create_inline` sekarang **skip** halaman bervalidasi
-dengan alasan eksplisit, alih-alih menuduh aplikasi.
+`test_safety_create_inline` melewati (skip) halaman bervalidasi karena
+`isi_baris_kosong_inline()` tidak bisa mengisi lookup/select. Skip itu
+tidak berhubungan dengan bug di atas.
 
 ## 3. Statistic Safety Recap tidak menyimpan — gejala, bukan akar
 
@@ -94,12 +106,18 @@ Empat laporan di atas menghasilkan tiga pelajaran yang mahal:
    dilaporkan seolah pasti terjadi biasanya ditutup sebagai
    "cannot reproduce".
 4. **Kegagalan menyimpan belum tentu bug — cek validasi field wajib
-   dulu.** Kalau test mengisi baris secara otomatis tapi melewati kolom
+   dulu.** Kalau test mengisi baris otomatis tapi melewati kolom
    lookup/select, baris ditolak validasi dan dibuang. Itu aplikasi yang
-   BENAR. Laporan nomor 2 lahir dari kekeliruan ini.
+   BENAR.
+5. **Tapi jangan menarik laporan secepat menulisnya.** Laporan nomor 2
+   ditarik karena penjelasan "validasi" terdengar meyakinkan — padahal
+   di balik gejala yang sama ada bug terpisah yang baru terungkap
+   setelah urutan lengkapnya ditanyakan.
 
-Pola yang berulang di keempat kasus: **automation gagal → langsung
-disimpulkan bug aplikasi.** Empat kali, tiga di antaranya ternyata
-keliru. Urutan yang benar: reproduksi manual dulu, baru tulis laporan.
+Dua kesalahan berlawanan, sumbernya sama: **menyimpulkan sebelum
+urutan kejadiannya lengkap.** Yang benar bukan "jangan cepat menuduh"
+atau "jangan cepat menarik", tapi: minta reproduksi manual langkah demi
+langkah dulu — termasuk apa yang terjadi SESUDAH tiap klik — baru
+tulis atau tutup laporan.
 
 Alat bantu yang memverifikasi hal-hal ini: `tools/cek_simpan_inline.py`.
