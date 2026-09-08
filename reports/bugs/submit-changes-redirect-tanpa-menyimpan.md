@@ -84,6 +84,33 @@ terpisah:
 | Automation melaporkan `KONFIRMASI SUBMIT TIDAK TERJAWAB` | Dialog konfirmasi ikut lenyap bersama halaman lama — tidak ada yang bisa diklik |
 | Halaman lain (smk3/smkp, YearlyReport) tampak aman | Belum tentu aman — pengamatan manual menunjukkan Yearly pun bermasalah saat Submit |
 
+## PENTING: bug ini INTERMITEN, tidak terjadi di setiap percobaan
+
+Run `pytest -k "lagging_deep and statistic"` (2026-09-08, sesudah run
+`-m MonthlyReport_Edit` yang gagal) justru menunjukkan Submit Changes
+**BERHASIL menyimpan**:
+
+```
+[BUG SUDAH DIPERBAIKI?] Submit Changes kali ini MENYIMPAN dengan benar.
+```
+
+Padahal beberapa menit sebelumnya, halaman yang sama, kolom yang sama,
+gagal:
+
+```
+FAILED ... Edit 'PenyakitAkibatKerja' = '5' tidak tersimpan
+           -- setelah reload terbaca '1'
+```
+
+Jadi perilakunya **tidak deterministik**. Ini WAJIB disebut saat
+laporan dikirim ke tim dev: kalau mereka mencoba sekali dan berhasil,
+bukan berarti bug-nya tidak ada. Bug intermiten yang dilaporkan sebagai
+deterministik biasanya ditutup sebagai "cannot reproduce".
+
+Yang belum diketahui: apa pemicunya. Kandidat yang belum diuji —
+apakah redirect muncul hanya saat ada draft lokal tersisa, hanya pada
+periode tertentu, atau bergantung waktu/urutan aksi.
+
 ## Konfirmasi automation: bug KONFIGURASI, bukan bug template
 
 Run `pytest -m MonthlyReport_Edit` (2026-09-08) — 20 test di keempat

@@ -1182,15 +1182,23 @@ class TestSafetyHss:
             _muat_ulang()
             kembali = _baca_sel_stabil(page, field_edit, anchor)
             if submit_rusak:
-                # Submit-nya memang rusak di halaman ini, jadi revert pun
-                # tidak akan tersimpan. Tapi karena penyimpanan TIDAK
-                # PERNAH terjadi, data server juga tidak pernah berubah --
-                # tidak ada yang perlu dibersihkan.
-                print(
-                    f"[BUG DIKENAL] '{kunci}': revert juga tidak tersimpan "
-                    f"(terbaca '{kembali}'). Data server tidak berubah sejak "
-                    "awal karena Submit tidak pernah terkirim."
-                )
+                # Pesan HARUS mengikuti nilai yang benar-benar terbaca.
+                # Versi pertama mencetak "revert tidak tersimpan" tanpa
+                # memeriksa apa pun, sehingga muncul bersamaan dengan
+                # "[BUG SUDAH DIPERBAIKI?]" di run yang sama -- dua
+                # pesan yang saling bertentangan (2026-09-08).
+                if _sel_sama(kembali, nilai_awal):
+                    print(
+                        f"[INFO] '{kunci}': revert berhasil, nilai kembali "
+                        f"ke '{nilai_awal}'."
+                    )
+                else:
+                    print(
+                        f"[BUG DIKENAL] '{kunci}': revert tidak tersimpan "
+                        f"(terbaca '{kembali}', diharapkan '{nilai_awal}'). "
+                        "Submit tidak terkirim, jadi data server tidak "
+                        "pernah berubah -- tidak ada yang perlu dibersihkan."
+                    )
             else:
                 assert _sel_sama(kembali, nilai_awal), (
                     f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
