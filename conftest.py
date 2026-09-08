@@ -163,6 +163,40 @@ def _get_active_driver(test_item):
     return None
 
 
+# ------------------ Marker TEMPLATE laporan (otomatis) ------------------
+# 19 halaman Safety cuma 7 kombinasi template+mode, dan sebagian besar
+# perilaku yang diuji (toolbar, tab, grid, tombol, Submit) milik
+# TEMPLATE -- bukan milik halaman. Tanpa dimensi ini, N kegagalan yang
+# sebenarnya SATU sebab terbaca sebagai N masalah terpisah.
+#
+# Kebutuhannya terbukti 2026-09-08: bug Submit Changes redirect ketemu
+# di Id=1317 (MonthlyReport/Edit), dan pertanyaan "ini kena satu
+# halaman atau satu template?" harus dijawab dengan grep manual.
+# Sekarang cukup: pytest -m "MonthlyReport"
+#
+# Marker ditempel dari NAMA PARAMETER halaman, jadi nama test dan
+# STEP_LABELS tidak berubah sama sekali.
+def pytest_collection_modifyitems(config, items):
+    try:
+        from pages.hss_safety_page import HssSafetyPage
+    except Exception:
+        return
+    for item in items:
+        kunci = None
+        for nama in ("kunci_halaman", "kunci"):
+            nilai = getattr(item, "callspec", None)
+            if nilai is not None and nama in nilai.params:
+                kunci = nilai.params[nama]
+                break
+        if not kunci or kunci not in HssSafetyPage.HALAMAN:
+            continue
+        template = HssSafetyPage.template_halaman(kunci)
+        # 'MonthlyReport/Edit' -> marker 'MonthlyReport' + 'MonthlyReport_Edit'
+        dasar = template.split("/")[0]
+        item.add_marker(getattr(pytest.mark, dasar))
+        item.add_marker(getattr(pytest.mark, template.replace("/", "_")))
+
+
 # ------------------ Screenshot otomatis saat test gagal / di-skip ------------------
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):

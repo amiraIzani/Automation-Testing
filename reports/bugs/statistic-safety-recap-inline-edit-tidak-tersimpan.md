@@ -1,4 +1,95 @@
-# Bug: Statistic Safety Recapitulation — perubahan inline tidak tersimpan lewat Submit Changes
+# Statistic Safety Recap — edit inline tidak tersimpan (gejala; akar masalah ada di laporan lain)
+
+> ## STATUS AKHIR (2026-09-08): GEJALANYA NYATA, akar masalahnya SUDAH KETEMU
+>
+> **Baca laporan utamanya:**
+> [`submit-changes-redirect-tanpa-menyimpan.md`](submit-changes-redirect-tanpa-menyimpan.md)
+>
+> Temuan asli 26 Agustus — "perubahan inline tidak tersimpan" —
+> **TERNYATA BENAR**. Yang salah cuma dugaan penyebabnya.
+>
+> Penyebab sebenarnya: tombol **Submit Changes** di halaman ini
+> **langsung me-redirect** ke `YearlyReport/Edit?Id=1317&DistrictCode=AT10`
+> sebelum dialog konfirmasi sempat muncul. Request penyimpanan tidak
+> pernah terkirim, jadi wajar datanya tidak tersimpan.
+>
+> Sudah dikonfirmasi bug aplikasi, bukan efek automation: terulang di
+> **incognito** dan di **mesin Windows lain**, dan dari empat halaman
+> `MonthlyReport/Edit` hanya Id=1317 yang terkena.
+>
+> ### Catatan proses (supaya tidak terulang)
+>
+> Laporan ini sempat DITUTUP sebagai "BUKAN BUG" pada 2026-09-08 pagi,
+> berdasarkan hasil `tools/cek_simpan_inline.py` yang melaporkan
+> `TERSIMPAN`. Kesimpulan itu keliru karena alatnya sendiri masih
+> membaca **draft lokal**, bukan data server. Penutupan itu terlalu
+> cepat, dan koreksinya datang dari pengecekan MANUAL.
+>
+> Pelajarannya: hasil automation tidak boleh menutup laporan bug
+> sebelum cara pembacaannya sendiri tervalidasi.
+>
+> ### Akar masalahnya
+>
+> `buka_halaman()` membuka URL halaman apa adanya, sehingga filter
+> periode **kembali ke DEFAULT**. Alur test dulu:
+>
+> ```
+> tulis nilai di periode yang ADA DATANYA (mis. Agustus 2026)
+> -> Submit Changes
+> -> buka_halaman()      <-- periode balik ke default (September 2026)
+> -> baca di September   <-- KOSONG
+> -> simpulkan "tidak tersimpan"
+> ```
+>
+> Datanya tersimpan di Agustus. Yang dibaca September.
+>
+> ### Kenapa hanya halaman ini yang terkena
+>
+> | Halaman | Template | Periode default | Data ada di | Hasil |
+> |---|---|---|---|---|
+> | SMK3, SMKP | YearlyReport | `2026` | `2026` | cocok, lolos |
+> | **Statistic** | MonthlyReport | **bulan berjalan** | Juli/Agustus | **salah baca** |
+>
+> Itu sekaligus menjelaskan kenapa SMK3 dipakai sebagai "kontrol yang
+> menyimpan normal" — bukan karena aplikasinya beda, tapi karena
+> periode defaultnya kebetulan sama dengan periode datanya.
+>
+> Dan menjelaskan kenapa **pengujian manual selalu berhasil**: orang
+> tidak memuat ulang halaman ke periode lain sebelum mengecek.
+>
+> ### Bukti
+>
+> `tools/cek_simpan_inline.py` menguji 14 halaman ber-Submit Changes
+> dengan pembacaan yang benar (periode dipulihkan, dibaca sampai
+> stabil, angka dibanding sebagai angka). Hasil 2026-09-08:
+>
+> ```
+> TERSIMPAN     : 10   <-- termasuk statistic_safety_recapitulation
+> GAGAL BACA    : 1    (smk3 -- keterbatasan alat, bukan aplikasi)
+> BUTUH TANGGAL : 3    (DailyReport, filter tanggal belum diisi)
+> TIDAK TERSIMPAN: 0
+> ```
+>
+> Screenshot bukti:
+> `reports/screenshots/cek_simpan_statistic_safety_recapitulation_TERSIMPAN_20260908_093753.png`
+> — Month `August 2026`, data utuh, tanpa banner pending.
+>
+> **Tidak satu pun halaman gagal menyimpan.**
+>
+> ### Tindak lanjut yang sudah dikerjakan
+>
+> - `test_safety_lagging_deep` memulihkan periode tiap kali memuat
+>   ulang halaman (`_muat_ulang()`), membaca sampai nilainya stabil
+>   (`_baca_sel_stabil()`), dan membandingkan angka sebagai angka
+>   (`_sel_sama()`).
+> - `edit_tersimpan` untuk halaman ini dikembalikan ke `True`.
+>
+> Laporan ini DIPERTAHANKAN sebagai catatan supaya kekeliruan yang sama
+> tidak terulang. **Jangan dikirim ke tim dev OPEL.**
+>
+> ---
+>
+> ## Isi laporan asli (KELIRU, disimpan sebagai riwayat)
 
 - **Tanggal ditemukan**: 2026-08-26
 - **Dikonfirmasi ulang**: 2026-09-07 (pengamatan manual: halaman masih

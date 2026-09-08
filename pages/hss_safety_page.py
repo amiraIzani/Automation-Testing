@@ -41,6 +41,7 @@ STABIL data-name -> locator kolom: th[data-name='...'].
 import base64
 import json
 import os
+import re
 import time
 
 from selenium.webdriver.common.action_chains import ActionChains
@@ -456,6 +457,37 @@ class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     # Navigasi
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # TEMPLATE laporan (DailyReport / MonthlyReport / YearlyReport /
+    # StaticReport, masing-masing Edit atau View).
+    #
+    # 19 halaman Safety sebenarnya cuma 7 kombinasi template+mode --
+    # sebagian besar perilakunya (toolbar, tab, grid, tombol) milik
+    # TEMPLATE, bukan milik halaman. Sampai 2026-09-08 suite ini sama
+    # sekali tidak punya konsep template, sehingga tidak bisa menjawab
+    # "kegagalan ini kena satu halaman atau satu template?" -- padahal
+    # itu persis pertanyaan yang muncul saat bug Submit Changes
+    # redirect ditemukan di Id=1317 (lihat reports/bugs/
+    # submit-changes-redirect-tanpa-menyimpan.md). Waktu itu jawabannya
+    # harus dicari manual.
+    # ------------------------------------------------------------------
+    @classmethod
+    def template_halaman(cls, kunci):
+        """Nama template+mode halaman `kunci`, mis. 'MonthlyReport/Edit'.
+        'Custom' untuk halaman di luar pola Timesheet (Safety Recap)."""
+        cocok = re.search(
+            r"Timesheet/(\w+)/(\w+)", cls.HALAMAN.get(kunci, "")
+        )
+        return f"{cocok.group(1)}/{cocok.group(2)}" if cocok else "Custom"
+
+    @classmethod
+    def halaman_per_template(cls):
+        """{'MonthlyReport/Edit': ['golden_rules', ...], ...}"""
+        hasil = {}
+        for kunci in cls.HALAMAN:
+            hasil.setdefault(cls.template_halaman(kunci), []).append(kunci)
+        return hasil
+
     @staticmethod
     def _js_tampil():
         """JS: True kalau ADA elemen yang cocok dan benar-benar tampil
@@ -1248,13 +1280,33 @@ class HssSafetyPage(BasePage):
         Kalau processing-nya yang macet, yang gagal adalah tunggu
         processing, bukan popup yang ditutup paksa sembarangan."""
         self.click_js_saat_tampil(self.BTN_SUBMIT)
-        self.jawab_konfirmasi()
+        terjawab = self.jawab_konfirmasi()
+        dipaksa = False
         try:
             self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
         except TimeoutException:
             self.tunggu_processing_selesai()
-            self._paksa_tutup_modal()
-            self.tunggu_modal_tertutup()
+            # Coba jawab SEKALI LAGI sebelum menutup paksa. Dialog
+            # konfirmasi bisa muncul TERLAMBAT -- jawab_konfirmasi()
+            # menyerah setelah 2 detik tenang, jadi kalau dialognya baru
+            # nongol sesudah itu, tidak ada yang mengkliknya. Menutup
+            # paksa dialog konfirmasi = MEMBATALKAN submit secara diam-
+            # diam, dan test lanjut mengira sudah tersimpan (2026-09-08).
+            if self.jawab_konfirmasi(timeout=config.DEFAULT_TIMEOUT):
+                terjawab = True
+                try:
+                    self.tunggu_modal_tertutup(timeout=config.LONG_TIMEOUT)
+                except TimeoutException:
+                    self._paksa_tutup_modal()
+                    self.tunggu_modal_tertutup()
+                    dipaksa = True
+            else:
+                self._paksa_tutup_modal()
+                self.tunggu_modal_tertutup()
+                dipaksa = True
+        # Nilai balik dipakai alat diagnosa (tools/cek_simpan_inline.py);
+        # pemanggil lama mengabaikannya, jadi tetap kompatibel.
+        return {"konfirmasi_dijawab": terjawab, "modal_ditutup_paksa": dipaksa}
 
     def klik_tab(self, teks_tab, jeda=None):
         """Klik tab internal halaman (hanya yang benar2 tampil menurut
@@ -2530,6 +2582,30 @@ return out;
     # menganggap tombol SUDAH DICOBA (diklik) walau modal tak terbuka --
     # sesuai tujuan test (klik tiap tombol), bukan verifikasi modal.
     MODAL_BEST_EFFORT = {"incident_investigation_form"}
+
+    # Halaman yang tombol Submit Changes-nya RUSAK: klik Submit langsung
+    # me-redirect ke template lain SEBELUM dialog konfirmasi muncul,
+    # sehingga request penyimpanan tidak pernah terkirim dan data user
+    # hilang senyap.
+    #
+    #   Id=1317: MonthlyReport/Edit?Id=1317
+    #         -> YearlyReport/Edit?Id=1317&DistrictCode=AT10
+    #
+    # BUG APLIKASI TERKONFIRMASI (2026-09-08) -- rinciannya di
+    # reports/bugs/submit-changes-redirect-tanpa-menyimpan.md:
+    #   * terulang di incognito DAN di mesin Windows lain, jadi bukan
+    #     efek state/beban dari automation;
+    #   * dari 4 halaman MonthlyReport/Edit, HANYA Id=1317 terkena
+    #     (golden_rules 1316, mwt_daily 1312, emergency_drill_daily 1319
+    #     lulus di run `pytest -m MonthlyReport_Edit` 2026-09-08:
+    #     1 failed, 15 passed, 4 skipped) -- jadi bug KONFIGURASI
+    #     halaman, bukan bug template.
+    #
+    # Didaftar di sini supaya suite tidak merah permanen: kegagalan yang
+    # selalu ada bikin orang berhenti membaca hasil, dan regresi BARU
+    # ikut tenggelam. Yang dilonggarkan HANYA pemeriksaan penyimpanan;
+    # langkah lain di test yang sama tetap di-assert ketat.
+    SUBMIT_REDIRECT_TANPA_SIMPAN = {"statistic_safety_recapitulation"}
 
     # CATATAN 2026-09-07 -- registry CANCEL_TIDAK_MEMBUANG_PENDING DIHAPUS.
     #

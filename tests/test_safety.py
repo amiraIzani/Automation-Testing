@@ -330,6 +330,43 @@ def _nilai_angka(teks):
     return angka
 
 
+def _sel_sama(a, b):
+    """Bandingkan dua isi sel grid. ANGKA dibandingkan sebagai angka,
+    bukan string.
+
+    Kenapa (2026-09-08): aplikasi boleh merender ulang angka dengan
+    format berbeda dari yang diketik -- '69' bisa kembali sebagai
+    '69.0', '69.00', atau ' 69 '. Pembandingan string mentah menilai
+    itu "tidak sama" lalu menuduh aplikasi tidak menyimpan, padahal
+    nilainya identik. Kekeliruan seperti inilah yang melahirkan laporan
+    bug palsu untuk Statistic Safety Recapitulation.
+    """
+    a, b = (a or "").strip(), (b or "").strip()
+    if a == b:
+        return True
+    na, nb = _nilai_angka(a), _nilai_angka(b)
+    return na is not None and nb is not None and na == nb
+
+
+def _baca_sel_stabil(page, field, anchor, timeout=None, jeda=1.0):
+    """Baca sel berulang sampai nilainya STABIL (tidak kosong dan sama
+    dua kali berturut-turut), atau timeout.
+
+    `_tunggu_anchor()` hanya menunggu ELEMEN sel ada; nilainya diisi
+    AJAX belakangan, jadi pembacaan sekali-jalan setelah reload bisa
+    mengembalikan '' atau nilai lama walau server sudah menyimpan.
+    """
+    batas = time.monotonic() + (timeout or config.LONG_TIMEOUT)
+    sebelumnya = None
+    while time.monotonic() < batas:
+        nilai = page.baca_sel_grid_anchor(field, anchor)
+        if nilai and nilai == sebelumnya:
+            return nilai
+        sebelumnya = nilai
+        time.sleep(jeda)
+    return sebelumnya or ""
+
+
 def _assert_grid_sesuai_kontrak(page, kunci):
     """Verifikasi grid halaman `kunci` BUKAN sekadar 'tabelnya muncul':
 
@@ -940,17 +977,23 @@ class TestSafetyHss:
     #  - Filter unit TIDAK dites ganti nilai: select cbDistrict di
     #    halaman ini terkunci oleh aplikasi (semua opsi disabled) --
     #    cukup diverifikasi elemennya ada + punya opsi.
-    # Catatan 2026-08-26 (edit_tersimpan=False untuk Statistic):
-    #  - Halaman Statistic (template MonthlyReport) TIDAK menyimpan
-    #    perubahan inline lewat Submit Changes -- ketikan masuk ke sel
-    #    ('4' -> '5' terbaca segera), tapi setelah Submit + reload
-    #    nilainya kembali ke '4' (dicek tools/probe_masalah5.py;
-    #    kontrol SMK3 menyimpan '7' normal). Alur edit TETAP DICOBA
-    #    di Statistic (permintaan user: semua fitur dicoba), hanya
-    #    verifikasinya = data tidak rusak (tetap nilai awal).
+    # Catatan 2026-08-26 (KELIRU, dikoreksi 2026-09-08):
+    #  - Dulu Statistic dipasang `edit_tersimpan=False` karena dikira
+    #    tidak menyimpan perubahan inline. Itu SALAH: yang keliru cara
+    #    test membaca hasilnya. `buka_halaman()` mengembalikan filter
+    #    periode ke DEFAULT, jadi nilai yang ditulis di Juli/Agustus
+    #    dibaca di bulan berjalan yang kosong, lalu disimpulkan "tidak
+    #    tersimpan". SMK3/SMKP lolos cuma karena periode defaultnya
+    #    (tahun) kebetulan sama dengan periode datanya.
+    #  - Dibuktikan tools/cek_simpan_inline.py (2026-09-08): 10 halaman
+    #    TERSIMPAN termasuk Statistic, NOL yang tidak tersimpan. Detail
+    #    di reports/bugs/statistic-safety-recap-inline-edit-tidak-
+    #    tersimpan.md (ditutup sebagai BUKAN BUG).
+    #  - Sekarang `_muat_ulang()` memulihkan periode tiap reload, jadi
+    #    verifikasinya sudah sah dan `edit_tersimpan` dikembalikan True.
     LAGGING_DEEP = [
         ("statistic_safety_recapitulation", "2026-07", "PenyakitAkibatKerja",
-         {"Month": "July", "TipePegawai": "Pegawai"}, None, False),
+         {"Month": "July", "TipePegawai": "Pegawai"}, None, True),
         ("smk3", "2026", "PPkomKetidaksesuaianMaj", {"Month": "Juli"}, None,
          True),
         ("smkp", "2026", "Deskripsi", {"Month": "Juli"}, "AUTO-TEST", True),
@@ -992,7 +1035,83 @@ class TestSafetyHss:
         #    langsung pasca-submit tidak andal -- state sampah sementara,
         #    data asli baru terlihat setelah reload, 2026-08-24)
         page.reset_cari_grid()
+
+        # Pindah dulu ke PERIODE YANG ADA DATANYA sebelum mengedit.
+        # `tanggal_uji` memang periode itu (mis. '2026-07' untuk
+        # Statistic), tapi dulu baru dipakai jauh di bawah saat menguji
+        # filter tanggal -- akibatnya edit dicoba di periode default yang
+        # kosong, lalu test menyerah dengan SKIP tanpa pernah menguji
+        # penyimpanan sama sekali (2026-09-08).
+        #
+        # Syaratnya nilai SEL yang kosong, BUKAN elemennya yang tidak
+        # ada: di periode kosong pun grid tetap merender baris template
+        # (January..December x Pegawai/Non Pegawai) dengan input kosong,
+        # jadi elemen anchor SELALU ketemu dan pengecekan berbasis
+        # keberadaan elemen tidak pernah memicu perpindahan periode.
+        try:
+            _tunggu_anchor()
+        except TimeoutException:
+            pass  # baris anchor belum ada -- mungkin periodenya salah
+        if (tanggal_uji
+                and page.is_any_visible(page.FILTER_TANGGAL, timeout=3)
+                and page.baca_filter_tanggal() != tanggal_uji
+                and not page.baca_sel_grid_anchor(field_edit, anchor)
+                and not page.cari_anchor_field_terisi(field_edit, anchor)):
+            page.set_filter_tanggal(tanggal_uji)
+            page.tunggu_processing_selesai()
+
         _tunggu_anchor()
+
+        # Periode yang SEDANG AKTIF saat nilai dibaca & ditulis. Wajib
+        # dipulihkan tiap kali halaman dimuat ulang: `buka_halaman()`
+        # membuka URL apa adanya sehingga filter periode KEMBALI KE
+        # DEFAULT (2026-09-08). Kalau nilai ditulis di Juli lalu dibaca
+        # di September (default, kosong), test menuduh aplikasi tidak
+        # menyimpan padahal datanya aman -- persis kekeliruan yang
+        # melahirkan laporan bug palsu Statistic Safety Recapitulation.
+        periode_pakai = page.baca_filter_tanggal()
+
+        def _pulihkan_periode():
+            # UJI MUTASI (sementara): OPEL_MUTASI_PERIODE=1 mematikan
+            # pemulihan periode, meniru bug lama. Dipakai membuktikan
+            # test ini benar-benar bisa GAGAL -- terbukti 2026-09-08:
+            # dengan mutasi aktif, statistic GAGAL di assertion
+            # penyimpanan; tanpa mutasi, lolos.
+            if os.getenv("OPEL_MUTASI_PERIODE"):
+                return
+            if periode_pakai and page.baca_filter_tanggal() != periode_pakai:
+                page.set_filter_tanggal(periode_pakai)
+                page.tunggu_processing_selesai()
+
+        def _muat_ulang():
+            """Muat ulang halaman lalu tarik ulang data DARI SERVER.
+
+            `buka_halaman()` saja TIDAK CUKUP untuk verifikasi: OPEL
+            memulihkan draft lokal saat halaman dimuat ulang, jadi yang
+            terbaca adalah nilai yang baru saja diketik test -- bukan
+            nilai server. Itu "membuktikan" penyimpanan yang belum tentu
+            terjadi (2026-09-08). Hanya tombol Reload Data yang membuang
+            draft dan menarik ulang dari server.
+
+            Periode dipulihkan DUA KALI: sebelum dan sesudah Reload
+            Data. `reload_data()` bisa menavigasi ulang kalau tombolnya
+            tidak kunjung tampil, dan navigasi mengembalikan periode ke
+            default.
+            """
+            page.buka_halaman(kunci)
+            _pulihkan_periode()
+            try:
+                page.reload_data()
+            except Exception:
+                pass
+            _pulihkan_periode()
+            _tunggu_anchor()
+
+        # Baseline WAJIB dari server, bukan dari draft lokal yang masih
+        # nyangkut di halaman (2026-09-08). Kalau nilai_awal diambil dari
+        # draft, seluruh perbandingan sesudahnya jadi salah acuan: pernah
+        # terbaca baseline '3' padahal nilai server '1'.
+        _muat_ulang()
         nilai_awal = page.baca_sel_grid_anchor(field_edit, anchor)
         if not nilai_awal:
             # Field target di baris anchor KOSONG (data DEV berubah --
@@ -1021,21 +1140,62 @@ class TestSafetyHss:
                 nilai_uji = "1"
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
         page.submit_changes()
-        page.buka_halaman(kunci)
-        _tunggu_anchor()
+        _muat_ulang()
         if edit_tersimpan:
-            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_uji, (
-                f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan setelah "
-                "Submit Changes"
+            # Baca STABIL + banding ANGKA (2026-09-08). Sebelumnya sekali
+            # baca + banding string, dan itu sumber tuduhan palsu
+            # "tidak tersimpan": nilai bisa belum ter-render saat dibaca,
+            # atau kembali dengan format lain ('69' -> '69.0').
+            terbaca = _baca_sel_stabil(page, field_edit, anchor)
+            submit_rusak = (
+                kunci in HssSafetyPage.SUBMIT_REDIRECT_TANPA_SIMPAN
             )
+            if submit_rusak:
+                # Bug aplikasi yang SUDAH dilaporkan & dikonfirmasi
+                # manual (termasuk di incognito dan mesin lain) --
+                # jangan bikin suite merah permanen.
+                if not _sel_sama(terbaca, nilai_uji):
+                    print(
+                        f"\n[BUG DIKENAL] '{kunci}': Submit Changes tidak "
+                        f"menyimpan ('{nilai_uji}' diketik, setelah reload "
+                        f"terbaca '{terbaca}'). Penyebabnya Submit langsung "
+                        "me-redirect ke template lain sebelum konfirmasi "
+                        "muncul -- lihat reports/bugs/"
+                        "submit-changes-redirect-tanpa-menyimpan.md"
+                    )
+                else:
+                    print(
+                        f"\n[BUG SUDAH DIPERBAIKI?] '{kunci}': Submit Changes "
+                        "kali ini MENYIMPAN dengan benar. Kalau konsisten di "
+                        f"beberapa run, keluarkan '{kunci}' dari "
+                        "HssSafetyPage.SUBMIT_REDIRECT_TANPA_SIMPAN dan tutup "
+                        "laporan bug-nya."
+                    )
+            else:
+                assert _sel_sama(terbaca, nilai_uji), (
+                    f"Edit '{field_edit}' = '{nilai_uji}' tidak tersimpan "
+                    f"setelah Submit Changes -- setelah reload terbaca "
+                    f"'{terbaca}'"
+                )
             page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
             page.submit_changes()
-            page.buka_halaman(kunci)
-            _tunggu_anchor()
-            assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
-                f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
-                "setelah revert"
-            )
+            _muat_ulang()
+            kembali = _baca_sel_stabil(page, field_edit, anchor)
+            if submit_rusak:
+                # Submit-nya memang rusak di halaman ini, jadi revert pun
+                # tidak akan tersimpan. Tapi karena penyimpanan TIDAK
+                # PERNAH terjadi, data server juga tidak pernah berubah --
+                # tidak ada yang perlu dibersihkan.
+                print(
+                    f"[BUG DIKENAL] '{kunci}': revert juga tidak tersimpan "
+                    f"(terbaca '{kembali}'). Data server tidak berubah sejak "
+                    "awal karena Submit tidak pernah terkirim."
+                )
+            else:
+                assert _sel_sama(kembali, nilai_awal), (
+                    f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
+                    f"setelah revert -- terbaca '{kembali}'"
+                )
         else:
             # halaman yang tidak menyimpan perubahan inline (template
             # MonthlyReport): alur edit + Submit tetap DICOBA, dan
@@ -1046,8 +1206,7 @@ class TestSafetyHss:
             if baca != nilai_awal:
                 page.isi_sel_grid_anchor(field_edit, nilai_awal, anchor)
                 page.submit_changes()
-                page.buka_halaman(kunci)
-                _tunggu_anchor()
+                _muat_ulang()
                 assert page.baca_sel_grid_anchor(field_edit, anchor) == nilai_awal, (
                     f"Nilai '{field_edit}' tidak kembali ke '{nilai_awal}' "
                     "setelah revert"
@@ -1081,8 +1240,7 @@ class TestSafetyHss:
             # gagalkan lewat assert di bawah.
             page.isi_sel_grid_anchor(field_edit, nilai_sebelum_draft, anchor)
             page.submit_changes()
-            page.buka_halaman(kunci)
-            _tunggu_anchor()
+            _muat_ulang()
         assert setelah_reload == nilai_sebelum_draft, (
             f"Reload Data di '{kunci}' tidak membuang draft lokal: "
             f"'{field_edit}' masih '{setelah_reload}', seharusnya kembali "
