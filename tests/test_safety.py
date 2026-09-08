@@ -1873,6 +1873,26 @@ class TestSafetyHss:
         """Create -> isi kolom langsung di grid -> Submit -> tersimpan
         di server -> baris dihapus lagi (data DEV tidak ditinggali
         sampah)."""
+        # Halaman yang MENERAPKAN validasi field wajib tidak bisa diuji
+        # lewat jalur ini (2026-09-08). `isi_baris_kosong_inline()` hanya
+        # mengisi input teks/angka/tanggal; kolom LOOKUP/SELECT dilewati
+        # karena nilainya harus dipilih dari daftar, tidak bisa diketik.
+        # Di halaman bervalidasi, kolom seperti itu wajib -- barisnya
+        # ditolak validasi lalu dibuang, dan test salah menyimpulkan
+        # "tidak tersimpan". Itu sempat melahirkan laporan bug palsu
+        # untuk Witness Statement, yang kemudian ditarik.
+        #
+        # Korelasinya 9/9 pada run 2026-09-08: 2 halaman bervalidasi
+        # gagal/skip, 7 halaman tanpa validasi lulus semua.
+        if kunci_halaman not in HssSafetyPage.FORM_TANPA_VALIDASI_WAJIB:
+            pytest.skip(
+                f"'{kunci_halaman}' menerapkan validasi field wajib, dan "
+                "sebagian field wajibnya berupa lookup/select yang tidak "
+                "bisa diisi lewat pengetikan langsung di grid. Jalur input "
+                "ini tidak bisa diuji tuntas di sini -- pakai "
+                "test_safety_create_form_validasi (modal) untuk halaman ini"
+            )
+
         page = _buka_halaman(driver, kunci_halaman)
         _assert_grid_sesuai_kontrak(page, kunci_halaman)
 
@@ -1937,34 +1957,13 @@ class TestSafetyHss:
         _muat_ulang_server()
 
         tersimpan = page.tabel_berisi(penanda)
-        bug_dikenal = (
-            kunci_halaman in HssSafetyPage.CREATE_INLINE_TIDAK_TERSIMPAN
-        )
         try:
-            if bug_dikenal:
-                # Bug aplikasi yang sudah dilaporkan & dikonfirmasi
-                # manual -- jangan bikin suite merah permanen.
-                if tersimpan:
-                    print(
-                        f"\n[BUG SUDAH DIPERBAIKI?] '{kunci_halaman}': baris "
-                        "hasil Create + isi langsung KALI INI tersimpan. "
-                        f"Kalau konsisten, keluarkan '{kunci_halaman}' dari "
-                        "HssSafetyPage.CREATE_INLINE_TIDAK_TERSIMPAN dan "
-                        "tutup laporan bug-nya."
-                    )
-                else:
-                    print(
-                        f"\n[BUG DIKENAL] '{kunci_halaman}': baris hilang "
-                        "setelah Submit Changes -- lihat reports/bugs/"
-                        "witness-statement-submit-membuang-baris-baru.md"
-                    )
-            else:
-                assert tersimpan, (
-                    f"Baris yang dibuat lewat Create + isi LANGSUNG di grid "
-                    f"('{penanda}', kolom {terisi}) tidak ada di "
-                    f"'{kunci_halaman}' setelah Submit Changes + Reload Data "
-                    "-- input langsung di tabel tidak tersimpan ke server"
-                )
+            assert tersimpan, (
+                f"Baris yang dibuat lewat Create + isi LANGSUNG di grid "
+                f"('{penanda}', kolom {terisi}) tidak ada di "
+                f"'{kunci_halaman}' setelah Submit Changes + Reload Data "
+                "-- input langsung di tabel tidak tersimpan ke server"
+            )
         finally:
             # Bersihkan apa pun hasilnya: baris uji tidak boleh
             # ditinggalkan menumpuk di DEV.

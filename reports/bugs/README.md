@@ -9,7 +9,6 @@ Terakhir diperbarui: **2026-09-08**
 | Laporan | Status | Kirim ke dev? |
 |---|---|---|
 | [submit-changes-redirect-tanpa-menyimpan](submit-changes-redirect-tanpa-menyimpan.md) | **TERBUKA** | **YA** |
-| [witness-statement-submit-membuang-baris-baru](witness-statement-submit-membuang-baris-baru.md) | **TERBUKA** | **YA** |
 | [statistic-safety-recap-inline-edit-tidak-tersimpan](statistic-safety-recap-inline-edit-tidak-tersimpan.md) | Gejala dari laporan di atas | Tidak — sudah tercakup |
 | [master-alat-submit-drops-new-row](master-alat-submit-drops-new-row.md) | Sudah diperbaiki aplikasi | Tidak |
 | [lagging-cancel-does-not-discard-edit](lagging-cancel-does-not-discard-edit.md) | BUKAN BUG (salah asumsi test) | Tidak |
@@ -35,18 +34,26 @@ Satu-satunya bug aplikasi yang masih terbuka.
   permanen. Pemeriksaan penyimpanan dilonggarkan jadi peringatan
   `[BUG DIKENAL]`; langkah lain tetap di-assert ketat.
 
-## 2. Witness Statement — Submit membuang baris baru — **TERBUKA**
+## 2. Witness Statement — laporan DITARIK, BUKAN BUG
 
-- **Halaman**: Witness Statement Report, `DailyReport/Edit?Id=1336`
-- **Gejala**: baris baru (jalur mana pun) **hilang** setelah Submit
-  Changes. Dikonfirmasi manual: *"setelah Submit Changes malah hilang
-  semua"*.
-- **Berlaku di kedua jalur input**: Create with Form (ketemu
-  2026-08-26) dan Create + isi langsung di grid (2026-09-08).
-- **Bukan bug template**: Initial Incident/Accident (Id=1335,
-  DailyReport, alur sama persis) lulus.
-- **Di suite**: didaftar di
-  `HssSafetyPage.CREATE_INLINE_TIDAK_TERSIMPAN`.
+Sempat dibuat laporan `witness-statement-submit-membuang-baris-baru.md`
+pada 2026-09-08 (ter-push di commit `880eca0`), lalu **ditarik di hari
+yang sama**.
+
+Klaimnya: baris baru hilang setelah Submit Changes. Kenyataannya
+aplikasi **berperilaku benar** — barisnya ditolak **validasi field
+wajib**, karena test hanya mengisi input teks/angka/tanggal dan
+melewati kolom **lookup/select** yang di halaman itu wajib.
+
+Korelasinya 9/9 dan tidak bisa dibantah:
+
+| Menerapkan validasi wajib? | Hasil `create_inline` |
+|---|---|
+| YA (2 halaman) | gagal / skip |
+| TIDAK (7 halaman) | lulus semua |
+
+`test_safety_create_inline` sekarang **skip** halaman bervalidasi
+dengan alasan eksplisit, alih-alih menuduh aplikasi.
 
 ## 3. Statistic Safety Recap tidak menyimpan — gejala, bukan akar
 
@@ -86,5 +93,13 @@ Empat laporan di atas menghasilkan tiga pelajaran yang mahal:
 3. **Sebutkan kalau bug-nya intermiten.** Bug tidak deterministik yang
    dilaporkan seolah pasti terjadi biasanya ditutup sebagai
    "cannot reproduce".
+4. **Kegagalan menyimpan belum tentu bug — cek validasi field wajib
+   dulu.** Kalau test mengisi baris secara otomatis tapi melewati kolom
+   lookup/select, baris ditolak validasi dan dibuang. Itu aplikasi yang
+   BENAR. Laporan nomor 2 lahir dari kekeliruan ini.
+
+Pola yang berulang di keempat kasus: **automation gagal → langsung
+disimpulkan bug aplikasi.** Empat kali, tiga di antaranya ternyata
+keliru. Urutan yang benar: reproduksi manual dulu, baru tulis laporan.
 
 Alat bantu yang memverifikasi hal-hal ini: `tools/cek_simpan_inline.py`.

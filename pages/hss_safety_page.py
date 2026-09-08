@@ -2698,19 +2698,20 @@ return out;
     # langkah lain di test yang sama tetap di-assert ketat.
     SUBMIT_REDIRECT_TANPA_SIMPAN = {"statistic_safety_recapitulation"}
 
-    # Halaman yang baris BARU-nya hilang setelah Submit Changes, apa pun
-    # jalur input yang dipakai.
+    # CATATAN 2026-09-08 -- registry CREATE_INLINE_TIDAK_TERSIMPAN
+    # DIHAPUS, dan laporan bug yang menyertainya DITARIK.
     #
-    # BUG APLIKASI TERKONFIRMASI (2026-09-08) -- rinciannya di
-    # reports/bugs/witness-statement-submit-membuang-baris-baru.md:
-    #   * jalur Create with Form (modal) sudah lebih dulu gagal
-    #     2026-08-26 -- lihat CREATE_FORM_TANPA_PERSISTENSI di bawah;
-    #   * jalur Create + isi langsung di grid gagal 2026-09-08;
-    #   * dikonfirmasi MANUAL oleh pemilik produk: "setelah Submit
-    #     Changes malah hilang semua";
-    #   * BUKAN bug template -- Initial Incident/Accident (Id=1335,
-    #     DailyReport, tanggal & alur sama persis) LULUS.
-    CREATE_INLINE_TIDAK_TERSIMPAN = {"witness_statement_report"}
+    # Sempat dikira bug: baris baru di Witness Statement hilang setelah
+    # Submit Changes. Ternyata aplikasinya BENAR -- barisnya ditolak
+    # VALIDASI FIELD WAJIB, karena `isi_baris_kosong_inline()` hanya
+    # mengisi input teks/angka/tanggal dan MELEWATI kolom lookup/select
+    # yang di halaman itu wajib diisi.
+    #
+    # Korelasinya sempurna 9/9 pada run 2026-09-08:
+    #   2 halaman yang MENERAPKAN validasi wajib -> gagal/skip
+    #     (incident_investigation_form, witness_statement_report)
+    #   7 halaman TANPA validasi wajib            -> lulus semua
+    # Daftarnya sudah ada di FORM_TANPA_VALIDASI_WAJIB di bawah.
 
     # CATATAN 2026-09-07 -- registry CANCEL_TIDAK_MEMBUANG_PENDING DIHAPUS.
     #
