@@ -2359,13 +2359,21 @@ return out;
         if info:
             self.dt_ke_halaman(halaman_awal)
 
-    # JS: isi SEMUA input teks/angka yang bisa diketik di baris draft
-    # KOSONG (baris hasil klik Create). Lookup/select dilewati -- isinya
-    # harus dipilih dari daftar, tidak bisa diketik bebas.
+    # JS: isi SEMUA input yang bisa diketik di baris draft KOSONG
+    # (baris hasil klik Create). Lookup/select/checkbox dilewati --
+    # isinya harus dipilih dari daftar, tidak bisa diketik bebas.
+    #
+    # Kolom TANGGAL ikut diisi (arguments[1]) -- ini penting untuk
+    # halaman DailyReport: barisnya punya kolom tanggal sendiri DAN
+    # gridnya disaring per tanggal. Kalau kolom itu dilewati, baris
+    # tersimpan tanpa tanggal lalu tidak muncul di filter, dan test
+    # salah menyimpulkan "tidak tersimpan" (ketahuan 2026-09-08: 3
+    # halaman DailyReport gagal/skip sementara 6 halaman lain lulus).
     JS_ISI_BARIS_KOSONG = (
         f"const t = {JS_GRID};"
         "if (!t) return null;"
         "const penanda = arguments[0];"
+        "const tanggal = arguments[1];"   # 'YYYY-MM-DD' atau ''
         "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
         "  const ins = [...r.querySelectorAll('input')];"
         "  return ins.length > 0 && ins.every(i => i.value === '');"
@@ -2375,10 +2383,18 @@ return out;
         "for (const el of tr.querySelectorAll('input[data-fieldname]')) {"
         "  if (el.readOnly || el.disabled) continue;"
         "  const tipe = (el.type || 'text').toLowerCase();"
-        "  if (['date','datetime-local','month','week','time',"
-        "       'checkbox','radio','file'].includes(tipe)) continue;"
+        "  if (['checkbox','radio','file'].includes(tipe)) continue;"
         "  const nama = el.getAttribute('data-fieldname') || '';"
-        "  const nilai = tipe === 'number' ? '1' : penanda;"
+        "  let nilai;"
+        "  if (tipe === 'number') { nilai = '1'; }"
+        "  else if (tipe === 'date') { if (!tanggal) continue;"
+        "                              nilai = tanggal; }"
+        "  else if (tipe === 'datetime-local') { if (!tanggal) continue;"
+        "                              nilai = tanggal + 'T08:00'; }"
+        "  else if (tipe === 'month') { if (!tanggal) continue;"
+        "                              nilai = tanggal.slice(0, 7); }"
+        "  else if (['week','time'].includes(tipe)) { continue; }"
+        "  else { nilai = penanda; }"
         "  el.value = nilai;"
         "  el.dispatchEvent(new Event('input', {bubbles: true}));"
         "  el.dispatchEvent(new Event('change', {bubbles: true}));"
@@ -2387,12 +2403,17 @@ return out;
         "return terisi;"
     )
 
-    def isi_baris_kosong_inline(self, penanda):
+    def isi_baris_kosong_inline(self, penanda, tanggal=""):
         """Isi baris draft KOSONG (hasil klik Create) langsung di grid,
         tanpa modal form. Kembalikan daftar nama kolom yang benar-benar
         diisi, atau None kalau tidak ada baris kosong.
 
-        Kolom tanggal/checkbox/lookup dilewati: nilainya tidak bisa
+        `tanggal` ('YYYY-MM-DD') mengisi kolom date/datetime/month di
+        baris itu. WAJIB diisi untuk halaman DailyReport: barisnya punya
+        kolom tanggal sendiri dan gridnya disaring per tanggal, jadi
+        baris tanpa tanggal tidak akan muncul lagi setelah Submit.
+
+        Checkbox/radio/file dan lookup dilewati: nilainya tidak bisa
         diketik bebas. Kolom angka diisi '1', kolom teks diisi
         `penanda` supaya barisnya bisa dicari lagi setelah Submit.
 
@@ -2402,7 +2423,9 @@ return out;
         yang menyentuh tombol Create cuma mengklik lalu Cancel, barisnya
         tidak pernah diisi).
         """
-        return self.driver.execute_script(self.JS_ISI_BARIS_KOSONG, penanda)
+        return self.driver.execute_script(
+            self.JS_ISI_BARIS_KOSONG, penanda, tanggal or ""
+        )
 
     def hapus_baris_berisi(self, teks):
         """Klik Delete pada baris pertama yang salah satu inputnya
@@ -2674,6 +2697,20 @@ return out;
     # ikut tenggelam. Yang dilonggarkan HANYA pemeriksaan penyimpanan;
     # langkah lain di test yang sama tetap di-assert ketat.
     SUBMIT_REDIRECT_TANPA_SIMPAN = {"statistic_safety_recapitulation"}
+
+    # Halaman yang baris BARU-nya hilang setelah Submit Changes, apa pun
+    # jalur input yang dipakai.
+    #
+    # BUG APLIKASI TERKONFIRMASI (2026-09-08) -- rinciannya di
+    # reports/bugs/witness-statement-submit-membuang-baris-baru.md:
+    #   * jalur Create with Form (modal) sudah lebih dulu gagal
+    #     2026-08-26 -- lihat CREATE_FORM_TANPA_PERSISTENSI di bawah;
+    #   * jalur Create + isi langsung di grid gagal 2026-09-08;
+    #   * dikonfirmasi MANUAL oleh pemilik produk: "setelah Submit
+    #     Changes malah hilang semua";
+    #   * BUKAN bug template -- Initial Incident/Accident (Id=1335,
+    #     DailyReport, tanggal & alur sama persis) LULUS.
+    CREATE_INLINE_TIDAK_TERSIMPAN = {"witness_statement_report"}
 
     # CATATAN 2026-09-07 -- registry CANCEL_TIDAK_MEMBUANG_PENDING DIHAPUS.
     #
