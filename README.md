@@ -333,7 +333,7 @@ opel-automation/
 | `data/` | Menyimpan data yang digunakan untuk pengujian |
 | `config/` | Menyimpan URL, timeout, dan konfigurasi lainnya |
 | `locators/` | Dokumentasi locator hasil scan website |
-| `tools/` | Alat bantu untuk mencari locator |
+| `tools/` | Skrip bantu manual: diagnosa, pembersih data DEV, scanner locator — lihat [`tools/README.md`](tools/README.md) |
 | `reports/` | Menyimpan hasil dan laporan pengujian |
 
 ## Setup
@@ -443,7 +443,35 @@ pytest "tests/test_safety.py::TestSafetyHss::test_safety_halaman_lengkap[SMK3]"
 # Headless (untuk CI/CD)
 $env:OPEL_HEADLESS = "true"; pytest        # Windows PowerShell
 OPEL_HEADLESS=true pytest                  # Mac/Linux
+
+# Per TEMPLATE laporan (marker ditempel otomatis dari URL halaman)
+pytest -m MonthlyReport          # semua halaman MonthlyReport (24 test)
+pytest -m MonthlyReport_Edit     # mode Edit saja (20 test)
+pytest -m YearlyReport           # 36 test
+pytest -m DailyReport            # 14 test
+pytest -m StaticReport           #  9 test
+
+# Lebih cepat: pace antar-aksi cuma jeda VISUAL, bukan tunggu elemen
+$env:OPEL_ACTION_PACE = "0.5"; pytest -m safety   # ~30 menit, bukan ~50
+
+# Simpan hasilnya sebagai arsip (report.html default ditimpa tiap run)
+$stamp = Get-Date -Format "yyyyMMdd_HHmm"
+pytest -m safety --html="reports/run_$stamp.html"
 ```
+
+### Menjalankan per template
+
+19 halaman Safety sebenarnya cuma **7 kombinasi template+mode**, dan
+sebagian besar perilaku yang diuji (toolbar, tab, grid, tombol, Submit)
+milik TEMPLATE — bukan milik halaman. Marker template ditempel otomatis
+oleh `pytest_collection_modifyitems()` di `conftest.py`, dibaca dari URL
+halaman, **tanpa mengubah nama test**.
+
+Gunanya: menjawab *"kegagalan ini kena satu halaman atau satu
+template?"* dalam satu perintah. Terbukti 2026-09-08 — bug Submit
+Changes di Id=1317 dipastikan **bukan** bug template hanya dengan
+`pytest -m MonthlyReport_Edit` (1 failed, 15 passed), tanpa perlu
+menelusuri manual.
 
 > **Catatan:** durasi full suite sekitar 50–60 menit karena setiap
 > halaman diuji seluruh tombolnya pada setiap tab (bukan sekadar
@@ -473,6 +501,60 @@ setiap langkah, serta screenshot otomatis apabila terdapat test yang
 gagal. Selain itu tersedia `reports/laporan_safety.html`, laporan
 formal pengujian yang berisi ringkasan, arsitektur, cakupan halaman,
 hasil, dan temuan.
+
+## Bug Aplikasi yang Ditemukan
+
+Ringkasan status ada di [`reports/bugs/README.md`](reports/bugs/README.md)
+— **baca itu dulu** sebelum mengirim laporan ke tim dev, karena
+sebagian sudah ditutup.
+
+| Laporan | Status |
+|---|---|
+| [Submit Changes redirect tanpa menyimpan](reports/bugs/submit-changes-redirect-tanpa-menyimpan.md) (Id=1317) | **TERBUKA** — satu-satunya yang aktif |
+| [Statistic Safety Recap tidak menyimpan](reports/bugs/statistic-safety-recap-inline-edit-tidak-tersimpan.md) | Gejala dari laporan di atas |
+| [Master Alat: Submit membuang baris baru](reports/bugs/master-alat-submit-drops-new-row.md) | Sudah diperbaiki aplikasi |
+| [Cancel tidak membuang perubahan](reports/bugs/lagging-cancel-does-not-discard-edit.md) | BUKAN BUG — asumsi test yang keliru |
+
+### Verifikasi penyimpanan: jangan tertipu draft lokal
+
+Pelajaran termahal dari penyelidikan 2026-09-08, dan **wajib dipahami
+sebelum menulis test yang memverifikasi data tersimpan**:
+
+OPEL menyimpan perubahan yang belum di-Submit ke `localStorage` dan
+**memulihkannya saat halaman dimuat ulang** — itu fitur perlindungan,
+supaya kerja user tidak hilang kalau halaman ter-reload atau koneksi
+putus. Akibatnya:
+
+| Cara baca | Yang terbaca |
+|---|---|
+| Reload browser (F5) / `buka_halaman()` | **draft lokal** — nilai yang baru saja diketik |
+| Tombol **Reload Data** | **data server** yang sebenarnya |
+
+Membaca lewat reload biasa akan "membuktikan" penyimpanan yang belum
+tentu terjadi. Tiga kesimpulan keliru — termasuk satu laporan bug yang
+sempat ditutup salah — lahir dari kekeliruan ini.
+
+Selain itu, `buka_halaman()` mengembalikan filter periode ke DEFAULT.
+Nilai yang ditulis di Agustus bisa terbaca di September yang kosong,
+lalu disimpulkan "tidak tersimpan". `_muat_ulang()` di
+`test_safety_lagging_deep` memulihkan periode sebelum DAN sesudah
+Reload Data.
+
+Alat yang menerapkan semua ini dengan benar:
+[`tools/cek_simpan_inline.py`](tools/README.md).
+
+### Membuktikan test benar-benar bisa gagal
+
+`OPEL_MUTASI_PERIODE=1` mematikan pemulihan periode di
+`test_safety_lagging_deep`, meniru bug lama. Dipakai memastikan
+assertion-nya hidup, bukan lulus karena dilemahkan:
+
+```powershell
+$env:OPEL_MUTASI_PERIODE = "1"
+pytest -k "lagging_deep and statistic"   # HARUS gagal
+Remove-Item Env:\OPEL_MUTASI_PERIODE
+pytest -k "lagging_deep and statistic"   # HARUS lulus
+```
 
 ## Catatan Teknis
 

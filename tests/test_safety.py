@@ -496,11 +496,6 @@ def _buka_halaman(driver, kunci):
     return page
 
 
-def _ids_halaman(kunci_list):
-    """List id yang bisa dibaca untuk parametrize (nama menu)."""
-    return [NAMA_HALAMAN[k] for k in kunci_list]
-
-
 def _urutan_menu_halaman():
     """Urutan halaman SESUAI MENU sidebar (Dashboard -> HSS -> Safety
     -> daftar halaman) dari data/test_data.json -- dipakai parametrize
