@@ -2361,8 +2361,17 @@ return out;
             terhapus = self.driver.execute_script(
                 f"const t = {self.JS_GRID};"
                 "if (!t) return false;"
+                # Checkbox/radio/hidden diabaikan saat menilai "kosong":
+                # .value checkbox defaultnya 'on', jadi satu checkbox
+                # saja membuat baris draft TIDAK PERNAH terdeteksi
+                # kosong -- pembersih ini diam-diam tidak bekerja di
+                # halaman ber-checkbox (2026-09-08, sebab yang sama
+                # dengan JS_ISI_BARIS_KOSONG di bawah).
+                "const abaikan = "
+                "  ['checkbox','radio','hidden','button','submit'];"
                 "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
-                "  const ins = [...r.querySelectorAll('input')];"
+                "  const ins = [...r.querySelectorAll('input')].filter(i =>"
+                "    !abaikan.includes((i.type || 'text').toLowerCase()));"
                 "  return ins.length > 0 && ins.every(i => i.value === '');"
                 "});"
                 "if (!tr) return false;"
@@ -2395,8 +2404,17 @@ return out;
         "if (!t) return null;"
         "const penanda = arguments[0];"
         "const tanggal = arguments[1];"   # 'YYYY-MM-DD' atau ''
+        # Cari baris draft KOSONG. Checkbox/radio/hidden/tombol SENGAJA
+        # tidak ikut dinilai: .value checkbox defaultnya 'on', bukan '',
+        # jadi satu checkbox saja membuat baris tidak pernah dianggap
+        # kosong. Itu yang bikin Incident Investigation selalu SKIP
+        # ("tidak ada baris draft kosong") padahal barisnya ADA --
+        # kolom 'Nearmiss' di halaman itu berupa checkbox
+        # (screenshot 2026-09-08 16:13).
+        "const abaikan = ['checkbox','radio','hidden','button','submit'];"
         "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
-        "  const ins = [...r.querySelectorAll('input')];"
+        "  const ins = [...r.querySelectorAll('input')].filter(i =>"
+        "    !abaikan.includes((i.type || 'text').toLowerCase()));"
         "  return ins.length > 0 && ins.every(i => i.value === '');"
         "});"
         "if (!tr) return null;"
