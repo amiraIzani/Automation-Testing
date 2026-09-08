@@ -17,6 +17,25 @@
 4. User **mengisi field wajib** yang diminta.
 5. Klik **Submit Changes** lagi → **jawab konfirmasi**.
 
+## PENTING: INTERMITEN — tidak selalu terjadi
+
+Percobaan ulang pada 2026-09-08 (tak lama setelah kejadian di atas)
+**tidak lagi mereproduksi** kehilangan data: alurnya berjalan normal.
+
+Jadi perilakunya **tidak deterministik**. Ini WAJIB disebut saat
+laporan dikirim ke tim dev — kalau mereka mencoba sekali dan berhasil,
+bukan berarti bug-nya tidak ada. Bug intermiten yang dilaporkan seolah
+pasti terjadi biasanya ditutup sebagai "cannot reproduce".
+
+Kandidat pemicu yang belum diuji: apakah kehilangan hanya terjadi kalau
+grid memuat baris pending yang TIDAK VALID (sisa automation) bersamaan
+dengan baris valid — yaitu skenario batch campuran seperti pada dugaan
+akar masalah di bawah. Kalau benar, kuncinya bukan halamannya melainkan
+**kombinasi baris valid + tidak valid dalam satu Submit**.
+
+Bug kedua di proyek ini yang ternyata intermiten; yang pertama
+`submit-changes-redirect-tanpa-menyimpan.md`.
+
 ## Hasil yang diharapkan
 
 Baris yang sudah valid tersimpan. Kalau masih ada baris lain yang tidak

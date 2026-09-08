@@ -1873,26 +1873,6 @@ class TestSafetyHss:
         """Create -> isi kolom langsung di grid -> Submit -> tersimpan
         di server -> baris dihapus lagi (data DEV tidak ditinggali
         sampah)."""
-        # Halaman yang MENERAPKAN validasi field wajib tidak bisa diuji
-        # lewat jalur ini (2026-09-08). `isi_baris_kosong_inline()` hanya
-        # mengisi input teks/angka/tanggal; kolom LOOKUP/SELECT dilewati
-        # karena nilainya harus dipilih dari daftar, tidak bisa diketik.
-        # Di halaman bervalidasi, kolom seperti itu wajib -- barisnya
-        # ditolak validasi lalu dibuang, dan test salah menyimpulkan
-        # "tidak tersimpan". Itu sempat melahirkan laporan bug palsu
-        # untuk Witness Statement, yang kemudian ditarik.
-        #
-        # Korelasinya 9/9 pada run 2026-09-08: 2 halaman bervalidasi
-        # gagal/skip, 7 halaman tanpa validasi lulus semua.
-        if kunci_halaman not in HssSafetyPage.FORM_TANPA_VALIDASI_WAJIB:
-            pytest.skip(
-                f"'{kunci_halaman}' menerapkan validasi field wajib, dan "
-                "sebagian field wajibnya berupa lookup/select yang tidak "
-                "bisa diisi lewat pengetikan langsung di grid. Jalur input "
-                "ini tidak bisa diuji tuntas di sini -- pakai "
-                "test_safety_create_form_validasi (modal) untuk halaman ini"
-            )
-
         page = _buka_halaman(driver, kunci_halaman)
         _assert_grid_sesuai_kontrak(page, kunci_halaman)
 
@@ -1954,15 +1934,31 @@ class TestSafetyHss:
         print(f"\n[INFO] '{kunci_halaman}': kolom diisi inline -> {terisi}")
 
         page.submit_changes()
+        # Tangkap pesan validasi SEBELUM halaman dimuat ulang -- kalau
+        # baris ditolak karena field wajib, pesannya cuma ada sesaat.
+        # Tanpa ini, penolakan validasi terlihat sama persis dengan
+        # "tidak tersimpan", dan itu gampang disalahartikan sebagai bug
+        # aplikasi (kejadian 2026-09-08 di Witness Statement).
+        pesan_validasi = page.pesan_validasi_halaman()
         _muat_ulang_server()
 
         tersimpan = page.tabel_berisi(penanda)
         try:
+            if not tersimpan and pesan_validasi:
+                # Baris DITOLAK VALIDASI, bukan gagal disimpan. Itu
+                # perilaku aplikasi yang BENAR -- pengisian otomatis
+                # memang belum bisa memenuhi semua field wajib (mis.
+                # lookup yang harus dipilih lewat modal pencarian).
+                pytest.skip(
+                    f"'{kunci_halaman}': baris ditolak VALIDASI, bukan gagal "
+                    f"menyimpan. Pesan aplikasi: {pesan_validasi[:300]}"
+                )
             assert tersimpan, (
                 f"Baris yang dibuat lewat Create + isi LANGSUNG di grid "
                 f"('{penanda}', kolom {terisi}) tidak ada di "
                 f"'{kunci_halaman}' setelah Submit Changes + Reload Data "
-                "-- input langsung di tabel tidak tersimpan ke server"
+                "-- input langsung di tabel tidak tersimpan ke server, dan "
+                "TIDAK ADA pesan validasi apa pun (kegagalan senyap)"
             )
         finally:
             # Bersihkan apa pun hasilnya: baris uji tidak boleh

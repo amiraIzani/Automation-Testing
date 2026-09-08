@@ -1913,6 +1913,27 @@ return out;
             "  .filter(t => t && t !== 'Remove').slice(0, 5).join(' | ');"
         )
 
+    def pesan_validasi_halaman(self):
+        """Pesan validasi yang tampil di HALAMAN (bukan di dalam modal):
+        toast/alert/bootbox/SweetAlert yang muncul setelah Submit
+        Changes menolak baris.
+
+        Dipakai test input inline supaya kegagalan bisa DIBACA -- tanpa
+        ini, baris yang ditolak validasi cuma terlihat sebagai "tidak
+        tersimpan", dan itu gampang disalahartikan sebagai bug aplikasi
+        (kejadian 2026-09-08 di Witness Statement)."""
+        return self.driver.execute_script(
+            "const el = [...document.querySelectorAll("
+            "'.bootbox, .swal2-container, .toast, .alert-danger,"
+            " .alert-warning, .validation-summary-errors,"
+            " .field-validation-error, .invalid-feedback')];"
+            "return el.filter(e => {"
+            "  const s = window.getComputedStyle(e);"
+            "  return s.display !== 'none' && s.visibility !== 'hidden';"
+            "}).map(e => (e.innerText || '').replace(/\\s+/g, ' ').trim())"
+            "  .filter(t => t && t !== 'Remove').slice(0, 5).join(' | ');"
+        )
+
     def simpan_form(self):
         """Klik Save di modal lalu tunggu modal tertutup (tanda
         proses simpan selesai). Kalau modal tidak kunjung tertutup,
@@ -2393,12 +2414,34 @@ return out;
         "                              nilai = tanggal + 'T08:00'; }"
         "  else if (tipe === 'month') { if (!tanggal) continue;"
         "                              nilai = tanggal.slice(0, 7); }"
-        "  else if (['week','time'].includes(tipe)) { continue; }"
+        "  else if (tipe === 'time') { nilai = '08:00'; }"
+        "  else if (tipe === 'week') { continue; }"
         "  else { nilai = penanda; }"
         "  el.value = nilai;"
         "  el.dispatchEvent(new Event('input', {bubbles: true}));"
         "  el.dispatchEvent(new Event('change', {bubbles: true}));"
         "  terisi.push(nama);"
+        "}"
+        # <select> SAMA SEKALI tidak tersentuh sebelum 2026-09-08 --
+        # JS-nya cuma memindai input[data-fieldname]. Padahal di halaman
+        # bervalidasi, dropdown seperti ini termasuk field WAJIB, jadi
+        # barisnya selalu ditolak. Diisi opsi pertama yang punya value.
+        "for (const el of tr.querySelectorAll('select[data-fieldname]')) {"
+        "  if (el.disabled) continue;"
+        "  const opsi = [...el.options].find(o =>"
+        "    o.value !== '' && !o.disabled);"
+        "  if (!opsi) continue;"
+        "  el.value = opsi.value;"
+        "  el.dispatchEvent(new Event('change', {bubbles: true}));"
+        "  terisi.push((el.getAttribute('data-fieldname') || '') + '(select)');"
+        "}"
+        # <textarea> juga terlewat sebelumnya.
+        "for (const el of tr.querySelectorAll('textarea[data-fieldname]')) {"
+        "  if (el.readOnly || el.disabled) continue;"
+        "  el.value = penanda;"
+        "  el.dispatchEvent(new Event('input', {bubbles: true}));"
+        "  el.dispatchEvent(new Event('change', {bubbles: true}));"
+        "  terisi.push((el.getAttribute('data-fieldname') || '') + '(textarea)');"
         "}"
         "return terisi;"
     )
