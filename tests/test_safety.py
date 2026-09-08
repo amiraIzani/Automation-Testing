@@ -104,6 +104,17 @@ NAMA_HALAMAN = {
 GRID_KEYS = sorted(k for k in PAGE_OBJECTS if k != "safety_recap")
 
 # Halaman Transaction yang punya toolbar lengkap + Create with Form.
+# Halaman yang punya tombol "Create" polos (menambah baris draft kosong
+# langsung ke grid, tanpa modal). Dipakai test jalur input LANGSUNG DI
+# TABEL -- jalur yang dipakai user pada halaman tanpa Create with Form,
+# dan yang sampai 2026-09-08 belum pernah diuji sama sekali: satu-satunya
+# test yang menyentuh tombol Create cuma mengklik lalu Cancel, barisnya
+# tidak pernah diisi.
+CREATE_INLINE_KEYS = sorted(
+    k for k in PAGE_OBJECTS
+    if "Create" in HssSafetyPage.TOMBOL_HALAMAN.get(k, ())
+)
+
 FORM_CREATE_KEYS = sorted(
     k for k in PAGE_OBJECTS
     if "Create with Form" in HssSafetyPage.TOMBOL_HALAMAN.get(k, ())
@@ -648,15 +659,12 @@ class TestSafetyHss:
             pytest.skip(str(e))
         _assert_grid_sesuai_kontrak(page, "incident_investigation_form")
 
-    @pytest.mark.safety_transaction
-    def test_safety_incident_investigation_tab(self, driver):
-        try:
-            page = SafetyIncidentInvestigationFormPage(driver).buka()
-        except TidakPunyaAkses as e:
-            pytest.skip(str(e))
-        page.buka_tab(page.TAB_DATA_KORBAN)
-        tab = page.find((page.TAB[0], page.TAB[1].format(teks_tab=page.TAB_DATA_KORBAN)))
-        assert "active" in (tab.get_attribute("class") or ""), "Tab Data Korban tidak aktif"
+    # test_safety_incident_investigation_tab DIHAPUS (2026-09-08).
+    # Test itu memeriksa SATU tab ('Data Korban') mendapat class 'active'.
+    # `test_safety_halaman_lengkap[Incident Investigation]` sudah memutar
+    # KEENAM tab halaman ini satu per satu, memastikan tiap tab aktif DAN
+    # panelnya benar-benar menampilkan konten (`panel_tab_isi_tampil`),
+    # lalu mengklik tombol fitur di tiap tab. Cakupannya superset penuh.
 
     # ------------------------------------------------------------------
     # Buka SEMUA tab di halaman yang punya banyak tab (1 per halaman,
@@ -1746,24 +1754,23 @@ class TestSafetyHss:
         except TimeoutException:
             pass  # sebagian halaman tidak punya filter unit
 
-        # --- Export -> file ---
-        wajib = kunci_halaman not in HssSafetyPage.EXPORT_TANPA_FILE
-        file_export = page.export_dan_tunggu_file(wajib_file=wajib)
-        if wajib:
-            assert file_export, f"File export '{kunci_halaman}' tidak terunduh"
-
-        # --- Import -> modal + template ---
-        if "Import" in HssSafetyPage.TOMBOL_HALAMAN.get(kunci_halaman, ()):
-            page.buka_modal_import()
-            # is_any_visible() -- lihat catatan di test_safety_lagging_deep
-            # (2026-09-04): #linkDownloadTemplate bisa duplikat di DOM.
-            assert page.is_any_visible(page.LINK_DOWNLOAD_TEMPLATE), (
-                f"Link Download Template tidak ada di '{kunci_halaman}'"
-            )
-            assert page.download_template_import(), (
-                f"Template import '{kunci_halaman}' tidak terunduh"
-            )
-            page.tutup_modal()
+        # --- Export & Import SENGAJA TIDAK diuji di sini (2026-09-08) ---
+        # Keduanya dulu ada di test ini, dan itu murni pengulangan:
+        #
+        #   Export : `test_safety_export_isi_file` sudah menguji hal yang
+        #            SAMA plus lebih jauh -- isi workbook dicocokkan
+        #            dengan isi grid, bukan cuma "file terunduh".
+        #            `test_safety_halaman_lengkap` juga mengklik tombolnya.
+        #   Import : `test_safety_halaman_lengkap` sudah membuka modal
+        #            Import dan mengunduh template di halaman yang sama.
+        #
+        # Jadi Export sempat diklik 3x dan Import 2x per halaman, tanpa
+        # menambah cakupan apa pun -- dan menunggu file terunduh adalah
+        # bagian paling lambat dari suite ini.
+        #
+        # Yang TETAP di sini karena tidak diuji test lain: filter tanggal
+        # benar-benar MENGUBAH DATA (`_assert_data_berubah`) dan filter
+        # unit punya opsi.
 
     # ------------------------------------------------------------------
     # NEGATIVE: Create with Form disimpan KOSONG -> form menolak
@@ -1839,3 +1846,106 @@ class TestSafetyHss:
         if awal:
             page.pilih_unit_by_value(awal)
             page.tunggu_processing_selesai()
+
+    # ------------------------------------------------------------------
+    # INPUT LANGSUNG DI TABEL: Create (baris draft kosong) -> isi
+    # kolomnya LANGSUNG di grid -> Submit Changes -> verifikasi
+    # tersimpan di SERVER -> hapus lagi.
+    #
+    # Kenapa ada (2026-09-08): ini jalur input yang dipakai user pada
+    # halaman tanpa "Create with Form", dan sampai sekarang TIDAK PERNAH
+    # diuji. Satu-satunya test yang menyentuh tombol Create
+    # (`klik_create_lalu_batal`) cuma mengklik lalu Cancel -- barisnya
+    # tidak pernah diisi, jadi tidak ada yang membuktikan data hasil
+    # ketikan langsung benar-benar tersimpan.
+    #
+    # Verifikasi WAJIB lewat Reload Data: `buka_halaman()` memulihkan
+    # draft lokal dan menampilkan nilai yang baru saja diketik, seolah
+    # tersimpan. Lihat bagian "jangan tertipu draft lokal" di README.
+    # ------------------------------------------------------------------
+    @pytest.mark.safety
+    @pytest.mark.safety_extra
+    @pytest.mark.safety_transaction
+    @pytest.mark.parametrize(
+        "kunci_halaman", CREATE_INLINE_KEYS, ids=lambda k: NAMA_HALAMAN[k]
+    )
+    def test_safety_create_inline(self, driver, test_data, kunci_halaman):
+        """Create -> isi kolom langsung di grid -> Submit -> tersimpan
+        di server -> baris dihapus lagi (data DEV tidak ditinggali
+        sampah)."""
+        page = _buka_halaman(driver, kunci_halaman)
+        _assert_grid_sesuai_kontrak(page, kunci_halaman)
+
+        # Halaman DailyReport disaring ke SATU TANGGAL: tanpa tanggal,
+        # grid selalu 0 baris dan baris baru pun tidak punya konteks.
+        url = HssSafetyPage.HALAMAN.get(kunci_halaman, "")
+        if "DailyReport" in url and not page.baca_filter_tanggal():
+            tanggal = test_data["hss_safety"].get("filter_tanggal_harian")
+            if not tanggal:
+                pytest.skip(
+                    "data/test_data.json belum punya 'filter_tanggal_harian' "
+                    "-- halaman DailyReport butuh tanggal spesifik"
+                )
+            page.set_filter_tanggal(tanggal)
+            page.tunggu_processing_selesai()
+
+        periode = page.baca_filter_tanggal()
+
+        def _muat_ulang_server():
+            """Muat ulang + tarik data DARI SERVER (buang draft lokal),
+            periode dipulihkan sebelum dan sesudah Reload Data."""
+            page.buka_halaman(kunci_halaman)
+            page.tunggu_processing_selesai()
+            for _ in range(2):
+                if periode and page.baca_filter_tanggal() != periode:
+                    page.set_filter_tanggal(periode)
+                    page.tunggu_processing_selesai()
+                try:
+                    page.reload_data()
+                except Exception:
+                    pass
+            page.reset_cari_grid()
+            page.tunggu_processing_selesai()
+
+        # Bersihkan draft kosong sisa run lain -- kalau tidak, baris
+        # kosong itu yang ikut terisi, bukan baris yang baru dibuat.
+        page._hapus_baris_kosong()
+
+        penanda = f"INLINE-{time.strftime('%H%M%S')}"
+        page.click_js_saat_tampil(page.BTN_CREATE)
+        page.pace()
+        terisi = page.isi_baris_kosong_inline(penanda)
+        if not terisi:
+            pytest.skip(
+                f"'{kunci_halaman}': tidak ada baris draft kosong, atau "
+                "baris barunya tidak punya kolom teks/angka yang bisa "
+                "diketik bebas (semua lookup/tanggal)"
+            )
+        print(f"\n[INFO] '{kunci_halaman}': kolom diisi inline -> {terisi}")
+
+        page.submit_changes()
+        _muat_ulang_server()
+
+        tersimpan = page.tabel_berisi(penanda)
+        try:
+            assert tersimpan, (
+                f"Baris yang dibuat lewat Create + isi LANGSUNG di grid "
+                f"('{penanda}', kolom {terisi}) tidak ada di '{kunci_halaman}' "
+                "setelah Submit Changes + Reload Data -- input langsung di "
+                "tabel tidak tersimpan ke server"
+            )
+        finally:
+            # Bersihkan apa pun hasilnya: baris uji tidak boleh
+            # ditinggalkan menumpuk di DEV.
+            if tersimpan:
+                page.cari_di_grid(penanda)
+                if page.hapus_baris_berisi(penanda):
+                    page.submit_changes()
+                    _muat_ulang_server()
+                    if page.tabel_berisi(penanda):
+                        print(
+                            f"[PERINGATAN] '{kunci_halaman}': baris uji "
+                            f"'{penanda}' GAGAL dihapus -- bersihkan manual "
+                            "atau lewat tools/cleanup_dummy_semua.py"
+                        )
+            page.reset_cari_grid()

@@ -45,7 +45,6 @@ STEP_LABELS = [
     ("test_safety_mwt_recapitulation_view", "Safety - MWT Recapitulation (View)"),
     ("test_safety_recap_view", "Safety - Safety Recap (View)"),
     ("test_safety_incident_investigation_view", "Safety - Incident Investigation Form"),
-    ("test_safety_incident_investigation_tab", "Safety - Incident Investigation (Tab)"),
     ("test_safety_initial_incident_view", "Safety - Initial Incident/Accident Report"),
     ("test_safety_witness_statement_view", "Safety - Witness Statement Report"),
     ("test_safety_emergency_drill_daily_view", "Safety - Emergency Drill Daily"),
@@ -72,6 +71,7 @@ STEP_LABELS = [
     ("test_safety_create_form_validasi", "Safety - Validasi Form Wajib"),
     ("test_safety_filter_unit_ganti", "Safety - Ganti Filter Unit"),
     ("test_safety_leading_deep", "Safety - Leading (Alur Menengah)"),
+    ("test_safety_create_inline", "Safety - Create + Isi Langsung di Tabel"),
 ]
 
 # Hasil kumulatif: label -> bool (semua step modul lulus); urutan dict = urutan eksekusi.

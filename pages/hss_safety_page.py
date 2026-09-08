@@ -2359,6 +2359,74 @@ return out;
         if info:
             self.dt_ke_halaman(halaman_awal)
 
+    # JS: isi SEMUA input teks/angka yang bisa diketik di baris draft
+    # KOSONG (baris hasil klik Create). Lookup/select dilewati -- isinya
+    # harus dipilih dari daftar, tidak bisa diketik bebas.
+    JS_ISI_BARIS_KOSONG = (
+        f"const t = {JS_GRID};"
+        "if (!t) return null;"
+        "const penanda = arguments[0];"
+        "const tr = [...t.querySelectorAll('tbody tr')].find(r => {"
+        "  const ins = [...r.querySelectorAll('input')];"
+        "  return ins.length > 0 && ins.every(i => i.value === '');"
+        "});"
+        "if (!tr) return null;"
+        "const terisi = [];"
+        "for (const el of tr.querySelectorAll('input[data-fieldname]')) {"
+        "  if (el.readOnly || el.disabled) continue;"
+        "  const tipe = (el.type || 'text').toLowerCase();"
+        "  if (['date','datetime-local','month','week','time',"
+        "       'checkbox','radio','file'].includes(tipe)) continue;"
+        "  const nama = el.getAttribute('data-fieldname') || '';"
+        "  const nilai = tipe === 'number' ? '1' : penanda;"
+        "  el.value = nilai;"
+        "  el.dispatchEvent(new Event('input', {bubbles: true}));"
+        "  el.dispatchEvent(new Event('change', {bubbles: true}));"
+        "  terisi.push(nama);"
+        "}"
+        "return terisi;"
+    )
+
+    def isi_baris_kosong_inline(self, penanda):
+        """Isi baris draft KOSONG (hasil klik Create) langsung di grid,
+        tanpa modal form. Kembalikan daftar nama kolom yang benar-benar
+        diisi, atau None kalau tidak ada baris kosong.
+
+        Kolom tanggal/checkbox/lookup dilewati: nilainya tidak bisa
+        diketik bebas. Kolom angka diisi '1', kolom teks diisi
+        `penanda` supaya barisnya bisa dicari lagi setelah Submit.
+
+        Dipakai test jalur input LANGSUNG DI TABEL -- jalur yang dipakai
+        user pada halaman tanpa 'Create with Form', dan yang sampai
+        2026-09-08 sama sekali belum pernah diuji (satu-satunya test
+        yang menyentuh tombol Create cuma mengklik lalu Cancel, barisnya
+        tidak pernah diisi).
+        """
+        return self.driver.execute_script(self.JS_ISI_BARIS_KOSONG, penanda)
+
+    def hapus_baris_berisi(self, teks):
+        """Klik Delete pada baris pertama yang salah satu inputnya
+        memuat `teks`, lalu jawab konfirmasi. True kalau ada yang
+        diklik. Dipakai membersihkan baris yang dibuat test sendiri."""
+        terhapus = self.driver.execute_script(
+            f"const t = {self.JS_GRID};"
+            "if (!t) return false;"
+            "const cari = (arguments[0] || '').toLowerCase();"
+            "const tr = [...t.querySelectorAll('tbody tr')].find(r =>"
+            "  [...r.querySelectorAll('input')].some(i =>"
+            "    (i.value || '').toLowerCase().includes(cari)));"
+            "if (!tr) return false;"
+            "const del = tr.querySelector('a.btn-delete');"
+            "if (!del) return false;"
+            "del.click(); return true;",
+            teks,
+        )
+        if terhapus:
+            self.pace()
+            self.jawab_konfirmasi()
+            self.tunggu_processing_selesai()
+        return bool(terhapus)
+
     def create_dengan_form_sungguhan(self, verifikasi_persistensi=True):
         """Create with Form SUNGGUHAN: buka modal form -> isi SEMUA
         field dummy otomatis (teks '<penanda> <label>') -> Save ->

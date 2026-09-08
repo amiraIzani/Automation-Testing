@@ -13,6 +13,8 @@
     "filter_unit_alternate": "[AT02] UBP NIKEL SULTRA",
     "filter_bulan": "2026-08",
     "filter_tahun": "2026",
+    "_catatan_filter_harian": "Dipakai halaman DailyReport (input type=date, format YYYY-MM-DD). Tanpa tanggal, grid SELALU 0 baris dan penyimpanan tidak bisa diuji sama sekali (ketahuan 2026-09-08: 3 halaman DailyReport berstatus 'BUTUH TANGGAL'). Ganti kalau tanggal ini tidak lagi relevan.",
+    "filter_tanggal_harian": "2026-09-08",
     "master_alat": {
       "equipment_prefix": "AUTO-TEST-"
     },
