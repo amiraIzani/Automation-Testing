@@ -378,6 +378,44 @@ def _baca_sel_stabil(page, field, anchor, timeout=None, jeda=1.0):
     return sebelumnya or ""
 
 
+def _cari_anchor_otomatis(page, field_edit, maks_baris=40):
+    """Temukan anchor {kolom: nilai} yang menunjuk TEPAT SATU baris dan
+    `field_edit`-nya terisi angka bukan-nol.
+
+    Dipakai entri LAGGING_DEEP yang anchornya dibiarkan kosong. Anchor
+    yang di-hardcode dari nilai data (mis. {'CSD': '123'}) rapuh: begitu
+    data DEV berubah, anchornya patah dan test gagal palsu. Ini mencari
+    sendiri baris yang layak saat run.
+
+    Kembalikan (anchor, nilai_awal) atau (None, '') kalau tidak ada.
+    """
+    baris = page.dt_baris_dict(maks_baris=maks_baris)
+    for row in baris:
+        nilai = (row.get(field_edit) or "").strip()
+        angka = _nilai_angka(nilai)
+        if angka is None or angka == 0:
+            continue
+        terisi = {
+            k: v for k, v in row.items()
+            if k != field_edit and (v or "").strip()
+        }
+        # utamakan kolom kerangka (Month/No/Date) -- paling stabil
+        anchor = {k: v for k, v in terisi.items()
+                  if k.strip().lower() in _KOLOM_KERANGKA}
+        if not anchor:
+            anchor = dict(list(terisi.items())[:3])
+        if not anchor:
+            continue
+        # anchor WAJIB unik, kalau tidak bisa menulis & membaca baris beda
+        cocok = sum(
+            1 for r in baris
+            if all((r.get(k) or "").strip() == v for k, v in anchor.items())
+        )
+        if cocok == 1:
+            return anchor, nilai
+    return None, ""
+
+
 def _assert_grid_sesuai_kontrak(page, kunci):
     """Verifikasi grid halaman `kunci` BUKAN sekadar 'tabelnya muncul':
 
@@ -1004,6 +1042,18 @@ class TestSafetyHss:
         ("smk3", "2026", "PPkomKetidaksesuaianMaj", {"Month": "Juli"}, None,
          True),
         ("smkp", "2026", "Deskripsi", {"Month": "Juli"}, "AUTO-TEST", True),
+        # 2026-09-10: dua halaman ini punya Submit Changes tapi TIDAK
+        # punya tombol Create, jadi tidak tercakup test_safety_create_
+        # inline -- dan sebelumnya tidak ada satu pun test yang mengetik
+        # ke selnya lalu menyimpan. Bentuknya sama seperti SMK3/SMKP:
+        # baris template tetap, diisi langsung di kolom.
+        #
+        # anchor SENGAJA dikosongkan -> dicari otomatis saat run
+        # (`_cari_anchor_otomatis`). Anchor Leading Indicator kalau
+        # di-hardcode harus memakai nilai data (mis. {'CSD': '123'}),
+        # dan itu patah begitu data DEV berubah.
+        ("data_rekap_statistik_k3", "2026", "Actual", {}, None, True),
+        ("leading_indicator", "", "Bobot", {}, None, True),
     ]
 
     @pytest.mark.safety
@@ -1042,6 +1092,25 @@ class TestSafetyHss:
         #    langsung pasca-submit tidak andal -- state sampah sementara,
         #    data asli baru terlihat setelah reload, 2026-08-24)
         page.reset_cari_grid()
+
+        # Anchor kosong = minta dicarikan otomatis saat run. Dipakai
+        # halaman yang anchornya harus dari NILAI DATA (bukan kolom
+        # kerangka seperti Month/No), yang kalau di-hardcode akan patah
+        # begitu data DEV berubah -- mis. Leading Indicator.
+        if not anchor:
+            if tanggal_uji and page.is_any_visible(page.FILTER_TANGGAL,
+                                                   timeout=3):
+                if page.baca_filter_tanggal() != tanggal_uji:
+                    page.set_filter_tanggal(tanggal_uji)
+                    page.tunggu_processing_selesai()
+            anchor, _nilai_ketemu = _cari_anchor_otomatis(page, field_edit)
+            if not anchor:
+                pytest.skip(
+                    f"'{kunci}': tidak ada baris dengan '{field_edit}' terisi "
+                    "angka bukan-nol DAN anchornya unik -- data DEV belum "
+                    "cukup untuk menguji edit sel di halaman ini"
+                )
+            print(f"\n[INFO] '{kunci}': anchor otomatis -> {anchor}")
 
         # Pindah dulu ke PERIODE YANG ADA DATANYA sebelum mengedit.
         # `tanggal_uji` memang periode itu (mis. '2026-07' untuk
