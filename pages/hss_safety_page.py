@@ -704,8 +704,34 @@ class HssSafetyPage(BasePage):
         href = self.HALAMAN[kunci]
         url = config.BASE_URL.rstrip("/") + "/" + href.lstrip("/")
         lokasi = (By.XPATH, f"//nav//a[contains(@href,'{href}')]")
-        for _ in range(2):
-            element = self._ambil_js_visible(lokasi)
+        # Retry INI dulu tidak pernah jalan untuk kasus link belum
+        # ter-render: `_ambil_js_visible()` melempar TimeoutException
+        # yang langsung keluar dari loop, jadi percobaan kedua tidak
+        # pernah terjadi. Terlihat di run penuh 2026-09-09 (1 jam 4
+        # menit, sesi terpanjang): halaman_lengkap[Statistic Safety
+        # Recap] gagal karena link menu tidak ketemu -- padahal
+        # screenshot saat gagal memperlihatkan link itu ADA di sidebar.
+        # Sekarang: kalau link belum ada, rantai submenu DIBUKA ULANG
+        # lalu dicoba lagi.
+        element = None
+        for percobaan in range(2):
+            try:
+                element = self._ambil_js_visible(lokasi)
+            except TimeoutException:
+                if percobaan == 0:
+                    induk = None
+                    rantai = []
+                    for judul in ("HSS",) + self.GRUP_MENU[kunci]:
+                        rantai.append(judul)
+                        try:
+                            self.buka_submenu(
+                                judul, induk=induk, rantai=tuple(rantai)
+                            )
+                        except TimeoutException:
+                            pass
+                        induk = judul
+                    continue
+                raise
             ActionChains(self.driver).move_to_element(element).click().perform()
             try:
                 self._wait(config.DEFAULT_TIMEOUT).until(
