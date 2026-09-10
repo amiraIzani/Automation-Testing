@@ -1,4 +1,45 @@
-# Bug: Submit Changes langsung REDIRECT tanpa menyimpan (Monthly → Yearly)
+# Submit Changes redirect Monthly → Yearly (Id=1317) — SUDAH DIPERBAIKI
+
+> ## STATUS: DITUTUP — sudah diperbaiki aplikasi (2026-09-10)
+>
+> Penyebabnya akhirnya jelas: laporan **Id=1317 seharusnya YearlyReport,
+> bukan MonthlyReport**. Waktu bug ini dilaporkan, aplikasinya sedang
+> **inkonsisten** — halamannya masih dirender sebagai `MonthlyReport/Edit`
+> sementara link sidebar dan tujuan Submit sudah mengarah ke
+> `YearlyReport/Edit`. Redirect yang terlihat "membuang data" itu
+> sebenarnya aplikasi melompat ke template yang benar di tengah alur
+> simpan.
+>
+> Per 2026-09-10 aplikasi sudah konsisten: link sidebar, halaman, dan
+> Submit semuanya YearlyReport. Tidak ada lagi redirect di tengah jalan.
+>
+> ### Kenapa sifatnya terlihat INTERMITEN
+>
+> Karena perbaikannya berlangsung saat pengujian: sebagian percobaan
+> mengenai versi lama (redirect), sebagian versi baru (normal). Itu
+> menjelaskan kenapa reproduksinya tidak konsisten — bukan karena
+> race condition seperti yang sempat diduga.
+>
+> ### Dampak ke automation
+>
+> Konfigurasi test ikut diperbarui 2026-09-10:
+>
+> - `HssSafetyPage.HALAMAN` dan `data/test_data.json`:
+>   `MonthlyReport/Edit?Id=1317` → `YearlyReport/Edit?Id=1317`
+> - `LAGGING_DEEP`: `tanggal_uji` `'2026-07'` → `'2026'` (filter tahun,
+>   bukan bulan)
+> - Marker template halaman ini otomatis berubah dari
+>   `MonthlyReport` ke `YearlyReport`
+>
+> Gejala terakhir sebelum ketahuan: `test_safety_halaman_lengkap
+> [Statistic Safety Recap]` gagal karena mencari link sidebar ber-href
+> `MonthlyReport/Edit?Id=1317` yang sudah tidak ada.
+>
+> Laporan DIPERTAHANKAN sebagai riwayat. **Jangan dikirim ke tim dev.**
+>
+> ---
+>
+> ## Isi laporan asli (kondisi sebelum perbaikan)
 
 - **Tanggal ditemukan**: 2026-09-08
 - **Ditemukan lewat**: pengecekan MANUAL oleh pemilik produk, saat

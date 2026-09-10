@@ -994,8 +994,12 @@ class TestSafetyHss:
     #    tersimpan.md (ditutup sebagai BUKAN BUG).
     #  - Sekarang `_muat_ulang()` memulihkan periode tiap reload, jadi
     #    verifikasinya sudah sah dan `edit_tersimpan` dikembalikan True.
+    #  - 2026-09-10: aplikasi MEMINDAH Id=1317 dari MonthlyReport ke
+    #    YearlyReport, jadi filter periodenya sekarang TAHUN ('2026'),
+    #    bukan bulan ('2026-07'). Nilai lama membuat set_filter_tanggal
+    #    mengisi format yang tidak dikenali input.
     LAGGING_DEEP = [
-        ("statistic_safety_recapitulation", "2026-07", "PenyakitAkibatKerja",
+        ("statistic_safety_recapitulation", "2026", "PenyakitAkibatKerja",
          {"Month": "July", "TipePegawai": "Pegawai"}, None, True),
         ("smk3", "2026", "PPkomKetidaksesuaianMaj", {"Month": "Juli"}, None,
          True),

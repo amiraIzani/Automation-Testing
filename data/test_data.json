@@ -35,7 +35,7 @@
       "safety_kkp_p2k3_committee_meeting": "Reporting/Timesheet/YearlyReport/Edit?Id=1313",
       "mwt_daily": "Reporting/Timesheet/MonthlyReport/Edit?Id=1312",
       "leading_indicator": "Reporting/Timesheet/StaticReport/Edit?Id=1309",
-      "statistic_safety_recapitulation": "Reporting/Timesheet/MonthlyReport/Edit?Id=1317",
+      "statistic_safety_recapitulation": "Reporting/Timesheet/YearlyReport/Edit?Id=1317",
       "smk3": "Reporting/Timesheet/YearlyReport/Edit?Id=1308",
       "smkp": "Reporting/Timesheet/YearlyReport/Edit?Id=1307"
     },

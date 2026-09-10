@@ -272,7 +272,13 @@ class HssSafetyPage(BasePage):
         "mwt_daily": "Reporting/Timesheet/MonthlyReport/Edit?Id=1312",
         "leading_indicator": "Reporting/Timesheet/StaticReport/Edit?Id=1309",
         # Transaction - Lagging Indicator
-        "statistic_safety_recapitulation": "Reporting/Timesheet/MonthlyReport/Edit?Id=1317",
+        # Id=1317 DIPINDAH aplikasi dari MonthlyReport ke YearlyReport
+        # (2026-09-10). Sebelumnya inkonsisten: link sidebar & Submit
+        # mengarah ke YearlyReport sementara halamannya MonthlyReport --
+        # itu yang dulu terlihat sebagai "Submit Changes redirect".
+        # Sekarang sudah konsisten Yearly. Lihat reports/bugs/
+        # submit-changes-redirect-tanpa-menyimpan.md.
+        "statistic_safety_recapitulation": "Reporting/Timesheet/YearlyReport/Edit?Id=1317",
         "smk3": "Reporting/Timesheet/YearlyReport/Edit?Id=1308",
         "smkp": "Reporting/Timesheet/YearlyReport/Edit?Id=1307",
     }
@@ -2783,7 +2789,12 @@ return out;
     # selalu ada bikin orang berhenti membaca hasil, dan regresi BARU
     # ikut tenggelam. Yang dilonggarkan HANYA pemeriksaan penyimpanan;
     # langkah lain di test yang sama tetap di-assert ketat.
-    SUBMIT_REDIRECT_TANPA_SIMPAN = {"statistic_safety_recapitulation"}
+    # DIKOSONGKAN 2026-09-10: Id=1317 sudah diperbaiki aplikasi --
+    # halamannya kini konsisten YearlyReport, jadi tidak ada lagi
+    # redirect di tengah alur Submit. Pemeriksaan penyimpanan untuk
+    # halaman ini kembali TAJAM (di-assert, bukan sekadar diperingatkan).
+    # Lihat reports/bugs/submit-changes-redirect-tanpa-menyimpan.md.
+    SUBMIT_REDIRECT_TANPA_SIMPAN = set()
 
     # CATATAN 2026-09-08 -- registry CREATE_INLINE_TIDAK_TERSIMPAN
     # DIHAPUS, dan laporan bug yang menyertainya DITARIK.
