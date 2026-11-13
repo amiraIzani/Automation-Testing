@@ -359,6 +359,25 @@ def _sel_sama(a, b):
     return na is not None and nb is not None and na == nb
 
 
+def _potret(page, nama):
+    """Screenshot bernama, diambil KAPAN SAJA -- bukan cuma saat teardown.
+
+    Screenshot otomatis di conftest diambil sesudah test gagal, yaitu
+    sesudah blok pemulihan mengembalikan data. Untuk memutuskan 'bug
+    aplikasi atau bug skrip', yang dibutuhkan adalah gambar pada saat
+    kejadian, sebelum apa pun dipulihkan (2026-09-10)."""
+    try:
+        os.makedirs(config.SCREENSHOT_DIR, exist_ok=True)
+        stempel = time.strftime("%Y%m%d_%H%M%S")
+        path = os.path.join(config.SCREENSHOT_DIR, f"{nama}_{stempel}.png")
+        page.driver.save_screenshot(path)
+        print(f"\n[POTRET SAAT KEJADIAN] {path}")
+        return path
+    except Exception as e:  # screenshot gagal tidak boleh menggagalkan test
+        print(f"\n[GAGAL POTRET] {e}")
+        return None
+
+
 def _baca_sel_stabil(page, field, anchor, timeout=None, jeda=1.0):
     """Baca sel berulang sampai nilainya STABIL (tidak kosong dan sama
     dua kali berturut-turut), atau timeout.
@@ -594,12 +613,19 @@ class TestSafetyHss:
         # jadi cek link TIAP sub SETELAH sub itu dibuka, sebelum
         # sub berikutnya dibuka.
         page.buka_submenu("Reporting", induk="Safety")
+        # 2026-09-11: link Reporting kini di dalam subgroup 'Lagging
+        # Indicator' / 'Leading Indicator' dan href-nya pindah ke
+        # PeriodReport (lihat HssSafetyPage.GRUP_MENU & HREF_MENU)
+        page.buka_submenu(
+            "Lagging Indicator", induk="Reporting",
+            rantai=("Safety", "Reporting", "Lagging Indicator"),
+        )
         assert page.is_any_visible(
             (By.XPATH,
              "//nav//a[contains(@href,"
-             "'Reporting/Timesheet/MonthlyReport/View?Id=1306')]"),
+             f"'{page.HREF_MENU['lagging_indicator']}')]"),
             timeout=5,
-        ), "Link Lagging Indicator tidak muncul di sub Reporting"
+        ), "Link Lagging Indicator tidak muncul di sub Reporting > Lagging Indicator"
         page.buka_submenu(
             "Transaction", induk="Safety",
             rantai=("Safety", "Transaction"),
@@ -1314,22 +1340,68 @@ class TestSafetyHss:
         #                              (fitur perlindungan, bukan cacat)
         # Jadi yang layak di-assert adalah Reload Data, bukan Cancel.
         nilai_sebelum_draft = page.baca_sel_grid_anchor(field_edit, anchor)
+        banner_sebelum_tulis = page.ada_pending_lokal()
         page.isi_sel_grid_anchor(field_edit, nilai_uji, anchor)
-        page.reload_data()
+        banner_sesudah_tulis = page.ada_pending_lokal()
+        reload_diklik = page.reload_data()
         _tunggu_anchor()
-        setelah_reload = page.baca_sel_grid_anchor(field_edit, anchor)
-        if setelah_reload != nilai_sebelum_draft:
+        # Bukti runtime dipungut DI SINI, bukan dari screenshot teardown:
+        # screenshot diambil SESUDAH blok pemulihan di bawah, jadi selalu
+        # menunjukkan nilai yang sudah dikembalikan dan tidak bisa
+        # membedakan bug aplikasi dari bug skrip (2026-09-10).
+        banner_sesudah_reload = page.ada_pending_lokal()
+        baca_langsung = page.baca_sel_grid_anchor(field_edit, anchor)
+        # Baca sampai STABIL, bukan sekali-jalan: sesudah Reload Data
+        # sel diisi ulang lewat AJAX, jadi bacaan pertama masih bisa
+        # berisi nilai DRAFT walau server sudah mengirim nilai aslinya
+        # (sumber kegagalan palsu 'Reload Data tidak membuang draft',
+        # 2026-09-10).
+        setelah_reload = _baca_sel_stabil(page, field_edit, anchor)
+        kunci_draft = [k for k in page.daftar_key_penyimpanan(maks=60)
+                       if "dr_" in k]
+        bukti = (
+            f"\n  banner 'stored locally' SEBELUM tulis : {banner_sebelum_tulis}"
+            f"\n  banner SESUDAH tulis                  : {banner_sesudah_tulis}"
+            f"\n  tombol Reload Data BENAR-BENAR diklik : {reload_diklik}"
+            f"\n  banner SESUDAH Reload Data            : {banner_sesudah_reload}"
+            f"\n  bacaan langsung sesudah reload        : {baca_langsung!r}"
+            f"\n  bacaan stabil sesudah reload          : {setelah_reload!r}"
+            f"\n  key draft di storage                  : {kunci_draft}"
+            f"\n  anchor                                : {anchor}"
+            f"\n  URL                                   : {page.driver.current_url}"
+        )
+        print(f"\n[BUKTI RELOAD DATA] '{kunci}':{bukti}")
+        if not reload_diklik:
+            # Tombolnya tidak pernah diklik -- reload_data() jatuh ke
+            # navigasi biasa, dan navigasi biasa MEMULIHKAN draft. Apa
+            # pun yang terbaca sesudah ini TIDAK bercerita apa-apa soal
+            # Reload Data. Menegakkan assert di sini sama dengan menuduh
+            # aplikasi atas perilaku yang tidak pernah dipicu -- itu yang
+            # terjadi pada 'leading_indicator' 2026-09-10 dan nyaris jadi
+            # laporan bug palsu ke tim dev.
+            page.isi_sel_grid_anchor(field_edit, nilai_sebelum_draft, anchor)
+            page.submit_changes()
+            _muat_ulang()
+            pytest.skip(
+                f"'{kunci}': tombol Reload Data tidak bisa diklik, jadi "
+                "pembuangan draft tidak bisa diuji (BUKAN temuan soal "
+                f"aplikasi). Bukti:{bukti}"
+            )
+        if not _sel_sama(setelah_reload, nilai_sebelum_draft):
+            # Screenshot SEBELUM pemulihan -- ini satu-satunya gambar yang
+            # menunjukkan keadaan sesungguhnya sesudah Reload Data.
+            _potret(page, f"reload_tidak_buang_draft_{kunci}")
             # Reload Data tidak membuang draft -- kembalikan data DEV
             # dulu supaya nilai uji tidak nyangkut permanen, BARU
             # gagalkan lewat assert di bawah.
             page.isi_sel_grid_anchor(field_edit, nilai_sebelum_draft, anchor)
             page.submit_changes()
             _muat_ulang()
-        assert setelah_reload == nilai_sebelum_draft, (
+        assert _sel_sama(setelah_reload, nilai_sebelum_draft), (
             f"Reload Data di '{kunci}' tidak membuang draft lokal: "
             f"'{field_edit}' masih '{setelah_reload}', seharusnya kembali "
             f"ke nilai server '{nilai_sebelum_draft}' (data DEV sudah "
-            "dikembalikan otomatis di atas)"
+            "dikembalikan otomatis di atas)" + bukti
         )
 
         # 2) Filter tanggal -> value berubah, tabel tetap tampil, DAN
@@ -1451,7 +1523,12 @@ class TestSafetyHss:
              pending = aman).
              Link Instructions TIDAK diklik (permintaan user)."""
         page = PAGE_OBJECTS[kunci_halaman](driver)
-        page.buka_via_menu(kunci_halaman)
+        try:
+            page.buka_via_menu(kunci_halaman)
+        except TidakPunyaAkses as e:
+            # Safety Recap: dicabut dari sidebar DAN aksesnya ditolak
+            # server sejak 2026-09-11 -- perlakuan sama dengan test *_view
+            pytest.skip(str(e))
         nama = NAMA_HALAMAN[kunci_halaman]
         # 1) tabel -- TUNGGU sampai tampil (Safety Recap lambat render,
         #    cek sekali langsung bisa salah, 2026-08-28)

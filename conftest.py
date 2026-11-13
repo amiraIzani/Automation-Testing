@@ -176,7 +176,41 @@ def _get_active_driver(test_item):
 #
 # Marker ditempel dari NAMA PARAMETER halaman, jadi nama test dan
 # STEP_LABELS tidak berubah sama sekali.
+# ------------------ Marker DEMO: subset singkat (pytest -m demo) ------------------
+# Full suite +-29 menit, dan 69% waktunya (1220 dari 1761 detik, report
+# 2026-09-07) habis di test_safety_halaman_lengkap. Subset ini memilih
+# SATU contoh per jenis pengujian supaya cakupannya tetap utuh dalam
+# +-4 menit: navigasi menu, render 18 halaman, CRUD persisten, edit-
+# Cancel-Submit, klik semua tombol, DataTables, isi file export, negative
+# case, dan ganti filter. Estimasi per item dari report yang sama.
+DEMO_ITEM = {
+    "test_safety_menu_dan_landing",                              # 21s
+    "test_safety_master_alat_create",                            # 15s
+    "test_safety_master_alat_delete",                            # 14s
+    "test_safety_lagging_deep[smk3]",                            # 42s
+    "test_safety_halaman_lengkap[Lagging Indicator]",            # 15s
+    "test_safety_datatables_interaksi[Master Alat Keselamatan]",  #  5s
+    "test_safety_datatables_interaksi[Golden Rules Recap]",      #  4s
+    "test_safety_export_isi_file[Lagging Indicator]",            #  5s
+    "test_safety_export_isi_file[Master Alat Keselamatan]",      #  6s
+    "test_safety_create_form_validasi[Incident Investigation]",  #  9s
+    "test_safety_filter_unit_ganti[Golden Rules Recap]",         #  3s
+}
+# + semua test_safety_*_view (19 test, +-40s total)
+
+
 def pytest_collection_modifyitems(config, items):
+    ketemu = set()
+    for item in items:
+        if item.name in DEMO_ITEM or item.name.endswith("_view"):
+            item.add_marker(pytest.mark.demo)
+            ketemu.add(item.name)
+    # Nama param halaman bisa berubah -- tanpa peringatan ini subset demo
+    # menyusut diam-diam dan baru ketahuan di depan orang.
+    hilang = DEMO_ITEM - ketemu
+    if hilang:
+        print(f"\n[DEMO] item tidak ditemukan: {', '.join(sorted(hilang))}")
+
     try:
         from pages.hss_safety_page import HssSafetyPage
     except Exception:

@@ -90,7 +90,19 @@ class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     FILTER_TANGGAL = (By.ID, "tbDate")          # input tanggal (month/year picker)
     FILTER_UNIT = (By.ID, "cbDistrict")         # select unit/distrik
-    BTN_RELOAD_DATA = (By.ID, "btnReloadData")  # tombol Reload Data
+    BTN_RELOAD_DATA = (By.ID, "btnReloadData")  # tombol Reload Data (toolbar)
+    # Tombol Reload Data DI DALAM banner 'stored locally'. Ini elemen
+    # yang berbeda dari #btnReloadData: yang di toolbar disembunyikan
+    # aplikasi (div.panel-tag.d-none) di hampir semua halaman, yang di
+    # banner inilah yang tampil dan diklik manusia. Dicocokkan lewat
+    # TEKS supaya tidak bergantung pada id yang belum diketahui, dan
+    # dibatasi ke button/a supaya tidak menangkap teks bannernya sendiri.
+    BTN_RELOAD_BANNER = (
+        By.XPATH,
+        "//*[self::button or self::a or self::input]"
+        "[contains(normalize-space(.), 'Reload Data')"
+        " or contains(@value, 'Reload Data')]",
+    )
     BTN_EXPORT = (By.ID, "btnExport")           # tombol Export
     BTN_SUBMIT = (By.ID, "btnSubmit")           # tombol Submit Changes
     BTN_CANCEL_GRID = (By.ID, "btnCancel")      # tombol Cancel (grid)
@@ -293,11 +305,17 @@ class HssSafetyPage(BasePage):
     # ------------------------------------------------------------------
     GRUP_MENU = {
         # Reporting
-        "lagging_indicator": ("Safety", "Reporting"),
-        "golden_rules_recap": ("Safety", "Reporting"),
-        "emergency_drill_recap": ("Safety", "Reporting"),
-        "mwt_recapitulation": ("Safety", "Reporting"),
-        "safety_recap": ("Safety", "Reporting"),
+        # 2026-09-11 (tools/probe_reporting_subgroup.py): OPEL memecah
+        # Safety > Reporting menjadi subgroup 'Lagging Indicator' &
+        # 'Leading Indicator' -- link tidak lagi langsung di Reporting.
+        # Safety Recap HILANG dari sidebar (None = buka lewat URL
+        # langsung, lihat buka_via_menu).
+        "lagging_indicator": ("Safety", "Reporting", "Lagging Indicator"),
+        "golden_rules_recap": ("Safety", "Reporting", "Leading Indicator"),
+        "emergency_drill_recap": (
+            "Safety", "Reporting", "Leading Indicator"),
+        "mwt_recapitulation": ("Safety", "Reporting", "Leading Indicator"),
+        "safety_recap": None,
         # Transaction > Leading Indicator
         # CATATAN 2026-08-31 (probe tools/probe_menu_href.py): 3
         # halaman DailyReport berada di dalam subgroup BERSARANG
@@ -331,6 +349,20 @@ class HssSafetyPage(BasePage):
             "Safety", "Transaction", "Lagging Indicator"),
         "smk3": ("Safety", "Transaction", "Lagging Indicator"),
         "smkp": ("Safety", "Transaction", "Lagging Indicator"),
+    }
+
+    # href link SIDEBAR yang berbeda dari HALAMAN (URL langsung). Sejak
+    # 2026-09-11 link Reporting di menu mengarah ke Period Report
+    # (tools/probe_period_report.py): tabel reportData + Export/Cancel
+    # tetap ada, tapi filter tbDate/cbDistrict diganti dropdown
+    # District/Period. URL lama (HALAMAN) masih bisa dibuka langsung dan
+    # tetap dipakai test *_view / export -- jadi hanya jalur MENU yang
+    # memakai href ini.
+    HREF_MENU = {
+        "lagging_indicator": "Reporting/PeriodReport/View?Id=1306",
+        "golden_rules_recap": "Reporting/PeriodReport/View?Id=1324",
+        "emergency_drill_recap": "Reporting/PeriodReport/View?Id=1325",
+        "mwt_recapitulation": "Reporting/PeriodReport/View?Id=1323",
     }
 
     # ------------------------------------------------------------------
@@ -674,6 +706,13 @@ class HssSafetyPage(BasePage):
                 f"Kunci halaman '{kunci}' tidak dikenal. Pilihan: "
                 f"{', '.join(sorted(self.HALAMAN))}"
             )
+        if self.GRUP_MENU[kunci] is None:
+            # halaman sudah tidak ada di sidebar (Safety Recap sejak
+            # 2026-09-11) -- satu-satunya jalan = URL langsung
+            print(f"  [menu] '{kunci}' tidak ada di sidebar -- dibuka "
+                  "lewat URL langsung")
+            self.buka_halaman(kunci)
+            return self
         # 0) pulihkan viewport dulu -- sidebar OPEL auto-collapse kalau
         #    jendela sempit, dan navigasi lewat menu jadi mustahil.
         self.pulihkan_viewport()
@@ -707,7 +746,7 @@ class HssSafetyPage(BasePage):
             self.buka_submenu(judul, induk=induk, rantai=tuple(rantai))
             induk = judul
         # 3) klik link halaman di sidebar
-        href = self.HALAMAN[kunci]
+        href = self.HREF_MENU.get(kunci, self.HALAMAN[kunci])
         url = config.BASE_URL.rstrip("/") + "/" + href.lstrip("/")
         lokasi = (By.XPATH, f"//nav//a[contains(@href,'{href}')]")
         # Retry INI dulu tidak pernah jalan untuk kasus link belum
@@ -1086,27 +1125,81 @@ class HssSafetyPage(BasePage):
         """Klik Reload Data lalu tunggu data selesai dimuat ulang
         (overlay Processing hilang + tabel tampil).
 
-        Tombol Reload kadang TIDAK ter-render oleh SPA (quirk stuck
+        Kembalikan True kalau tombolnya BENAR-BENAR diklik, False kalau
+        jatuh ke fallback navigasi. Pemanggil WAJIB memeriksa nilai ini
+        sebelum menyimpulkan apa pun soal draft lokal -- lihat catatan
+        di bawah.
+
+        DUA TOMBOL, BUKAN SATU (ketahuan 2026-09-10)
+        --------------------------------------------
+        Halaman Transaction punya `#btnReloadData` di toolbar, TAPI
+        aplikasi DEV menyembunyikannya di dalam `div.panel-tag.d-none`
+        (display:none, 0x0) di SEMUA halaman kecuali Master Alat --
+        sudah tercatat di TOMBOL_HALAMAN sejak 2026-08-26. Tombol yang
+        benar-benar dipakai manusia adalah tombol **di dalam banner
+        'stored locally'**, dan itu elemen LAIN yang hanya muncul saat
+        ada perubahan pending.
+
+        Selama ini `reload_data()` cuma mencari `#btnReloadData`, gagal,
+        lalu diam-diam `driver.get()`. Navigasi biasa JUSTRU memulihkan
+        draft, jadi test yang mengandalkan fungsi ini untuk membuang
+        draft gagal PALSU dan dilaporkan sebagai bug aplikasi.
+
+        Tombol Reload kadang juga tidak ter-render oleh SPA (quirk stuck
         yang sama dengan navigasi antar-halaman, 2026-08-21) -- kalau
         belum tampil setelah timeout, navigasi ulang lalu coba lagi
         (remedy terbukti; bisa butuh 2x navigasi)."""
+        diklik = False
         for _ in range(3):
             try:
-                self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
+                # Tombol di BANNER lebih dulu -- itu yang tampil ke user.
+                # click_js_saat_tampil memindai SEMUA match dan memilih
+                # yang tampil menurut computed style, jadi #btnReloadData
+                # yang hidden di toolbar tidak ikut tertangkap (is_visible
+                # TIDAK dipakai di sini: ia mengunci ke match PERTAMA di
+                # DOM, yang justru tombol toolbar yang hidden itu).
+                try:
+                    self.click_js_saat_tampil(self.BTN_RELOAD_BANNER, timeout=5)
+                except TimeoutException:
+                    self.click_js_saat_tampil(self.BTN_RELOAD_DATA)
+                diklik = True
                 break
             except TimeoutException:
+                # PERINGATAN: fallback ini NAVIGASI BIASA, dan navigasi
+                # biasa justru MEMULIHKAN draft lokal (fitur OPEL). Jadi
+                # kalau jalur ini yang terpakai, draft TIDAK terbuang --
+                # test yang mengandalkan reload_data() untuk membuang
+                # draft akan gagal PALSU. Dicatat supaya kelihatan di log.
+                print("[reload_data] tombol Reload Data tidak tampil -- "
+                      "fallback navigasi (draft TIDAK terbuang)")
                 self.driver.get(self.driver.current_url)
                 self._tunggu_tabel()
                 self.tunggu_processing_selesai()
+        # URUTAN PENTING (koreksi 2026-09-10). Sebelumnya dialognya
+        # dijawab SESUDAH tunggu-processing. Itu salah: Reload Data
+        # menampilkan dialog LEBIH DULU, dan pemuatan ulang baru jalan
+        # SESUDAH dialog dijawab. Akibatnya tunggu-processing selesai
+        # seketika (belum ada apa-apa yang jalan), tabel lama -- yang
+        # masih berisi draft -- lolos _tunggu_tabel(), lalu fungsi ini
+        # RETURN tepat saat pemuatan ulang baru dimulai. Pembacaan
+        # sesudahnya mendapat nilai DRAFT, bukan nilai server, dan
+        # dilaporkan sebagai "Reload Data tidak membuang draft lokal".
+        self.jawab_konfirmasi()
         self.tunggu_processing_selesai()
         self._tunggu_tabel()
-        # Reload Data memunculkan dialog info (bootbox) yang HARUS
-        # dijawab -- kalau dibiarkan, modal berikutnya menumpuk di
-        # atasnya dan tunggu-modal-tertutup tidak pernah tercapai
-        # (2026-08-24).
+        # dialog susulan (mis. pesan sukses) sesudah pemuatan ulang
         self.jawab_konfirmasi()
         if self._ada_modal_tampil():
             self.tutup_modal()
+        # Banner 'stored locally' HILANG = draft benar-benar dibuang.
+        # Itu sinyal aplikasi sendiri, jadi jauh lebih andal daripada
+        # menebak lewat jeda. Kalau tidak hilang juga, biarkan -- yang
+        # menilai gagal/tidaknya adalah assert di test, bukan di sini.
+        try:
+            self._wait(10).until(lambda d: not self.ada_pending_lokal())
+        except TimeoutException:
+            pass
+        return diklik
 
     def export_data(self):
         """Klik Export (unduh file -- halaman tidak berpindah) lalu

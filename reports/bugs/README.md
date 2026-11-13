@@ -4,21 +4,28 @@ Ringkasan status semua laporan di folder ini. **Baca ini dulu** sebelum
 mengirim apa pun ke tim dev OPEL — sebagian laporan sudah ditutup dan
 tidak boleh dikirim.
 
-Terakhir diperbarui: **2026-09-08**
+Terakhir diperbarui: **2026-09-11**
 
 | Laporan | Status | Kirim ke dev? |
 |---|---|---|
-| [submit-changes-redirect-tanpa-menyimpan](submit-changes-redirect-tanpa-menyimpan.md) | **TERBUKA** | **YA** |
-| [witness-statement-submit-membuang-semua-baris-pending](witness-statement-submit-membuang-semua-baris-pending.md) | **TERBUKA** | **YA** |
-| [statistic-safety-recap-inline-edit-tidak-tersimpan](statistic-safety-recap-inline-edit-tidak-tersimpan.md) | Gejala dari laporan di atas | Tidak — sudah tercakup |
+| [submit-changes-redirect-tanpa-menyimpan](submit-changes-redirect-tanpa-menyimpan.md) | **DITUTUP** — sudah diperbaiki aplikasi (2026-09-10) | Tidak |
+| [witness-statement-submit-membuang-semua-baris-pending](witness-statement-submit-membuang-semua-baris-pending.md) | **TERBUKA** (intermiten) | **YA** |
+| [statistic-safety-recap-inline-edit-tidak-tersimpan](statistic-safety-recap-inline-edit-tidak-tersimpan.md) | Gejala dari laporan Id=1317 — ikut selesai | Tidak |
 | [master-alat-submit-drops-new-row](master-alat-submit-drops-new-row.md) | Sudah diperbaiki aplikasi | Tidak |
 | [lagging-cancel-does-not-discard-edit](lagging-cancel-does-not-discard-edit.md) | BUKAN BUG (salah asumsi test) | Tidak |
 
 ---
 
-## 1. Submit Changes redirect tanpa menyimpan — **TERBUKA**
+## 1. Submit Changes redirect tanpa menyimpan — **DITUTUP (2026-09-10)**
 
-Satu-satunya bug aplikasi yang masih terbuka.
+**Sudah diperbaiki aplikasi.** Id=1317 memang seharusnya
+`YearlyReport`; saat bug dilaporkan, halamannya masih dirender sebagai
+`MonthlyReport/Edit` sementara link sidebar dan tujuan Submit sudah
+`YearlyReport/Edit`. Per 2026-09-10 semuanya konsisten Yearly dan tidak
+ada lagi redirect. Sifat "intermiten"-nya berasal dari perbaikan yang
+berlangsung saat pengujian. **Jangan dikirim ke tim dev.**
+
+Riwayat saat laporan masih terbuka:
 
 - **Halaman**: Statistic Safety Recapitulation, `MonthlyReport/Edit?Id=1317`
 - **Gejala**: klik Submit Changes langsung me-redirect ke
@@ -30,12 +37,15 @@ Satu-satunya bug aplikasi yang masih terbuka.
   WAJIB disebut saat melapor, supaya tidak ditutup sebagai
   "cannot reproduce".
 - **Bukan efek testing**: terulang di incognito dan di mesin lain.
-- **Di suite**: didaftar di
+- **Di suite**: sempat didaftar di
   `HssSafetyPage.SUBMIT_REDIRECT_TANPA_SIMPAN` supaya suite tidak merah
-  permanen. Pemeriksaan penyimpanan dilonggarkan jadi peringatan
-  `[BUG DIKENAL]`; langkah lain tetap di-assert ketat.
+  permanen (pemeriksaan penyimpanan dilonggarkan jadi peringatan
+  `[BUG DIKENAL]`). **Set itu dikosongkan 2026-09-10** — pemeriksaan
+  penyimpanan halaman ini kembali di-assert penuh.
 
 ## 2. Witness Statement — Submit membuang SEMUA baris pending — **TERBUKA**
+
+Satu-satunya bug aplikasi yang masih terbuka.
 
 - **Halaman**: Witness Statement Report, `DailyReport/Edit?Id=1336`
 - **Gejala**: user mengisi field wajib yang diminta validasi, klik
